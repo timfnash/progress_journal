@@ -369,7 +369,13 @@
     });
   });
 
-  function isoDate(d) { return d.toISOString().split('T')[0]; }
+  function getWriteDate() {
+    const val = document.getElementById('writeDatePicker').value;
+    if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    const today = isoDate(new Date());
+    document.getElementById('writeDatePicker').value = today;
+    return today;
+  }
 
   // ── Date change ───────────────────────────────────────────
   function changeWriteDate(dateStr) {
@@ -386,7 +392,7 @@
 
   // ── Tasks ─────────────────────────────────────────────────
   async function getTasks(date) {
-    date = date || document.getElementById('writeDatePicker').value || isoDate(new Date());
+    date = date || getWriteDate();
     const btn = document.getElementById('getTasksBtn');
     setBtnLoading(btn, 'Fetching…');
     document.getElementById('tasksStatus').innerHTML = '';
@@ -503,7 +509,7 @@
 
   // ── Check today's Notion entry ────────────────────────────
   async function checkTodayEntry(date) {
-    date = date || document.getElementById('writeDatePicker').value || isoDate(new Date());
+    date = date || getWriteDate();
     try {
       const entry = await api('getEntryForDate', { date });
       if (!entry) return;
@@ -528,7 +534,7 @@
     const btn = document.getElementById('saveBtn');
     setBtnLoading(btn, 'Saving…');
     const payload = {
-      date:       document.getElementById('writeDatePicker').value || isoDate(new Date()),
+      date:       getWriteDate(),
       tasksText:  tasksAsText(),
       reflection: document.getElementById('reflectionBox').value.trim(),
     };
