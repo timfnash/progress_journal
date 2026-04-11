@@ -330,7 +330,7 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL'; // paste your deployed Apps Script URL here
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec'; // paste your deployed Apps Script URL here
 
   // ── State ─────────────────────────────────────────────────
   let tasksData      = [];
@@ -343,7 +343,11 @@
       method:  'POST',
       body:    JSON.stringify({ action, params: params || {} }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    if (text.trim().startsWith('<')) {
+      throw new Error('Apps Script returned an error page — check deployment is set to "Anyone" access and URL is correct.');
+    }
+    const data = JSON.parse(text);
     if (!data.success) throw new Error(data.error);
     return data.data;
   }
@@ -354,7 +358,10 @@
     const todayStr = isoDate(now);
     document.getElementById('todayLabel').textContent =
       now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
-    document.getElementById('writeDatePicker').value = todayStr;
+    // Set date picker with a short delay to ensure DOM is fully ready
+    setTimeout(() => {
+      document.getElementById('writeDatePicker').value = todayStr;
+    }, 50);
     document.getElementById('filterFrom').value = todayStr;
     document.getElementById('filterTo').value   = todayStr;
     checkTodayEntry();
