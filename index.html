@@ -330,7 +330,7 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec'; // paste your deployed Apps Script URL here
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec'; // paste your deployed Apps Script URL here // paste your deployed Apps Script URL here
 
   // ── State ─────────────────────────────────────────────────
   let tasksData      = [];
@@ -358,14 +358,9 @@
     const todayStr = isoDate(now);
     document.getElementById('todayLabel').textContent =
       now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
-    // Set date picker with a short delay to ensure DOM is fully ready
-    setTimeout(() => {
-      document.getElementById('writeDatePicker').value = todayStr;
-    }, 50);
+    document.getElementById('writeDatePicker').value = todayStr;
     document.getElementById('filterFrom').value = todayStr;
     document.getElementById('filterTo').value   = todayStr;
-    checkTodayEntry();
-    getTasks();
 
     document.getElementById('screenshotInput').addEventListener('change', function() {
       const files = this.files;
@@ -374,6 +369,12 @@
       document.getElementById('screenshotName').textContent = label;
       document.getElementById('clearScreenshotBtn').style.display = 'inline';
     });
+
+    // Small delay ensures picker value is committed before API calls read it
+    setTimeout(() => {
+      checkTodayEntry();
+      getTasks();
+    }, 100);
   });
 
   function getWriteDate() {
@@ -452,7 +453,7 @@
       const list    = typeof t === 'object' ? (t.list || '—') : '—';
       const starred = typeof t === 'object' ? !!t.starred : false;
       if (!groups[list]) groups[list] = [];
-      groups[list].push({ title, starred, idx: i });
+      groups[list].push({ title, starred, idx: i, list }); // ← list included on item
     });
     const keys = Object.keys(groups).sort((a, b) => {
       const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
