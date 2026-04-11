@@ -330,7 +330,7 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec'; // paste your deployed Apps Script URL here
+  const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL'; // paste your deployed Apps Script URL here
 
   // ── State ─────────────────────────────────────────────────
   let tasksData      = [];
@@ -391,10 +391,20 @@
     setBtnLoading(btn, 'Fetching…');
     document.getElementById('tasksStatus').innerHTML = '';
     try {
-      const tasks = await api('getTasksForDate', { date });
-      tasksData = tasks;
+      const entry = await api('getEntryForDate', { date });
       setBtnLoading(btn, null);
       btn.textContent = 'Refresh tasks';
+      if (entry && entry.tasksText) {
+        tasksData = entry.tasksText.split('\n').map(l => {
+          const line = l.replace(/^•\s*/, '').trim();
+          const m    = line.match(/^\[(.+?)\]\s+(★\s+)?(.+)$/);
+          if (m) return { list: m[1], starred: !!m[2], title: m[3] };
+          const starred = line.startsWith('★ ');
+          return { list: '—', starred, title: starred ? line.slice(2) : line };
+        }).filter(t => t.title);
+      } else {
+        tasksData = [];
+      }
       renderTasks();
     } catch(err) {
       setBtnLoading(btn, null);
