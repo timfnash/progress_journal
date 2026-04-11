@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tim's Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:         #0d0d0d;
+      --surface:    #171717;
+      --surface2:   #202020;
+      --border:     #2a2a2a;
+      --text:       #e4e4e4;
+      --muted:      #777;
+      --accent:     #c8a96e;
+      --accent-dim: rgba(200,169,110,0.12);
+      --green:      #6eb87e;
+      --green-dim:  rgba(110,184,126,0.12);
+      --red:        #c87070;
+      --red-dim:    rgba(200,112,112,0.12);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100dvh;
+      padding-bottom: 82px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 24px 16px 16px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0;
+      background: var(--bg); z-index: 30;
+    }
+    .header h1 { font-size: 30px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); }
+    .header .today { font-size: 17px; color: var(--muted); margin-top: 6px; }
+
+    /* ── Tab toggle ── */
+    .tab-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; justify-content: flex-start; align-items: center;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 12px 12px 16px; z-index: 40;
+    }
+    .tab-toggle {
+      display: inline-flex; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; width: 200px;
+    }
+    .tab-btn {
+      flex: 1; padding: 9px 0; background: none; border: none;
+      color: var(--muted); font-size: 14px; font-weight: 500;
+      font-family: 'Jost', sans-serif;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .tab-btn.active { background: var(--accent); color: #111; border-radius: 8px; }
+
+    /* ── Views ── */
+    .view { display: none; padding: 14px 12px 0; }
+    .view.active { display: block; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; margin-bottom: 14px;
+    }
+    .card-label {
+      font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 13px 22px; border-radius: 10px; border: none;
+      font-size: 16px; font-weight: 500; font-family: 'Jost', sans-serif;
+      cursor: pointer; transition: opacity 0.15s; white-space: nowrap; max-width: 100%;
+    }
+    .btn:disabled { opacity: 0.38; cursor: default; }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-outline  { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .action-btn   { width: 200px; }
+
+    /* ── Task rows (write view) ── */
+    .task-row {
+      font-size: 15px; color: var(--text);
+      padding: 6px 0 6px 16px;
+      position: relative; line-height: 1.45;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-row:last-child { border-bottom: none; }
+    .task-row::before { content: '•'; position: absolute; left: 4px; color: var(--text); }
+    .empty-note { font-size: 15px; color: var(--muted); text-align: center; padding: 16px 0; }
+
+    /* ── Textarea ── */
+    textarea {
+      width: 100%; min-height: 130px;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px; line-height: 1.65; padding: 14px; resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    /* ── Inputs ── */
+    input[type="text"] {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Jost', sans-serif; font-size: 15px; padding: 10px 12px;
+    }
+    input[type="text"]:focus { outline: none; border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    input[type="date"], select {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px;
+      padding: 10px 12px; width: 100%; display: block;
+      direction: ltr; text-align: left;
+      -webkit-appearance: none; appearance: none;
+      color-scheme: dark;
+    }
+    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+    input[type="date"]:focus, select:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Photo row ── */
+    .photo-row { display: flex; align-items: center; gap: 10px; }
+    .photo-name { font-size: 15px; color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+    /* ── Status ── */
+    .status { font-size: 15px; padding: 11px 14px; border-radius: 8px; margin-top: 12px; line-height: 1.45; }
+    .status.info { background: var(--accent-dim); color: var(--accent); }
+    .status.ok   { background: var(--green-dim);  color: var(--green);  }
+    .status.err  { background: var(--red-dim);    color: var(--red);    }
+
+    /* ── Spinner ── */
+    .spin {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: currentColor; border-radius: 50%;
+      animation: rot 0.65s linear infinite; vertical-align: -2px;
+    }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* ── Filter stack ── */
+    .filter-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .filter-stack label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    .field-label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+
+    /* ── Entry cards (read view) ── */
+    .entry-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+    .entry-date-bar { padding: 13px 16px; font-size: 16px; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); border-bottom: 1px solid var(--border); }
+    .entry-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .entry-section:last-child { border-bottom: none; }
+    .entry-section-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .entry-tasks      { font-size: 15px; color: var(--text); white-space: pre-wrap; line-height: 1.8; word-break: break-word; }
+    .entry-reflection { font-size: 16px; color: var(--text); white-space: pre-line; line-height: 1.8; }
+    .feed-empty { text-align: center; color: var(--muted); font-size: 16px; padding: 48px 0; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <h1>Tim's Journal</h1>
+  <div class="today" id="todayLabel"></div>
+</header>
+
+<!-- ══════════════ WRITE VIEW ══════════════ -->
+<section class="view active" id="writeView">
+
+  <!-- Date picker -->
+  <div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
+    <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;">Editing</div>
+    <input type="date" id="writeDatePicker" onchange="changeWriteDate(this.value)"
+      style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:8px 12px;text-align:left;direction:ltr;color-scheme:dark;">
+  </div>
+
+  <!-- Add task -->
+  <div class="card">
+    <div class="card-label">Add task</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <select id="manualTaskList"
+        style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:10px 10px;color-scheme:dark;width:110px;flex-shrink:0;">
+        <option value="—">—</option>
+        <option value="Basic">Basic</option>
+        <option value="Personal">Personal</option>
+        <option value="Work" selected>Work</option>
+        <option value="Zipf">Zipf</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="manualTaskInput" placeholder="Type task…"
+        style="flex:1;" onkeydown="if(event.key==='Enter') addManualTask()">
+    </div>
+    <button class="btn btn-primary action-btn" onclick="addManualTask()">Add task</button>
+    <div id="manualTaskStatus"></div>
+  </div>
+
+  <!-- Import tasks -->
+  <div class="card">
+    <div class="card-label">Import tasks</div>
+
+    <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <button class="btn btn-outline" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</button>
+      <span style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
+        <span id="screenshotName" style="font-size:15px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <button id="clearScreenshotBtn" onclick="clearScreenshot()" style="display:none;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">✕</button>
+      </span>
+    </div>
+    <button class="btn btn-primary action-btn" id="extractBtn" onclick="extractFromScreenshot()">Extract from screenshot</button>
+
+    <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:12px;color:var(--muted);letter-spacing:0.06em;">OR</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <button class="btn btn-outline" id="recordBtn" onclick="toggleRecording()">🎤 Record</button>
+      <span id="recordStatus" style="font-size:15px;color:var(--muted);flex:1;"></span>
+    </div>
+    <button class="btn btn-primary action-btn" id="extractVoiceBtn" onclick="extractFromVoice()" style="display:none;">Extract from recording</button>
+
+    <div id="screenshotStatus"></div>
+    <textarea id="extractedBox" placeholder="Extracted tasks will appear here…" style="margin-top:12px;min-height:100px;display:none;"></textarea>
+    <div style="margin-top:10px;display:none;" id="addTasksRow">
+      <button class="btn btn-primary action-btn" onclick="addExtractedTasks()">Add to tasks</button>
+    </div>
+  </div>
+
+  <!-- Today's tasks -->
+  <div class="card">
+    <div class="card-label">Today's completed tasks</div>
+    <button class="btn btn-primary action-btn" id="getTasksBtn" onclick="getTasks()">Refresh tasks</button>
+    <div id="tasksStatus"></div>
+    <div id="tasksDisplay" style="margin-top:14px;"></div>
+  </div>
+
+  <!-- Add reflection -->
+  <div class="card">
+    <div class="card-label">Add reflection</div>
+    <textarea id="reflectionBox" placeholder="Write your reflection for today…"></textarea>
+  </div>
+
+  <!-- Import reflection -->
+  <div class="card">
+    <div class="card-label">Import reflection</div>
+
+    <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handlePhoto(event)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <button class="btn btn-outline" onclick="document.getElementById('photoInput').click()">📷 Screenshot</button>
+      <span class="photo-name" id="photoName"></span>
+    </div>
+    <div id="ocrStatus"></div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="font-size:12px;color:var(--muted);letter-spacing:0.06em;">OR</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn btn-outline" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</button>
+      <span id="reflectionRecordStatus" style="font-size:15px;color:var(--muted);flex:1;"></span>
+    </div>
+    <div id="reflectionVoiceStatus"></div>
+  </div>
+
+  <button class="btn btn-primary action-btn" id="saveBtn" onclick="saveEntry()" style="margin-bottom:16px;">Save entry</button>
+  <div id="saveStatus"></div>
+  <div style="height:10px;"></div>
+
+</section>
+
+<!-- ══════════════ READ VIEW ══════════════ -->
+<section class="view" id="readView">
+
+  <div class="card">
+    <div class="card-label">Filter</div>
+    <div class="filter-stack">
+      <label>From<input type="date" id="filterFrom"></label>
+      <label>To<input type="date" id="filterTo"></label>
+    </div>
+    <div class="field-label" style="margin-bottom:14px;">
+      Show
+      <select id="filterField">
+        <option value="all">Everything</option>
+        <option value="tasks">Tasks only</option>
+        <option value="starred">Starred tasks</option>
+        <option value="reflection">Reflections only</option>
+        <optgroup label="Tasks by list">
+          <option value="list:Basic">Basic</option>
+          <option value="list:Personal">Personal</option>
+          <option value="list:Work">Work</option>
+          <option value="list:Zipf">Zipf</option>
+          <option value="list:Other">Other</option>
+        </optgroup>
+      </select>
+    </div>
+    <button class="btn btn-primary action-btn" onclick="loadEntries()">Load entries</button>
+    <div id="loadStatus"></div>
+  </div>
+
+  <div id="entryFeed"></div>
+
+</section>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav class="tab-nav">
+  <div class="tab-toggle">
+    <button class="tab-btn active" id="tab-write" onclick="switchTab('write')">Write</button>
+    <button class="tab-btn"        id="tab-read"  onclick="switchTab('read')">Read</button>
+  </div>
+</nav>
+
+<script>
+  // ── Config ────────────────────────────────────────────────
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec'; // paste your deployed Apps Script URL here
+
+  // ── State ─────────────────────────────────────────────────
+  let tasksData      = [];
+  let existingPageId = null;
+  let extractedTasks = [];
+
+  // ── API helper ────────────────────────────────────────────
+  async function api(action, params) {
+    const res = await fetch(SCRIPT_URL, {
+      method:  'POST',
+      body:    JSON.stringify({ action, params: params || {} }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+    return data.data;
+  }
+
+  // ── Init ──────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const now = new Date();
+    const todayStr = isoDate(now);
+    document.getElementById('todayLabel').textContent =
+      now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
+    document.getElementById('writeDatePicker').value = todayStr;
+    document.getElementById('filterFrom').value = todayStr;
+    document.getElementById('filterTo').value   = todayStr;
+    checkTodayEntry();
+    getTasks();
+
+    document.getElementById('screenshotInput').addEventListener('change', function() {
+      const files = this.files;
+      if (!files || !files.length) return;
+      const label = files.length === 1 ? files[0].name : files.length + ' files selected';
+      document.getElementById('screenshotName').textContent = label;
+      document.getElementById('clearScreenshotBtn').style.display = 'inline';
+    });
+  });
+
+  function isoDate(d) { return d.toISOString().split('T')[0]; }
+
+  // ── Date change ───────────────────────────────────────────
+  function changeWriteDate(dateStr) {
+    if (!dateStr) return;
+    existingPageId = null;
+    tasksData      = [];
+    document.getElementById('reflectionBox').value    = '';
+    document.getElementById('tasksDisplay').innerHTML = '';
+    document.getElementById('tasksStatus').innerHTML  = '';
+    document.getElementById('saveBtn').textContent    = 'Save entry';
+    getTasks(dateStr);
+    checkTodayEntry(dateStr);
+  }
+
+  // ── Tasks ─────────────────────────────────────────────────
+  async function getTasks(date) {
+    date = date || document.getElementById('writeDatePicker').value || isoDate(new Date());
+    const btn = document.getElementById('getTasksBtn');
+    setBtnLoading(btn, 'Fetching…');
+    document.getElementById('tasksStatus').innerHTML = '';
+    try {
+      const tasks = await api('getTasksForDate', { date });
+      tasksData = tasks;
+      setBtnLoading(btn, null);
+      btn.textContent = 'Refresh tasks';
+      renderTasks();
+    } catch(err) {
+      setBtnLoading(btn, null);
+      btn.textContent = 'Refresh tasks';
+      showStatus('tasksStatus', 'Error: ' + err.message, 'err');
+    }
+  }
+
+  function addManualTask() {
+    const input = document.getElementById('manualTaskInput');
+    const title = input.value.trim();
+    if (!title) { showStatus('manualTaskStatus', 'Please enter a task title.', 'err'); return; }
+    const list = document.getElementById('manualTaskList').value;
+    const existingLower = new Set(tasksData.map(t => (typeof t === 'object' ? t.title : t).toLowerCase()));
+    if (existingLower.has(title.toLowerCase())) { showStatus('manualTaskStatus', 'Task already in list.', 'err'); return; }
+    tasksData.push({ title, list, starred: false });
+    renderTasks();
+    input.value = '';
+    input.focus();
+    showStatus('manualTaskStatus', '✓ Added', 'ok');
+    setTimeout(() => document.getElementById('manualTaskStatus').innerHTML = '', 2000);
+  }
+
+  // ── Render tasks ──────────────────────────────────────────
+  const LIST_ORDER   = ['Basic', 'Personal', 'Work', 'Zipf'];
+  const LIST_OPTIONS = ['—', 'Basic', 'Personal', 'Work', 'Zipf', 'Other'];
+
+  function groupTasksByList(tasks) {
+    const groups = {};
+    tasks.forEach((t, i) => {
+      const title   = typeof t === 'object' ? t.title   : t;
+      const list    = typeof t === 'object' ? (t.list || '—') : '—';
+      const starred = typeof t === 'object' ? !!t.starred : false;
+      if (!groups[list]) groups[list] = [];
+      groups[list].push({ title, starred, idx: i });
+    });
+    const keys = Object.keys(groups).sort((a, b) => {
+      const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1; if (bi === -1) return -1;
+      return ai - bi;
+    });
+    return keys.map(k => ({ list: k, items: groups[k] }));
+  }
+
+  function renderGroupedTasks(groups, withHeadings) {
+    return groups.map(g => {
+      const heading = (withHeadings && g.list && g.list !== '—')
+        ? `<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);padding:10px 0 4px;">${esc(g.list)}</div>`
+        : '';
+      const rows = g.items.map(item => {
+        const opts = LIST_OPTIONS.map(l =>
+          `<option value="${l}"${l === item.list ? ' selected' : ''}>${l}</option>`
+        ).join('');
+        return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);">
+          <select onchange="updateTaskList(${item.idx},this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Jost',sans-serif;font-size:13px;padding:5px 6px;width:90px;flex-shrink:0;color-scheme:dark;">${opts}</select>
+          <input type="text" value="${esc(item.title)}" onchange="updateTaskTitle(${item.idx},this.value)" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:5px 4px;min-width:0;" />
+          <button onclick="toggleStar(${item.idx})" style="background:none;border:none;font-size:17px;cursor:pointer;color:${item.starred ? '#c8a96e' : 'var(--muted)'};flex-shrink:0;padding:0;line-height:1;">${item.starred ? '★' : '☆'}</button>
+          <button onclick="deleteTask(${item.idx})" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);flex-shrink:0;padding:0;line-height:1;">✕</button>
+        </div>`;
+      }).join('');
+      return heading + rows;
+    }).join('');
+  }
+
+  function renderTasks() {
+    const display = document.getElementById('tasksDisplay');
+    if (!tasksData.length) {
+      display.innerHTML = '<div class="empty-note">No completed tasks found for today yet.</div>';
+      return;
+    }
+    const groups = groupTasksByList(tasksData);
+    const withHeadings = groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—');
+    display.innerHTML = renderGroupedTasks(groups, withHeadings);
+  }
+
+  function tasksAsText() {
+    return tasksData.map(t => {
+      const list    = typeof t === 'object' ? (t.list    || '—') : '—';
+      const title   = typeof t === 'object' ? t.title   : t;
+      const starred = typeof t === 'object' ? !!t.starred : false;
+      const star    = starred ? '★ ' : '';
+      return list && list !== '—' ? `• [${list}] ${star}${title}` : `• ${star}${title}`;
+    }).join('\n');
+  }
+
+  function updateTaskTitle(index, value) { if (tasksData[index]) tasksData[index].title = value.trim(); }
+  function updateTaskList(index, value)  { if (tasksData[index]) { tasksData[index].list = value; renderTasks(); } }
+  function deleteTask(index)             { tasksData.splice(index, 1); renderTasks(); }
+  function toggleStar(index) {
+    if (!tasksData[index]) return;
+    if (typeof tasksData[index] === 'string') tasksData[index] = { title: tasksData[index], list: '—', starred: true };
+    else tasksData[index].starred = !tasksData[index].starred;
+    renderTasks();
+  }
+
+  // ── Check today's Notion entry ────────────────────────────
+  async function checkTodayEntry(date) {
+    date = date || document.getElementById('writeDatePicker').value || isoDate(new Date());
+    try {
+      const entry = await api('getEntryForDate', { date });
+      if (!entry) return;
+      existingPageId = entry.id;
+      if (entry.reflection) document.getElementById('reflectionBox').value = entry.reflection;
+      if (entry.tasksText) {
+        tasksData = entry.tasksText.split('\n').map(l => {
+          const line = l.replace(/^•\s*/, '').trim();
+          const m    = line.match(/^\[(.+?)\]\s+(★\s+)?(.+)$/);
+          if (m) return { list: m[1], starred: !!m[2], title: m[3] };
+          const starred = line.startsWith('★ ');
+          return { list: '—', starred, title: starred ? line.slice(2) : line };
+        }).filter(t => t.title);
+        renderTasks();
+      }
+      document.getElementById('saveBtn').textContent = 'Update entry';
+    } catch(err) { /* silent */ }
+  }
+
+  // ── Save / update entry ───────────────────────────────────
+  async function saveEntry() {
+    const btn = document.getElementById('saveBtn');
+    setBtnLoading(btn, 'Saving…');
+    const payload = {
+      date:       document.getElementById('writeDatePicker').value || isoDate(new Date()),
+      tasksText:  tasksAsText(),
+      reflection: document.getElementById('reflectionBox').value.trim(),
+    };
+    try {
+      if (existingPageId) {
+        await api('updateEntry', { pageId: existingPageId, payload });
+        setBtnLoading(btn, null); btn.textContent = 'Update entry';
+        showStatus('saveStatus', '✓ Entry updated in Notion', 'ok');
+      } else {
+        const result = await api('saveEntry', { payload });
+        existingPageId = result.id;
+        setBtnLoading(btn, null); btn.textContent = 'Update entry';
+        showStatus('saveStatus', '✓ Entry saved to Notion', 'ok');
+      }
+      autoClear('saveStatus', 4000);
+    } catch(err) {
+      setBtnLoading(btn, null);
+      btn.textContent = existingPageId ? 'Update entry' : 'Save entry';
+      showStatus('saveStatus', 'Save failed: ' + err.message, 'err');
+    }
+  }
+
+  // ── Screenshot extraction ─────────────────────────────────
+  function clearScreenshot() {
+    document.getElementById('screenshotInput').value = '';
+    document.getElementById('screenshotName').textContent = '';
+    document.getElementById('clearScreenshotBtn').style.display = 'none';
+    document.getElementById('extractedBox').style.display = 'none';
+    document.getElementById('addTasksRow').style.display  = 'none';
+    document.getElementById('screenshotStatus').innerHTML = '';
+  }
+
+  async function extractFromScreenshot() {
+    const input = document.getElementById('screenshotInput');
+    if (!input.files || !input.files.length) {
+      showStatus('screenshotStatus', 'Please select a screenshot first.', 'err'); return;
+    }
+    const files = Array.from(input.files);
+    extractedTasks = [];
+    const btn = document.getElementById('extractBtn');
+    setBtnLoading(btn, 'Extracting…');
+    document.getElementById('extractedBox').style.display = 'none';
+    document.getElementById('addTasksRow').style.display  = 'none';
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        showStatus('screenshotStatus', `<span class="spin"></span> Extracting from image ${i+1} of ${files.length}…`, 'info');
+        const base64    = await toBase64(files[i]);
+        const mediaType = files[i].type || 'image/jpeg';
+        const extracted = await api('extractTasksFromImage', { base64Data: base64, mediaType });
+        extractedTasks  = extractedTasks.concat(extracted || []);
+      }
+
+      setBtnLoading(btn, null); btn.textContent = 'Extract from screenshot';
+
+      if (!extractedTasks.length) {
+        showStatus('screenshotStatus', 'No completed tasks found.', 'err');
+        clearScreenshot(); return;
+      }
+
+      document.getElementById('extractedBox').value = extractedTasks.map(t =>
+        (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title
+      ).join('\n');
+      document.getElementById('extractedBox').style.display = 'block';
+      document.getElementById('addTasksRow').style.display  = 'block';
+      document.getElementById('screenshotStatus').innerHTML = '';
+      document.getElementById('screenshotInput').value = '';
+      document.getElementById('screenshotName').textContent = '';
+      document.getElementById('clearScreenshotBtn').style.display = 'none';
+
+    } catch(err) {
+      setBtnLoading(btn, null); btn.textContent = 'Extract from screenshot';
+      showStatus('screenshotStatus', 'Error: ' + err.message, 'err');
+    }
+  }
+
+  // ── Task voice recording ──────────────────────────────────
+  let recognition     = null;
+  let voiceTranscript = '';
+  let isRecording     = false;
+
+  function toggleRecording() { isRecording ? stopRecording() : startRecording(); }
+
+  function startRecording() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showStatus('screenshotStatus', 'Voice not supported. Try Safari or Chrome.', 'err'); return; }
+    recognition = new SR();
+    recognition.lang = 'en-GB'; recognition.continuous = true; recognition.interimResults = true;
+    voiceTranscript = ''; isRecording = true;
+    document.getElementById('recordStatus').textContent      = '🔴 Recording…';
+    document.getElementById('recordBtn').textContent         = '⏹ Stop';
+    document.getElementById('extractVoiceBtn').style.display = 'none';
+    document.getElementById('extractedBox').style.display   = 'none';
+    document.getElementById('addTasksRow').style.display    = 'none';
+    document.getElementById('screenshotStatus').innerHTML   = '';
+    recognition.onresult = e => {
+      let t = '';
+      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+      voiceTranscript = t;
+      document.getElementById('recordStatus').textContent = '🔴 ' + t.slice(-60);
+    };
+    recognition.onerror = e => { stopRecording(); showStatus('screenshotStatus', 'Recording error: ' + e.error, 'err'); };
+    recognition.onend   = () => { if (isRecording) stopRecording(); };
+    recognition.start();
+  }
+
+  function stopRecording() {
+    isRecording = false;
+    if (recognition) { try { recognition.stop(); } catch(e) {} }
+    document.getElementById('recordBtn').textContent = '🎤 Record';
+    if (voiceTranscript) {
+      document.getElementById('recordStatus').textContent = '✓ ' + voiceTranscript.slice(0, 80) + (voiceTranscript.length > 80 ? '…' : '');
+      document.getElementById('extractVoiceBtn').style.display = 'inline-flex';
+    } else {
+      document.getElementById('recordStatus').textContent = 'Nothing recorded.';
+    }
+  }
+
+  async function extractFromVoice() {
+    if (!voiceTranscript) return;
+    const btn = document.getElementById('extractVoiceBtn');
+    setBtnLoading(btn, 'Extracting…');
+    showStatus('screenshotStatus', '<span class="spin"></span> Analysing recording…', 'info');
+    try {
+      const extracted = await api('extractTasksFromTranscript', { transcript: voiceTranscript });
+      setBtnLoading(btn, null); btn.textContent = 'Extract from recording';
+      if (!extracted || !extracted.length) {
+        showStatus('screenshotStatus', 'No tasks found in recording.', 'err'); return;
+      }
+      extractedTasks = extracted;
+      document.getElementById('extractedBox').value = extracted.map(t =>
+        (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title
+      ).join('\n');
+      document.getElementById('extractedBox').style.display = 'block';
+      document.getElementById('addTasksRow').style.display  = 'block';
+      document.getElementById('screenshotStatus').innerHTML = '';
+    } catch(err) {
+      setBtnLoading(btn, null); btn.textContent = 'Extract from recording';
+      showStatus('screenshotStatus', 'Error: ' + err.message, 'err');
+    }
+  }
+
+  function addExtractedTasks() {
+    if (!extractedTasks.length) return;
+    const existingLower = new Set(tasksData.map(t => (typeof t === 'object' ? t.title : t).toLowerCase()));
+    extractedTasks.forEach(t => {
+      const key = t.title.trim().toLowerCase();
+      if (!existingLower.has(key)) {
+        tasksData.push({ title: t.title.trim(), list: t.list || '—', starred: false });
+        existingLower.add(key);
+      }
+    });
+    renderTasks();
+    document.getElementById('extractedBox').style.display = 'none';
+    document.getElementById('addTasksRow').style.display  = 'none';
+    extractedTasks = [];
+    document.getElementById('screenshotStatus').innerHTML = '';
+  }
+
+  // ── Reflection OCR ────────────────────────────────────────
+  async function handlePhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    document.getElementById('photoName').textContent = file.name;
+    showStatus('ocrStatus', '<span class="spin"></span> Transcribing…', 'info');
+    try {
+      const base64    = await toBase64(file);
+      const mediaType = file.type || 'image/jpeg';
+      const text      = await api('ocrImage', { base64Data: base64, mediaType });
+      const box       = document.getElementById('reflectionBox');
+      box.value       = box.value ? box.value + '\n\n' + text : text;
+      showStatus('ocrStatus', '✓ Transcription added', 'ok');
+      setTimeout(() => document.getElementById('ocrStatus').innerHTML = '', 4000);
+    } catch(err) {
+      showStatus('ocrStatus', 'OCR failed: ' + err.message, 'err');
+    }
+    e.target.value = '';
+  }
+
+  // ── Reflection voice recording ────────────────────────────
+  let reflectionRecognition = null;
+  let isReflectionRecording = false;
+  let reflectionTranscript  = '';
+
+  function toggleReflectionRecording() { isReflectionRecording ? stopReflectionRecording() : startReflectionRecording(); }
+
+  function startReflectionRecording() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { showStatus('reflectionVoiceStatus', 'Voice not supported. Try Safari or Chrome.', 'err'); return; }
+    reflectionRecognition = new SR();
+    reflectionRecognition.lang = 'en-GB'; reflectionRecognition.continuous = true; reflectionRecognition.interimResults = true;
+    reflectionTranscript = ''; isReflectionRecording = true;
+    document.getElementById('reflectionRecordBtn').textContent    = '⏹ Stop';
+    document.getElementById('reflectionRecordStatus').textContent = '🔴 Recording…';
+    reflectionRecognition.onresult = e => {
+      let final = '', interim = '';
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final   += e.results[i][0].transcript + ' ';
+        else                       interim += e.results[i][0].transcript;
+      }
+      reflectionTranscript = final + interim;
+      document.getElementById('reflectionRecordStatus').textContent = '🔴 ' + reflectionTranscript.slice(-60);
+    };
+    reflectionRecognition.onerror = e => { stopReflectionRecording(); showStatus('reflectionVoiceStatus', 'Recording error: ' + e.error, 'err'); };
+    reflectionRecognition.onend   = () => { if (isReflectionRecording) stopReflectionRecording(); };
+    reflectionRecognition.start();
+  }
+
+  function stopReflectionRecording() {
+    isReflectionRecording = false;
+    if (reflectionRecognition) { try { reflectionRecognition.stop(); } catch(e) {} }
+    document.getElementById('reflectionRecordBtn').textContent = '🎤 Record';
+    if (reflectionTranscript.trim()) {
+      const box = document.getElementById('reflectionBox');
+      box.value = box.value ? box.value + '\n\n' + reflectionTranscript.trim() : reflectionTranscript.trim();
+      document.getElementById('reflectionRecordStatus').textContent = '✓ Added to reflection';
+      setTimeout(() => document.getElementById('reflectionRecordStatus').textContent = '', 3000);
+    } else {
+      document.getElementById('reflectionRecordStatus').textContent = 'Nothing recorded.';
+    }
+  }
+
+  // ── Load entries (Read view) ───────────────────────────────
+  async function loadEntries() {
+    const from  = document.getElementById('filterFrom').value  || null;
+    const to    = document.getElementById('filterTo').value    || null;
+    const field = document.getElementById('filterField').value;
+    showStatus('loadStatus', '<span class="spin"></span> Loading…', 'info');
+    document.getElementById('entryFeed').innerHTML = '';
+    try {
+      const entries = await api('getEntries', { startDate: from, endDate: to });
+      document.getElementById('loadStatus').innerHTML = '';
+      renderFeed(entries, field);
+    } catch(err) {
+      showStatus('loadStatus', 'Error: ' + err.message, 'err');
+    }
+  }
+
+  function renderFeed(entries, field) {
+    const feed = document.getElementById('entryFeed');
+    if (!entries || !entries.length) { feed.innerHTML = '<div class="feed-empty">No entries found.</div>'; return; }
+    feed.innerHTML = entries.map(entry => {
+      const dateLabel = entry.date
+        ? new Date(entry.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+        : '';
+      let sections = '';
+
+      if ((field === 'all' || field === 'tasks' || field === 'starred' || field.startsWith('list:')) && entry.tasksText) {
+        let taskObjs = entry.tasksText.split('\n').map(line => {
+          const m = line.match(/^•\s*\[(.+?)\]\s+(★\s+)?(.+)$/);
+          if (m) return { list: m[1], starred: !!m[2], title: m[3] };
+          const clean = line.replace(/^•\s*/, '').trim();
+          const starred = clean.startsWith('★ ');
+          return { list: '—', starred, title: starred ? clean.slice(2) : clean };
+        }).filter(t => t.title);
+
+        if (field === 'starred')           taskObjs = taskObjs.filter(t => t.starred);
+        else if (field.startsWith('list:')) {
+          const listName = field.slice(5);
+          taskObjs = listName === 'Other'
+            ? taskObjs.filter(t => LIST_ORDER.indexOf(t.list) === -1 && t.list !== '—')
+            : taskObjs.filter(t => t.list === listName);
+        }
+
+        if (taskObjs.length) {
+          const groups = groupTasksByList(taskObjs);
+          const withHeadings = !field.startsWith('list:') && field !== 'starred' &&
+                               (groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—'));
+          const taskHtml = groups.map(g => {
+            const heading = (withHeadings && g.list && g.list !== '—')
+              ? `<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);padding:10px 0 4px 0;">${esc(g.list)}</div>`
+              : '';
+            const rows = g.items.map(t => {
+              const star = t.starred ? '<span style="color:#c8a96e;margin-right:4px;">★</span>' : '';
+              return `<div style="font-size:15px;padding:6px 0 6px 16px;position:relative;border-bottom:1px solid var(--border);line-height:1.45;"><span style="position:absolute;left:4px;color:var(--text);">•</span>${star}${esc(t.title)}</div>`;
+            }).join('');
+            return heading + rows;
+          }).join('');
+          sections += `<div class="entry-section"><div class="entry-section-label">Tasks</div>${taskHtml}</div>`;
+        }
+      }
+
+      if ((field === 'all' || field === 'reflection') && !field.startsWith('list:') && field !== 'starred' && entry.reflection)
+        sections += `<div class="entry-section"><div class="entry-section-label">Reflection</div><div class="entry-reflection">${esc(entry.reflection)}</div></div>`;
+
+      if (!sections) return '';
+      return `<div class="entry-card"><div class="entry-date-bar">${dateLabel}</div>${sections}</div>`;
+    }).join('');
+  }
+
+  // ── Tabs ──────────────────────────────────────────────────
+  function switchTab(tab) {
+    ['write','read'].forEach(t => {
+      document.getElementById(t + 'View').classList.toggle('active', t === tab);
+      document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    });
+    if (tab === 'read') {
+      const today = new Date(), weekAgo = new Date(today);
+      weekAgo.setDate(today.getDate() - 7);
+      document.getElementById('filterFrom').value = isoDate(weekAgo);
+      document.getElementById('filterTo').value   = isoDate(today);
+      loadEntries();
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  function toBase64(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload  = () => res(r.result.split(',')[1]);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function showStatus(id, msg, type) { document.getElementById(id).innerHTML = `<div class="status ${type}">${msg}</div>`; }
+  function autoClear(id, ms) { setTimeout(() => document.getElementById(id).innerHTML = '', ms); }
+  function setBtnLoading(btn, label) {
+    if (label) { btn._orig = btn.textContent; btn.disabled = true; btn.innerHTML = `<span class="spin"></span> ${label}`; }
+    else        { btn.disabled = false; btn.textContent = btn._orig || btn.textContent; }
+  }
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>
