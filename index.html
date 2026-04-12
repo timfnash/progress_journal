@@ -188,6 +188,7 @@
     <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;">Editing</div>
     <input type="date" id="writeDatePicker" onchange="changeWriteDate(this.value)"
       style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:8px 12px;text-align:left;direction:ltr;color-scheme:dark;">
+    <script>document.getElementById('writeDatePicker').value = new Date().toISOString().split('T')[0];</script>
   </div>
 
   <!-- Add task -->
