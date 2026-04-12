@@ -188,7 +188,6 @@
     <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;">Editing</div>
     <input type="date" id="writeDatePicker" onchange="changeWriteDate(this.value)"
       style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:8px 12px;text-align:left;direction:ltr;color-scheme:dark;">
-    <script>document.getElementById('writeDatePicker').value = new Date().toISOString().split('T')[0];</script>
   </div>
 
   <!-- Add task -->
@@ -331,7 +330,7 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec'; // paste your deployed Apps Script URL here
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
 
   // ── State ─────────────────────────────────────────────────
   let tasksData      = [];
@@ -351,6 +350,17 @@
     const data = JSON.parse(text);
     if (!data.success) throw new Error(data.error);
     return data.data;
+  }
+
+  // ── Utilities (defined first so available everywhere) ─────
+  function isoDate(d) { return d.toISOString().split('T')[0]; }
+
+  function getWriteDate() {
+    const val = document.getElementById('writeDatePicker').value;
+    if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    const today = isoDate(new Date());
+    document.getElementById('writeDatePicker').value = today;
+    return today;
   }
 
   // ── Init ──────────────────────────────────────────────────
@@ -377,14 +387,6 @@
       getTasks();
     }, 100);
   });
-
-  function getWriteDate() {
-    const val = document.getElementById('writeDatePicker').value;
-    if (val && /^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
-    const today = isoDate(new Date());
-    document.getElementById('writeDatePicker').value = today;
-    return today;
-  }
 
   // ── Date change ───────────────────────────────────────────
   function changeWriteDate(dateStr) {
