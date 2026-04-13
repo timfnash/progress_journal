@@ -181,6 +181,17 @@
     .book-star { color: var(--accent); margin-right: 4px; font-size: 13px; }
 
     .feed-empty { text-align: center; color: var(--muted); font-size: 16px; padding: 48px 0; }
+
+    /* ── Drag and drop ── */
+    .task-drag-row { touch-action: none; }
+    .task-drag-row.dragging { opacity: 0.4; }
+    .task-drag-row.drag-over { border-top: 2px solid var(--accent); }
+    .drag-handle {
+      cursor: grab; color: var(--muted); font-size: 16px;
+      padding: 0 4px; flex-shrink: 0; user-select: none;
+      -webkit-user-select: none; line-height: 1;
+    }
+    .drag-handle:active { cursor: grabbing; }
   </style>
 </head>
 <body>
@@ -514,7 +525,9 @@
         : '';
       const rows = g.items.map(item => {
         const opts = LIST_OPTIONS.map(l => `<option value="${l}"${l === item.list ? ' selected' : ''}>${l}</option>`).join('');
-        return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);">
+        return `<div class="task-drag-row" draggable="true" data-idx="${item.idx}"
+          style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);">
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
           <select onchange="updateTaskList(${item.idx},this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Jost',sans-serif;font-size:13px;padding:5px 6px;width:90px;flex-shrink:0;color-scheme:dark;">${opts}</select>
           <input type="text" value="${esc(item.title)}" onchange="updateTaskTitle(${item.idx},this.value)" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:5px 4px;min-width:0;" />
           <button onclick="toggleStar(${item.idx})" style="background:none;border:none;font-size:17px;cursor:pointer;color:${item.starred ? '#c8a96e' : 'var(--muted)'};flex-shrink:0;padding:0;line-height:1;">${item.starred ? '★' : '☆'}</button>
@@ -531,6 +544,7 @@
     const groups = groupTasksByList(tasksData);
     const withHeadings = groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—');
     display.innerHTML = renderGroupedTasks(groups, withHeadings);
+    if (window._bindDrag) window._bindDrag();
   }
 
   function tasksAsText() {
@@ -551,6 +565,96 @@
     else tasksData[i].starred = !tasksData[i].starred;
     renderTasks();
   }
+
+  // ── Drag and drop reordering ──────────────────────────────
+  (function() {
+    let dragIdx  = null;  // tasksData index being dragged
+    let touchRow = null;  // DOM element for touch ghost
+    let touchY   = 0;
+
+    // Wire up events after each renderTasks call
+    const origRender = renderTasks;
+    window._bindDrag = function() {
+      const display = document.getElementById('tasksDisplay');
+      if (!display) return;
+
+      display.querySelectorAll('.task-drag-row').forEach(row => {
+        // Desktop drag events
+        row.addEventListener('dragstart', e => {
+          dragIdx = parseInt(row.dataset.idx);
+          setTimeout(() => row.classList.add('dragging'), 0);
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        row.addEventListener('dragend', () => {
+          row.classList.remove('dragging');
+          display.querySelectorAll('.task-drag-row').forEach(r => r.classList.remove('drag-over'));
+          dragIdx = null;
+        });
+        row.addEventListener('dragover', e => {
+          e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+          display.querySelectorAll('.task-drag-row').forEach(r => r.classList.remove('drag-over'));
+          row.classList.add('drag-over');
+        });
+        row.addEventListener('drop', e => {
+          e.preventDefault();
+          const targetIdx = parseInt(row.dataset.idx);
+          if (dragIdx === null || dragIdx === targetIdx) return;
+          // Move tasksData[dragIdx] to position of targetIdx
+          const item = tasksData.splice(dragIdx, 1)[0];
+          const newTarget = dragIdx < targetIdx ? targetIdx - 1 : targetIdx;
+          tasksData.splice(newTarget, 0, item);
+          renderTasks();
+          window._bindDrag();
+        });
+
+        // Touch events for mobile
+        const handle = row.querySelector('.drag-handle');
+        if (!handle) return;
+
+        handle.addEventListener('touchstart', e => {
+          e.preventDefault();
+          dragIdx = parseInt(row.dataset.idx);
+          touchY  = e.touches[0].clientY;
+          row.classList.add('dragging');
+        }, { passive: false });
+
+        handle.addEventListener('touchmove', e => {
+          e.preventDefault();
+          touchY = e.touches[0].clientY;
+          // Highlight the row we're hovering over
+          display.querySelectorAll('.task-drag-row').forEach(r => {
+            const rect = r.getBoundingClientRect();
+            if (touchY >= rect.top && touchY <= rect.bottom && parseInt(r.dataset.idx) !== dragIdx) {
+              display.querySelectorAll('.task-drag-row').forEach(x => x.classList.remove('drag-over'));
+              r.classList.add('drag-over');
+            }
+          });
+        }, { passive: false });
+
+        handle.addEventListener('touchend', e => {
+          e.preventDefault();
+          row.classList.remove('dragging');
+          // Find which row we dropped on
+          let targetRow = null;
+          display.querySelectorAll('.task-drag-row').forEach(r => {
+            if (r.classList.contains('drag-over')) targetRow = r;
+            r.classList.remove('drag-over');
+          });
+          if (targetRow && dragIdx !== null) {
+            const targetIdx = parseInt(targetRow.dataset.idx);
+            if (dragIdx !== targetIdx) {
+              const item = tasksData.splice(dragIdx, 1)[0];
+              const newTarget = dragIdx < targetIdx ? targetIdx - 1 : targetIdx;
+              tasksData.splice(newTarget, 0, item);
+              renderTasks();
+              window._bindDrag();
+            }
+          }
+          dragIdx = null;
+        }, { passive: false });
+      });
+    };
+  })();
 
   // ── Check today's Notion entry ────────────────────────────
   async function checkTodayEntry(date) {
