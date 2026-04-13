@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tim's Journal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg:         #0d0d0d;
@@ -171,9 +171,115 @@
     .entry-tasks      { font-size: 15px; color: var(--text); white-space: pre-wrap; line-height: 1.8; word-break: break-word; }
     .entry-reflection { font-size: 16px; color: var(--text); white-space: pre-line; line-height: 1.8; }
     .feed-empty { text-align: center; color: var(--muted); font-size: 16px; padding: 48px 0; }
+
+    /* ── Book read view ── */
+    .book-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(200,169,110,0.2);
+      position: sticky; top: 0; background: var(--bg); z-index: 20;
+    }
+    .book-title {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .book-header-right { display: flex; align-items: center; gap: 12px; }
+    .book-date-nav { display: flex; align-items: center; gap: 6px; }
+    .book-date-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .nav-arrow {
+      background: none; border: none; color: var(--accent);
+      font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    .nav-arrow:disabled { color: var(--border); cursor: default; }
+    .filter-icon-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 18px; cursor: pointer; padding: 0; line-height: 1;
+    }
+    .filter-icon-btn:hover { color: var(--accent); }
+
+    /* Filter panel */
+    .filter-panel {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+    }
+    .filter-panel-inner { display: flex; flex-direction: column; gap: 12px; }
+    .fp-row { display: flex; align-items: flex-end; gap: 10px; }
+    .fp-label {
+      font-size: 12px; color: var(--muted); display: flex;
+      flex-direction: column; gap: 5px; flex: 1;
+      font-family: 'Jost', sans-serif; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+    .fp-label input, .fp-label select {
+      font-size: 14px; padding: 8px 10px;
+    }
+
+    /* Book page */
+    .book-page {
+      overflow: hidden; position: relative;
+      min-height: calc(100dvh - 140px);
+    }
+    .book-content {
+      padding: 28px 20px 60px;
+      transition: opacity 0.2s ease;
+    }
+    .book-content.animating { opacity: 0; transform: translateX(30px); }
+    .book-content.animating-back { opacity: 0; transform: translateX(-30px); }
+
+    /* Book typography */
+    .book-day-heading {
+      font-size: 26px; font-weight: 700; color: var(--accent);
+      letter-spacing: 0.02em; margin-bottom: 6px; line-height: 1.2;
+    }
+    .book-day-sub {
+      font-size: 13px; color: var(--muted); margin-bottom: 28px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .book-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--muted);
+      margin: 24px 0 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .book-task-group-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent);
+      margin: 14px 0 6px;
+    }
+    .book-task-row {
+      font-size: 15px; color: var(--text); line-height: 1.6;
+      padding: 4px 0 4px 16px; position: relative;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .book-task-row::before { content: '•'; position: absolute; left: 4px; color: var(--muted); }
+    .book-reflection {
+      font-size: 16px; color: var(--text); line-height: 1.9;
+      white-space: pre-line; margin-top: 4px;
+      font-family: 'Lora', 'Georgia', serif;
+    }
+    .book-empty {
+      text-align: center; color: var(--muted); font-size: 15px;
+      padding: 60px 0; font-style: italic;
+    }
+    .book-star { color: var(--accent); margin-right: 4px; font-size: 13px; }
   </style>
 </head>
 <body>
+
+<!-- ══════════════ LOCK SCREEN ══════════════ -->
+<div id="lockScreen" style="
+  position:fixed;inset:0;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;padding:32px;z-index:999;">
+  <div style="font-size:28px;font-weight:700;color:var(--accent);letter-spacing:0.04em;">Tim's Journal</div>
+  <div style="font-size:14px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;">Enter passphrase</div>
+  <input type="password" id="passphraseInput" placeholder="passphrase"
+    style="width:100%;max-width:280px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:10px;color:var(--text);font-family:'Jost',sans-serif;font-size:18px;
+    padding:14px 16px;text-align:center;letter-spacing:0.08em;"
+    onkeydown="if(event.key==='Enter') submitPassphrase()">
+  <button class="btn btn-primary" style="width:100%;max-width:280px;" onclick="submitPassphrase()">Unlock</button>
+  <div id="lockError" style="font-size:14px;color:var(--red);min-height:20px;"></div>
+</div>
 
 <header class="header">
   <h1>Tim's Journal</h1>
@@ -290,33 +396,55 @@
 <!-- ══════════════ READ VIEW ══════════════ -->
 <section class="view" id="readView">
 
-  <div class="card">
-    <div class="card-label">Filter</div>
-    <div class="filter-stack">
-      <label>From<input type="date" id="filterFrom"></label>
-      <label>To<input type="date" id="filterTo"></label>
+  <!-- Book header -->
+  <div class="book-header">
+    <span class="book-title">Tim's Progress Journal</span>
+    <div class="book-header-right">
+      <span class="book-date-nav">
+        <button class="nav-arrow" id="prevDayBtn" onclick="navigateDay(-1)">‹</button>
+        <span id="bookDateLabel" class="book-date-label"></span>
+        <button class="nav-arrow" id="nextDayBtn" onclick="navigateDay(1)">›</button>
+      </span>
+      <button class="filter-icon-btn" onclick="toggleFilterPanel()" title="Filter">⚙</button>
     </div>
-    <div class="field-label" style="margin-bottom:14px;">
-      Show
-      <select id="filterField">
-        <option value="all">Everything</option>
-        <option value="tasks">Tasks only</option>
-        <option value="starred">Starred tasks</option>
-        <option value="reflection">Reflections only</option>
-        <optgroup label="Tasks by list">
-          <option value="list:Basic">Basic</option>
-          <option value="list:Personal">Personal</option>
-          <option value="list:Work">Work</option>
-          <option value="list:Zipf">Zipf</option>
-          <option value="list:Other">Other</option>
-        </optgroup>
-      </select>
-    </div>
-    <button class="btn btn-primary action-btn" onclick="loadEntries()">Load entries</button>
-    <div id="loadStatus"></div>
   </div>
 
-  <div id="entryFeed"></div>
+  <!-- Filter panel (hidden by default) -->
+  <div id="filterPanel" class="filter-panel" style="display:none;">
+    <div class="filter-panel-inner">
+      <div class="fp-row">
+        <label class="fp-label">Jump to
+          <input type="date" id="filterJumpDate" style="color-scheme:dark;">
+        </label>
+        <button class="btn btn-primary" style="padding:8px 16px;font-size:14px;" onclick="jumpToDate()">Go</button>
+      </div>
+      <div class="fp-row">
+        <label class="fp-label">Show
+          <select id="filterField">
+            <option value="all">Everything</option>
+            <option value="tasks">Tasks only</option>
+            <option value="starred">Starred tasks</option>
+            <option value="reflection">Reflections only</option>
+            <optgroup label="Tasks by list">
+              <option value="list:Basic">Basic</option>
+              <option value="list:Personal">Personal</option>
+              <option value="list:Work">Work</option>
+              <option value="list:Zipf">Zipf</option>
+              <option value="list:Other">Other</option>
+            </optgroup>
+          </select>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page container for swipe -->
+  <div id="bookPage" class="book-page">
+    <div id="bookContent" class="book-content"></div>
+  </div>
+
+  <!-- Page loading indicator -->
+  <div id="bookStatus"></div>
 
 </section>
 
@@ -330,7 +458,52 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
+  const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
+  const PASSPHRASE  = 'olive-badger-23';
+  const STORAGE_KEY = 'tjAuth';
+
+  // ── Auth ──────────────────────────────────────────────────
+  function checkAuth() {
+    try {
+      if (sessionStorage.getItem(STORAGE_KEY) === 'ok') {
+        document.getElementById('lockScreen').style.display = 'none';
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
+  function submitPassphrase() {
+    const val = document.getElementById('passphraseInput').value.trim();
+    if (val === PASSPHRASE) {
+      try { sessionStorage.setItem(STORAGE_KEY, 'ok'); } catch(e) {}
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('passphraseInput').value = '';
+      initApp();
+    } else {
+      document.getElementById('lockError').textContent = 'Incorrect passphrase.';
+      document.getElementById('passphraseInput').value = '';
+      document.getElementById('passphraseInput').focus();
+    }
+  }
+
+  function initApp() {
+    const now = new Date();
+    const todayStr = isoDate(now);
+    document.getElementById('todayLabel').textContent =
+      now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
+    document.getElementById('writeDatePicker').value = todayStr;
+    document.getElementById('filterFrom') && (document.getElementById('filterFrom').value = todayStr);
+    document.getElementById('filterTo')   && (document.getElementById('filterTo').value   = todayStr);
+    document.getElementById('screenshotInput').addEventListener('change', function() {
+      const files = this.files;
+      if (!files || !files.length) return;
+      const label = files.length === 1 ? files[0].name : files.length + ' files selected';
+      document.getElementById('screenshotName').textContent = label;
+      document.getElementById('clearScreenshotBtn').style.display = 'inline';
+    });
+    setTimeout(() => { checkTodayEntry(); getTasks(); }, 100);
+  }
 
   // ── State ─────────────────────────────────────────────────
   let tasksData      = [];
@@ -340,8 +513,8 @@
   // ── API helper ────────────────────────────────────────────
   async function api(action, params) {
     const res = await fetch(SCRIPT_URL, {
-      method:  'POST',
-      body:    JSON.stringify({ action, params: params || {} }),
+      method: 'POST',
+      body:   JSON.stringify({ action, params: params || {}, passphrase: PASSPHRASE }),
     });
     const text = await res.text();
     if (text.trim().startsWith('<')) {
@@ -365,27 +538,8 @@
 
   // ── Init ──────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    const now = new Date();
-    const todayStr = isoDate(now);
-    document.getElementById('todayLabel').textContent =
-      now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
-    document.getElementById('writeDatePicker').value = todayStr;
-    document.getElementById('filterFrom').value = todayStr;
-    document.getElementById('filterTo').value   = todayStr;
-
-    document.getElementById('screenshotInput').addEventListener('change', function() {
-      const files = this.files;
-      if (!files || !files.length) return;
-      const label = files.length === 1 ? files[0].name : files.length + ' files selected';
-      document.getElementById('screenshotName').textContent = label;
-      document.getElementById('clearScreenshotBtn').style.display = 'inline';
-    });
-
-    // Small delay ensures picker value is committed before API calls read it
-    setTimeout(() => {
-      checkTodayEntry();
-      getTasks();
-    }, 100);
+    if (checkAuth()) initApp();
+    else document.getElementById('passphraseInput').focus();
   });
 
   // ── Date change ───────────────────────────────────────────
@@ -769,72 +923,210 @@
   }
 
   // ── Load entries (Read view) ───────────────────────────────
-  async function loadEntries() {
-    const from  = document.getElementById('filterFrom').value  || null;
-    const to    = document.getElementById('filterTo').value    || null;
-    const field = document.getElementById('filterField').value;
-    showStatus('loadStatus', '<span class="spin"></span> Loading…', 'info');
-    document.getElementById('entryFeed').innerHTML = '';
+  // ── Book read view state ──────────────────────────────────
+  let bookEntries    = [];
+  let bookIndex      = 0;
+  let bookField      = 'all';
+  let bookLoadingMore = false;
+  let stepsInDirection = 0;
+  let lastDirection    = 0;
+
+  async function initReadView() {
+    bookField = document.getElementById('filterField').value;
+    showStatus('bookStatus', '<span class="spin"></span> Loading journal…', 'info');
+    document.getElementById('bookContent').innerHTML = '';
+    bookEntries = []; bookIndex = 0; stepsInDirection = 0; lastDirection = 0;
     try {
-      const entries = await api('getEntries', { startDate: from, endDate: to });
-      document.getElementById('loadStatus').innerHTML = '';
-      renderFeed(entries, field);
+      const today    = new Date();
+      const monthAgo = new Date(today);
+      monthAgo.setDate(today.getDate() - 30);
+      const entries  = await api('getEntries', { startDate: isoDate(monthAgo), endDate: isoDate(today) });
+      document.getElementById('bookStatus').innerHTML = '';
+      bookEntries = entries.filter(e => e.date);
+      bookIndex   = 0;
+      renderBookPage(false);
     } catch(err) {
-      showStatus('loadStatus', 'Error: ' + err.message, 'err');
+      showStatus('bookStatus', 'Error: ' + err.message, 'err');
     }
   }
 
-  function renderFeed(entries, field) {
-    const feed = document.getElementById('entryFeed');
-    if (!entries || !entries.length) { feed.innerHTML = '<div class="feed-empty">No entries found.</div>'; return; }
-    feed.innerHTML = entries.map(entry => {
-      const dateLabel = entry.date
-        ? new Date(entry.date + 'T12:00:00').toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
-        : '';
-      let sections = '';
+  async function loadMoreEntries(direction) {
+    if (bookLoadingMore || !bookEntries.length) return;
+    bookLoadingMore = true;
 
-      if ((field === 'all' || field === 'tasks' || field === 'starred' || field.startsWith('list:')) && entry.tasksText) {
-        let taskObjs = entry.tasksText.split('\n').map(line => {
-          const m = line.match(/^•\s*\[(.+?)\]\s+(★\s+)?(.+)$/);
-          if (m) return { list: m[1], starred: !!m[2], title: m[3] };
-          const clean = line.replace(/^•\s*/, '').trim();
-          const starred = clean.startsWith('★ ');
-          return { list: '—', starred, title: starred ? clean.slice(2) : clean };
-        }).filter(t => t.title);
-
-        if (field === 'starred')           taskObjs = taskObjs.filter(t => t.starred);
-        else if (field.startsWith('list:')) {
-          const listName = field.slice(5);
-          taskObjs = listName === 'Other'
-            ? taskObjs.filter(t => LIST_ORDER.indexOf(t.list) === -1 && t.list !== '—')
-            : taskObjs.filter(t => t.list === listName);
-        }
-
-        if (taskObjs.length) {
-          const groups = groupTasksByList(taskObjs);
-          const withHeadings = !field.startsWith('list:') && field !== 'starred' &&
-                               (groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—'));
-          const taskHtml = groups.map(g => {
-            const heading = (withHeadings && g.list && g.list !== '—')
-              ? `<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);padding:10px 0 4px 0;">${esc(g.list)}</div>`
-              : '';
-            const rows = g.items.map(t => {
-              const star = t.starred ? '<span style="color:#c8a96e;margin-right:4px;">★</span>' : '';
-              return `<div style="font-size:15px;padding:6px 0 6px 16px;position:relative;border-bottom:1px solid var(--border);line-height:1.45;"><span style="position:absolute;left:4px;color:var(--text);">•</span>${star}${esc(t.title)}</div>`;
-            }).join('');
-            return heading + rows;
-          }).join('');
-          sections += `<div class="entry-section"><div class="entry-section-label">Tasks</div>${taskHtml}</div>`;
+    try {
+      if (direction === -1) {
+        // Load older entries
+        const oldest  = bookEntries[bookEntries.length - 1].date;
+        const endDate = new Date(oldest + 'T12:00:00');
+        endDate.setDate(endDate.getDate() - 1);
+        const startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - 30);
+        const more = await api('getEntries', { startDate: isoDate(startDate), endDate: isoDate(endDate) });
+        if (more && more.length) bookEntries = bookEntries.concat(more.filter(e => e.date));
+      } else {
+        // Load newer entries
+        const newest   = bookEntries[0].date;
+        const startDate = new Date(newest + 'T12:00:00');
+        startDate.setDate(startDate.getDate() + 1);
+        const endDate  = new Date();
+        const more = await api('getEntries', { startDate: isoDate(startDate), endDate: isoDate(endDate) });
+        if (more && more.length) {
+          bookEntries = more.filter(e => e.date).concat(bookEntries);
+          bookIndex  += more.length;
         }
       }
+    } catch(e) { /* silent */ }
 
-      if ((field === 'all' || field === 'reflection') && !field.startsWith('list:') && field !== 'starred' && entry.reflection)
-        sections += `<div class="entry-section"><div class="entry-section-label">Reflection</div><div class="entry-reflection">${esc(entry.reflection)}</div></div>`;
-
-      if (!sections) return '';
-      return `<div class="entry-card"><div class="entry-date-bar">${dateLabel}</div>${sections}</div>`;
-    }).join('');
+    bookLoadingMore = false;
+    updateNavArrows();
   }
+
+  function renderBookPage(animate, direction) {
+    const content = document.getElementById('bookContent');
+    const entry   = bookEntries[bookIndex];
+
+    updateNavArrows();
+
+    if (entry) {
+      const d = new Date(entry.date + 'T12:00:00');
+      document.getElementById('bookDateLabel').textContent =
+        d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    } else {
+      document.getElementById('bookDateLabel').textContent = '';
+    }
+
+    if (animate) {
+      content.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+      content.style.opacity    = '0';
+      content.style.transform  = `translateX(${direction === 1 ? '-30px' : '30px'})`;
+    }
+
+    setTimeout(() => {
+      content.innerHTML = entry ? buildPageHTML(entry) : '<div class="book-empty">No entry for this day.</div>';
+      const inFrom = direction === 1 ? '30px' : '-30px';
+      content.style.transition = 'none';
+      content.style.opacity    = '0';
+      content.style.transform  = animate ? `translateX(${inFrom})` : 'translateX(0)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        content.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+        content.style.opacity    = '1';
+        content.style.transform  = 'translateX(0)';
+      }));
+    }, animate ? 180 : 0);
+  }
+
+  function updateNavArrows() {
+    document.getElementById('prevDayBtn').disabled = bookIndex >= bookEntries.length - 1;
+    document.getElementById('nextDayBtn').disabled = bookIndex <= 0;
+  }
+
+  function navigateDay(direction) {
+    const next = bookIndex + direction; // -1 older, +1 newer (entries newest first)
+    if (next < 0 || next >= bookEntries.length) return;
+    bookIndex = next;
+    renderBookPage(true, direction);
+
+    // Track consecutive steps in same direction
+    if (direction === lastDirection) stepsInDirection++;
+    else { stepsInDirection = 1; lastDirection = direction; }
+
+    // After 7 steps, background load more in that direction
+    if (stepsInDirection >= 7) {
+      stepsInDirection = 0;
+      loadMoreEntries(direction);
+    }
+  }
+
+  function jumpToDate() {
+    const dateStr = document.getElementById('filterJumpDate').value;
+    if (!dateStr) return;
+    const idx = bookEntries.findIndex(e => e.date <= dateStr);
+    bookIndex = idx >= 0 ? idx : bookEntries.length - 1;
+    stepsInDirection = 0; lastDirection = 0;
+    toggleFilterPanel();
+    renderBookPage(false);
+  }
+
+  function toggleFilterPanel() {
+    const panel = document.getElementById('filterPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+
+
+  function buildPageHTML(entry) {
+    const d = new Date(entry.date + 'T12:00:00');
+    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    let html = `<div class="book-day-heading">${dateStr}</div>
+                <div class="book-day-sub">${dayName}</div>`;
+
+    const field = bookField;
+
+    // Tasks
+    if ((field === 'all' || field === 'tasks' || field === 'starred' || field.startsWith('list:')) && entry.tasksText) {
+      let taskObjs = entry.tasksText.split('\n').map(line => {
+        const m = line.match(/^•\s*\[(.+?)\]\s+(★\s+)?(.+)$/);
+        if (m) return { list: m[1], starred: !!m[2], title: m[3] };
+        const clean   = line.replace(/^•\s*/, '').trim();
+        const starred = clean.startsWith('★ ');
+        return { list: '—', starred, title: starred ? clean.slice(2) : clean };
+      }).filter(t => t.title);
+
+      if (field === 'starred')            taskObjs = taskObjs.filter(t => t.starred);
+      else if (field.startsWith('list:')) {
+        const ln = field.slice(5);
+        taskObjs = ln === 'Other'
+          ? taskObjs.filter(t => LIST_ORDER.indexOf(t.list) === -1 && t.list !== '—')
+          : taskObjs.filter(t => t.list === ln);
+      }
+
+      if (taskObjs.length) {
+        html += '<div class="book-section-label">Completed</div>';
+        const groups = groupTasksByList(taskObjs);
+        const withHeadings = !field.startsWith('list:') && field !== 'starred' &&
+          (groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—'));
+        groups.forEach(g => {
+          if (withHeadings && g.list && g.list !== '—')
+            html += `<div class="book-task-group-label">${esc(g.list)}</div>`;
+          g.items.forEach(t => {
+            const star = t.starred ? '<span class="book-star">★</span>' : '';
+            html += `<div class="book-task-row">${star}${esc(t.title)}</div>`;
+          });
+        });
+      }
+    }
+
+    // Reflection
+    if ((field === 'all' || field === 'reflection') && !field.startsWith('list:') && field !== 'starred' && entry.reflection) {
+      html += '<div class="book-section-label">Reflection</div>';
+      html += `<div class="book-reflection">${esc(entry.reflection)}</div>`;
+    }
+
+    return html;
+  }
+
+  // ── Swipe gestures for book ────────────────────────────────
+  (function() {
+    let startX = 0, startY = 0;
+    const page = document.getElementById('bookPage');
+    if (!page) return;
+
+    document.addEventListener('touchstart', e => {
+      if (!document.getElementById('readView').classList.contains('active')) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      if (!document.getElementById('readView').classList.contains('active')) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+      if (dx < 0) navigateDay(-1); // swipe left = older
+      else         navigateDay(1);  // swipe right = newer
+    }, { passive: true });
+  })();
 
   // ── Tabs ──────────────────────────────────────────────────
   function switchTab(tab) {
@@ -843,11 +1135,9 @@
       document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
     if (tab === 'read') {
-      const today = new Date(), weekAgo = new Date(today);
-      weekAgo.setDate(today.getDate() - 7);
-      document.getElementById('filterFrom').value = isoDate(weekAgo);
-      document.getElementById('filterTo').value   = isoDate(today);
-      loadEntries();
+      const todayStr = isoDate(new Date());
+      document.getElementById('filterJumpDate').value = todayStr;
+      initReadView();
     }
   }
 
