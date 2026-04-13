@@ -238,28 +238,15 @@
   <div class="card">
     <div class="card-label">Import tasks</div>
     <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <button class="btn btn-outline" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</button>
-      <span style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;">
-        <span id="screenshotName" style="font-size:15px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <button id="clearScreenshotBtn" onclick="clearScreenshot()" style="display:none;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">✕</button>
-      </span>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</button>
+      <button class="btn btn-outline" style="flex:1;" id="recordBtn" onclick="toggleRecording()">🎤 Record</button>
     </div>
-    <button class="btn btn-primary action-btn" id="extractBtn" onclick="extractFromScreenshot()">Extract from screenshot</button>
-    <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:12px;color:var(--muted);letter-spacing:0.06em;">OR</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <button class="btn btn-outline" id="recordBtn" onclick="toggleRecording()">🎤 Record</button>
-      <span id="recordStatus" style="font-size:15px;color:var(--muted);flex:1;"></span>
-    </div>
-    <button class="btn btn-primary action-btn" id="extractVoiceBtn" onclick="extractFromVoice()" style="display:none;">Extract from recording</button>
     <div id="screenshotStatus"></div>
     <textarea id="extractedBox" placeholder="Extracted tasks will appear here…" style="margin-top:12px;min-height:100px;display:none;"></textarea>
-    <div style="margin-top:10px;display:none;" id="addTasksRow">
-      <button class="btn btn-primary action-btn" onclick="addExtractedTasks()">Add to tasks</button>
+    <div style="margin-top:10px;display:none;gap:8px;flex-wrap:wrap;" id="addTasksRow">
+      <button class="btn btn-primary" style="flex:1;" onclick="addExtractedTasks()">Add to tasks</button>
+      <button class="btn btn-outline" style="flex:1;" onclick="clearImport()">Clear</button>
     </div>
   </div>
 
@@ -278,21 +265,11 @@
   <div class="card">
     <div class="card-label">Import reflection</div>
     <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handlePhoto(event)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <button class="btn btn-outline" onclick="document.getElementById('photoInput').click()">📷 Screenshot</button>
-      <span class="photo-name" id="photoName"></span>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('photoInput').click()">📷 Screenshot</button>
+      <button class="btn btn-outline" style="flex:1;" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</button>
     </div>
     <div id="ocrStatus"></div>
-    <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-      <span style="font-size:12px;color:var(--muted);letter-spacing:0.06em;">OR</span>
-      <div style="flex:1;height:1px;background:var(--border);"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <button class="btn btn-outline" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</button>
-      <span id="reflectionRecordStatus" style="font-size:15px;color:var(--muted);flex:1;"></span>
-    </div>
-    <div id="reflectionVoiceStatus"></div>
   </div>
 
   <button class="btn btn-primary action-btn" id="saveBtn" onclick="saveEntry()" style="margin-bottom:16px;">Save entry</button>
@@ -437,10 +414,8 @@
       now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
     document.getElementById('writeDatePicker').value = todayStr;
     document.getElementById('screenshotInput').addEventListener('change', function() {
-      const files = this.files;
-      if (!files || !files.length) return;
-      document.getElementById('screenshotName').textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
-      document.getElementById('clearScreenshotBtn').style.display = 'inline';
+      if (!this.files || !this.files.length) return;
+      extractFromScreenshot();
     });
     setTimeout(() => { checkTodayEntry(); getTasks(); }, 100);
   }
@@ -703,22 +678,23 @@
   }
 
   // ── Screenshot extraction ─────────────────────────────────
-  function clearScreenshot() {
-    document.getElementById('screenshotInput').value = '';
-    document.getElementById('screenshotName').textContent = '';
-    document.getElementById('clearScreenshotBtn').style.display = 'none';
-    document.getElementById('extractedBox').style.display = 'none';
-    document.getElementById('addTasksRow').style.display  = 'none';
-    document.getElementById('screenshotStatus').innerHTML = '';
+  function clearImport() {
+    document.getElementById('screenshotInput').value    = '';
+    document.getElementById('extractedBox').style.display  = 'none';
+    document.getElementById('addTasksRow').style.display   = 'none';
+    document.getElementById('screenshotStatus').innerHTML  = '';
+    extractedTasks = [];
   }
+
+  // keep old name as alias in case called elsewhere
+  function clearScreenshot() { clearImport(); }
 
   async function extractFromScreenshot() {
     const input = document.getElementById('screenshotInput');
     if (!input.files || !input.files.length) { showStatus('screenshotStatus', 'Please select a screenshot first.', 'err'); return; }
     const files = Array.from(input.files);
     extractedTasks = [];
-    const btn = document.getElementById('extractBtn');
-    setBtnLoading(btn, 'Extracting…');
+    const btn = document.getElementById('recordBtn'); // just for reference; no extractBtn anymore
     document.getElementById('extractedBox').style.display = 'none';
     document.getElementById('addTasksRow').style.display  = 'none';
     try {
@@ -728,17 +704,13 @@
         const extracted = await api('extractTasksFromImage', { base64Data: base64, mediaType: files[i].type || 'image/jpeg' });
         extractedTasks = extractedTasks.concat(extracted || []);
       }
-      setBtnLoading(btn, null); btn.textContent = 'Extract from screenshot';
-      if (!extractedTasks.length) { showStatus('screenshotStatus', 'No completed tasks found.', 'err'); clearScreenshot(); return; }
+      document.getElementById('screenshotInput').value = '';
+      if (!extractedTasks.length) { showStatus('screenshotStatus', 'No completed tasks found.', 'err'); return; }
       document.getElementById('extractedBox').value = extractedTasks.map(t => (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title).join('\n');
       document.getElementById('extractedBox').style.display = 'block';
-      document.getElementById('addTasksRow').style.display  = 'block';
+      document.getElementById('addTasksRow').style.display  = 'flex';
       document.getElementById('screenshotStatus').innerHTML = '';
-      document.getElementById('screenshotInput').value = '';
-      document.getElementById('screenshotName').textContent = '';
-      document.getElementById('clearScreenshotBtn').style.display = 'none';
     } catch(err) {
-      setBtnLoading(btn, null); btn.textContent = 'Extract from screenshot';
       showStatus('screenshotStatus', 'Error: ' + err.message, 'err');
     }
   }
@@ -753,12 +725,10 @@
     if (!SR) { showStatus('screenshotStatus', 'Voice not supported. Try Safari or Chrome.', 'err'); return; }
     recognition = new SR(); recognition.lang = 'en-GB'; recognition.continuous = true; recognition.interimResults = true;
     voiceTranscript = ''; isRecording = true;
-    document.getElementById('recordStatus').textContent = '🔴 Recording…';
-    document.getElementById('recordBtn').textContent    = '⏹ Stop';
-    document.getElementById('extractVoiceBtn').style.display = 'none';
-    document.getElementById('extractedBox').style.display    = 'none';
-    document.getElementById('addTasksRow').style.display     = 'none';
-    document.getElementById('screenshotStatus').innerHTML    = '';
+    document.getElementById('recordBtn').textContent = '⏹ Stop';
+    showStatus('screenshotStatus', '🔴 Recording — tap Stop when done', 'info');
+    document.getElementById('extractedBox').style.display = 'none';
+    document.getElementById('addTasksRow').style.display  = 'none';
     recognition.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; voiceTranscript = t; document.getElementById('recordStatus').textContent = '🔴 ' + t.slice(-60); };
     recognition.onerror = e => { stopRecording(); showStatus('screenshotStatus', 'Recording error: ' + e.error, 'err'); };
     recognition.onend   = () => { if (isRecording) stopRecording(); };
@@ -770,26 +740,26 @@
     if (recognition) { try { recognition.stop(); } catch(e) {} }
     document.getElementById('recordBtn').textContent = '🎤 Record';
     if (voiceTranscript) {
-      document.getElementById('recordStatus').textContent = '✓ ' + voiceTranscript.slice(0, 80) + (voiceTranscript.length > 80 ? '…' : '');
-      document.getElementById('extractVoiceBtn').style.display = 'inline-flex';
-    } else { document.getElementById('recordStatus').textContent = 'Nothing recorded.'; }
+      showStatus('screenshotStatus', '<span class="spin"></span> Analysing recording…', 'info');
+      extractFromVoice();
+    } else {
+      document.getElementById('recordStatus') && (document.getElementById('recordStatus').textContent = '');
+    }
   }
 
   async function extractFromVoice() {
     if (!voiceTranscript) return;
-    const btn = document.getElementById('extractVoiceBtn');
-    setBtnLoading(btn, 'Extracting…');
-    showStatus('screenshotStatus', '<span class="spin"></span> Analysing recording…', 'info');
     try {
       const extracted = await api('extractTasksFromTranscript', { transcript: voiceTranscript });
-      setBtnLoading(btn, null); btn.textContent = 'Extract from recording';
       if (!extracted || !extracted.length) { showStatus('screenshotStatus', 'No tasks found in recording.', 'err'); return; }
       extractedTasks = extracted;
       document.getElementById('extractedBox').value = extracted.map(t => (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title).join('\n');
       document.getElementById('extractedBox').style.display = 'block';
-      document.getElementById('addTasksRow').style.display  = 'block';
+      document.getElementById('addTasksRow').style.display  = 'flex';
       document.getElementById('screenshotStatus').innerHTML = '';
-    } catch(err) { setBtnLoading(btn, null); btn.textContent = 'Extract from recording'; showStatus('screenshotStatus', 'Error: ' + err.message, 'err'); }
+    } catch(err) {
+      showStatus('screenshotStatus', 'Error: ' + err.message, 'err');
+    }
   }
 
   function addExtractedTasks() {
@@ -802,17 +772,13 @@
       }
     });
     renderTasks();
-    document.getElementById('extractedBox').style.display = 'none';
-    document.getElementById('addTasksRow').style.display  = 'none';
-    extractedTasks = [];
-    document.getElementById('screenshotStatus').innerHTML = '';
+    clearImport();
   }
 
   // ── Reflection OCR ────────────────────────────────────────
   async function handlePhoto(e) {
     const file = e.target.files[0];
     if (!file) return;
-    document.getElementById('photoName').textContent = file.name;
     showStatus('ocrStatus', '<span class="spin"></span> Transcribing…', 'info');
     try {
       const text = await api('ocrImage', { base64Data: await toBase64(file), mediaType: file.type || 'image/jpeg' });
@@ -834,8 +800,8 @@
     if (!SR) { showStatus('reflectionVoiceStatus', 'Voice not supported. Try Safari or Chrome.', 'err'); return; }
     reflectionRecognition = new SR(); reflectionRecognition.lang = 'en-GB'; reflectionRecognition.continuous = true; reflectionRecognition.interimResults = true;
     reflectionTranscript = ''; isReflectionRecording = true;
-    document.getElementById('reflectionRecordBtn').textContent    = '⏹ Stop';
-    document.getElementById('reflectionRecordStatus').textContent = '🔴 Recording…';
+    document.getElementById('reflectionRecordBtn').textContent = '⏹ Stop';
+    showStatus('ocrStatus', '🔴 Recording — tap Stop when done', 'info');
     reflectionRecognition.onresult = e => {
       let final = '', interim = '';
       for (let i = 0; i < e.results.length; i++) { if (e.results[i].isFinal) final += e.results[i][0].transcript + ' '; else interim += e.results[i][0].transcript; }
@@ -854,9 +820,11 @@
     if (reflectionTranscript.trim()) {
       const box = document.getElementById('reflectionBox');
       box.value = box.value ? box.value + '\n\n' + reflectionTranscript.trim() : reflectionTranscript.trim();
-      document.getElementById('reflectionRecordStatus').textContent = '✓ Added to reflection';
-      setTimeout(() => document.getElementById('reflectionRecordStatus').textContent = '', 3000);
-    } else { document.getElementById('reflectionRecordStatus').textContent = 'Nothing recorded.'; }
+      showStatus('ocrStatus', '✓ Added to reflection', 'ok');
+      setTimeout(() => document.getElementById('ocrStatus').innerHTML = '', 3000);
+    } else {
+      document.getElementById('ocrStatus').innerHTML = '';
+    }
   }
 
   // ── Book read view ────────────────────────────────────────
