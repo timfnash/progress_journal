@@ -6,6 +6,7 @@
   <title>Tim's Journal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg:         #0d0d0d;
@@ -23,29 +24,29 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      overflow-x: hidden;
-      max-width: 100vw;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
+    html, body { overflow-x: hidden; max-width: 100vw; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100dvh;
-      padding-bottom: 82px;
+      min-height: 100dvh; padding-bottom: 82px;
       -webkit-font-smoothing: antialiased;
     }
 
+    /* ── Lock screen ── */
+    #lockScreen {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 24px; padding: 32px; z-index: 999;
+    }
+    .lock-title { font-size: 28px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+    .lock-sub   { font-size: 13px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    #lockError  { font-size: 14px; color: var(--red); min-height: 20px; text-align: center; }
+
     /* ── Header ── */
     .header {
-      padding: 24px 16px 16px;
-      border-bottom: 1px solid var(--border);
-      position: sticky; top: 0;
-      background: var(--bg); z-index: 30;
+      padding: 24px 16px 16px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; background: var(--bg); z-index: 30;
     }
     .header h1 { font-size: 30px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); }
     .header .today { font-size: 17px; color: var(--muted); margin-top: 6px; }
@@ -65,8 +66,7 @@
     .tab-btn {
       flex: 1; padding: 9px 0; background: none; border: none;
       color: var(--muted); font-size: 14px; font-weight: 500;
-      font-family: 'Jost', sans-serif;
-      letter-spacing: 0.05em; text-transform: uppercase;
+      font-family: 'Jost', sans-serif; letter-spacing: 0.05em; text-transform: uppercase;
       cursor: pointer; transition: all 0.15s; text-align: center;
     }
     .tab-btn.active { background: var(--accent); color: #111; border-radius: 8px; }
@@ -76,14 +76,8 @@
     .view.active { display: block; }
 
     /* ── Card ── */
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px; margin-bottom: 14px;
-    }
-    .card-label {
-      font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 14px;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+    .card-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
 
     /* ── Buttons ── */
     .btn {
@@ -93,25 +87,20 @@
       cursor: pointer; transition: opacity 0.15s; white-space: nowrap; max-width: 100%;
     }
     .btn:disabled { opacity: 0.38; cursor: default; }
-    .btn-primary { background: var(--accent); color: #111; }
+    .btn-primary  { background: var(--accent); color: #111; }
     .btn-outline  { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .action-btn   { width: 200px; }
 
-    /* ── Task rows (write view) ── */
-    .task-row {
-      font-size: 15px; color: var(--text);
-      padding: 6px 0 6px 16px;
-      position: relative; line-height: 1.45;
-      border-bottom: 1px solid var(--border);
-    }
+    /* ── Task rows ── */
+    .task-row { font-size: 15px; color: var(--text); padding: 6px 0 6px 16px; position: relative; line-height: 1.45; border-bottom: 1px solid var(--border); }
     .task-row:last-child { border-bottom: none; }
     .task-row::before { content: '•'; position: absolute; left: 4px; color: var(--text); }
     .empty-note { font-size: 15px; color: var(--muted); text-align: center; padding: 16px 0; }
 
     /* ── Textarea ── */
     textarea {
-      width: 100%; min-height: 130px;
-      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+      width: 100%; min-height: 130px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
       color: var(--text); font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 16px; line-height: 1.65; padding: 14px; resize: vertical;
     }
@@ -127,13 +116,10 @@
     input[type="text"]::placeholder { color: var(--muted); }
 
     input[type="date"], select {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text);
-      font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px;
-      padding: 10px 12px; width: 100%; display: block;
-      direction: ltr; text-align: left;
-      -webkit-appearance: none; appearance: none;
-      color-scheme: dark;
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px; padding: 10px 12px; width: 100%; display: block;
+      direction: ltr; text-align: left; -webkit-appearance: none; appearance: none; color-scheme: dark;
     }
     input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     input[type="date"]:focus, select:focus { outline: none; border-color: var(--accent); }
@@ -151,157 +137,80 @@
     /* ── Spinner ── */
     .spin {
       display: inline-block; width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.15);
-      border-top-color: currentColor; border-radius: 50%;
-      animation: rot 0.65s linear infinite; vertical-align: -2px;
+      border: 2px solid rgba(255,255,255,0.15); border-top-color: currentColor;
+      border-radius: 50%; animation: rot 0.65s linear infinite; vertical-align: -2px;
     }
     @keyframes rot { to { transform: rotate(360deg); } }
 
     /* ── Filter stack ── */
     .filter-stack { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-    .filter-stack label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
-    .field-label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
-
-    /* ── Entry cards (read view) ── */
-    .entry-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
-    .entry-date-bar { padding: 13px 16px; font-size: 16px; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); border-bottom: 1px solid var(--border); }
-    .entry-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-    .entry-section:last-child { border-bottom: none; }
-    .entry-section-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-    .entry-tasks      { font-size: 15px; color: var(--text); white-space: pre-wrap; line-height: 1.8; word-break: break-word; }
-    .entry-reflection { font-size: 16px; color: var(--text); white-space: pre-line; line-height: 1.8; }
-    .feed-empty { text-align: center; color: var(--muted); font-size: 16px; padding: 48px 0; }
+    .filter-stack label, .field-label { font-size: 13px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
 
     /* ── Book read view ── */
     .book-header {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px 10px;
-      border-bottom: 1px solid rgba(200,169,110,0.2);
+      padding: 14px 16px 10px; border-bottom: 1px solid rgba(200,169,110,0.2);
       position: sticky; top: 0; background: var(--bg); z-index: 20;
     }
-    .book-title {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--muted);
-    }
+    .book-title { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
     .book-header-right { display: flex; align-items: center; gap: 12px; }
     .book-date-nav { display: flex; align-items: center; gap: 6px; }
     .book-date-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
-    .nav-arrow {
-      background: none; border: none; color: var(--accent);
-      font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1;
-    }
+    .nav-arrow { background: none; border: none; color: var(--accent); font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; }
     .nav-arrow:disabled { color: var(--border); cursor: default; }
-    .filter-icon-btn {
-      background: none; border: none; color: var(--muted);
-      font-size: 18px; cursor: pointer; padding: 0; line-height: 1;
-    }
+    .filter-icon-btn { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0; line-height: 1; }
     .filter-icon-btn:hover { color: var(--accent); }
 
-    /* Filter panel */
-    .filter-panel {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 14px 16px;
-    }
+    .filter-panel { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 16px; }
     .filter-panel-inner { display: flex; flex-direction: column; gap: 12px; }
     .fp-row { display: flex; align-items: flex-end; gap: 10px; }
-    .fp-label {
-      font-size: 12px; color: var(--muted); display: flex;
-      flex-direction: column; gap: 5px; flex: 1;
-      font-family: 'Jost', sans-serif; letter-spacing: 0.04em; text-transform: uppercase;
-    }
-    .fp-label input, .fp-label select {
-      font-size: 14px; padding: 8px 10px;
-    }
+    .fp-label { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 5px; flex: 1; font-family: 'Jost', sans-serif; letter-spacing: 0.04em; text-transform: uppercase; }
+    .fp-label input, .fp-label select { font-size: 14px; padding: 8px 10px; }
 
-    /* Book page */
-    .book-page {
-      overflow: hidden; position: relative;
-      min-height: calc(100dvh - 140px);
-    }
-    .book-content {
-      padding: 28px 20px 60px;
-      transition: opacity 0.2s ease;
-    }
-    .book-content.animating { opacity: 0; transform: translateX(30px); }
-    .book-content.animating-back { opacity: 0; transform: translateX(-30px); }
+    .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 140px); }
+    .book-content { padding: 28px 20px 60px; transition: opacity 0.2s ease; }
 
-    /* Book typography */
-    .book-day-heading {
-      font-size: 26px; font-weight: 700; color: var(--accent);
-      letter-spacing: 0.02em; margin-bottom: 6px; line-height: 1.2;
-    }
-    .book-day-sub {
-      font-size: 13px; color: var(--muted); margin-bottom: 28px;
-      letter-spacing: 0.05em; text-transform: uppercase;
-    }
-    .book-section-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--muted);
-      margin: 24px 0 10px; padding-bottom: 6px;
-      border-bottom: 1px solid var(--border);
-    }
-    .book-task-group-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--accent);
-      margin: 14px 0 6px;
-    }
-    .book-task-row {
-      font-size: 15px; color: var(--text); line-height: 1.6;
-      padding: 4px 0 4px 16px; position: relative;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
+    .book-day-heading { font-size: 26px; font-weight: 700; color: var(--accent); letter-spacing: 0.02em; margin-bottom: 6px; line-height: 1.2; }
+    .book-day-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .book-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .book-task-group-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 14px 0 6px; }
+    .book-task-row { font-size: 15px; color: var(--text); line-height: 1.6; padding: 4px 0 4px 16px; position: relative; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .book-task-row::before { content: '•'; position: absolute; left: 4px; color: var(--muted); }
-    .book-reflection {
-      font-size: 16px; color: var(--text); line-height: 1.9;
-      white-space: pre-line; margin-top: 4px;
-      font-family: 'Lora', 'Georgia', serif;
-    }
-    .book-empty {
-      text-align: center; color: var(--muted); font-size: 15px;
-      padding: 60px 0; font-style: italic;
-    }
+    .book-reflection { font-size: 16px; color: var(--text); line-height: 1.9; white-space: pre-line; margin-top: 4px; font-family: 'Lora', 'Georgia', serif; }
+    .book-empty { text-align: center; color: var(--muted); font-size: 15px; padding: 60px 0; font-style: italic; }
     .book-star { color: var(--accent); margin-right: 4px; font-size: 13px; }
+
+    .feed-empty { text-align: center; color: var(--muted); font-size: 16px; padding: 48px 0; }
   </style>
 </head>
 <body>
 
 <!-- ══════════════ LOCK SCREEN ══════════════ -->
-<div id="lockScreen" style="
-  position:fixed;inset:0;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:20px;padding:32px;z-index:999;">
-  <div style="font-size:28px;font-weight:700;color:var(--accent);letter-spacing:0.04em;">Tim's Journal</div>
-  <div style="font-size:14px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;">Enter passphrase</div>
-  <input type="password" id="passphraseInput" placeholder="passphrase"
-    style="width:100%;max-width:280px;background:var(--surface2);border:1px solid var(--border);
-    border-radius:10px;color:var(--text);font-family:'Jost',sans-serif;font-size:18px;
-    padding:14px 16px;text-align:center;letter-spacing:0.08em;"
-    onkeydown="if(event.key==='Enter') submitPassphrase()">
-  <button class="btn btn-primary" style="width:100%;max-width:280px;" onclick="submitPassphrase()">Unlock</button>
-  <div id="lockError" style="font-size:14px;color:var(--red);min-height:20px;"></div>
+<div id="lockScreen">
+  <div class="lock-title">Tim's Journal</div>
+  <div class="lock-sub">Sign in to continue</div>
+  <div id="googleSignInBtn"></div>
+  <div id="lockError"></div>
 </div>
 
-<header class="header">
+<header class="header" style="display:none;" id="appHeader">
   <h1>Tim's Journal</h1>
   <div class="today" id="todayLabel"></div>
 </header>
 
 <!-- ══════════════ WRITE VIEW ══════════════ -->
-<section class="view active" id="writeView">
+<section class="view" id="writeView">
 
-  <!-- Date picker -->
   <div class="card" style="display:flex;align-items:center;gap:12px;padding:12px 16px;">
     <div style="font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);white-space:nowrap;">Editing</div>
     <input type="date" id="writeDatePicker" onchange="changeWriteDate(this.value)"
       style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:8px 12px;text-align:left;direction:ltr;color-scheme:dark;">
   </div>
 
-  <!-- Add task -->
   <div class="card">
     <div class="card-label">Add task</div>
     <div style="display:flex;gap:8px;margin-bottom:8px;">
-      <select id="manualTaskList"
-        style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:10px 10px;color-scheme:dark;width:110px;flex-shrink:0;">
+      <select id="manualTaskList" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:10px 10px;color-scheme:dark;width:110px;flex-shrink:0;">
         <option value="—">—</option>
         <option value="Basic">Basic</option>
         <option value="Personal">Personal</option>
@@ -309,17 +218,14 @@
         <option value="Zipf">Zipf</option>
         <option value="Other">Other</option>
       </select>
-      <input type="text" id="manualTaskInput" placeholder="Type task…"
-        style="flex:1;" onkeydown="if(event.key==='Enter') addManualTask()">
+      <input type="text" id="manualTaskInput" placeholder="Type task…" style="flex:1;" onkeydown="if(event.key==='Enter') addManualTask()">
     </div>
     <button class="btn btn-primary action-btn" onclick="addManualTask()">Add task</button>
     <div id="manualTaskStatus"></div>
   </div>
 
-  <!-- Import tasks -->
   <div class="card">
     <div class="card-label">Import tasks</div>
-
     <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <button class="btn btn-outline" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</button>
@@ -329,19 +235,16 @@
       </span>
     </div>
     <button class="btn btn-primary action-btn" id="extractBtn" onclick="extractFromScreenshot()">Extract from screenshot</button>
-
     <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
       <div style="flex:1;height:1px;background:var(--border);"></div>
       <span style="font-size:12px;color:var(--muted);letter-spacing:0.06em;">OR</span>
       <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
-
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <button class="btn btn-outline" id="recordBtn" onclick="toggleRecording()">🎤 Record</button>
       <span id="recordStatus" style="font-size:15px;color:var(--muted);flex:1;"></span>
     </div>
     <button class="btn btn-primary action-btn" id="extractVoiceBtn" onclick="extractFromVoice()" style="display:none;">Extract from recording</button>
-
     <div id="screenshotStatus"></div>
     <textarea id="extractedBox" placeholder="Extracted tasks will appear here…" style="margin-top:12px;min-height:100px;display:none;"></textarea>
     <div style="margin-top:10px;display:none;" id="addTasksRow">
@@ -349,7 +252,6 @@
     </div>
   </div>
 
-  <!-- Today's tasks -->
   <div class="card">
     <div class="card-label">Today's completed tasks</div>
     <button class="btn btn-primary action-btn" id="getTasksBtn" onclick="getTasks()">Refresh tasks</button>
@@ -357,29 +259,24 @@
     <div id="tasksDisplay" style="margin-top:14px;"></div>
   </div>
 
-  <!-- Add reflection -->
   <div class="card">
     <div class="card-label">Add reflection</div>
     <textarea id="reflectionBox" placeholder="Write your reflection for today…"></textarea>
   </div>
 
-  <!-- Import reflection -->
   <div class="card">
     <div class="card-label">Import reflection</div>
-
     <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handlePhoto(event)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <button class="btn btn-outline" onclick="document.getElementById('photoInput').click()">📷 Screenshot</button>
       <span class="photo-name" id="photoName"></span>
     </div>
     <div id="ocrStatus"></div>
-
     <div style="display:flex;align-items:center;gap:8px;margin:14px 0;">
       <div style="flex:1;height:1px;background:var(--border);"></div>
       <span style="font-size:12px;color:var(--muted);letter-spacing:0.06em;">OR</span>
       <div style="flex:1;height:1px;background:var(--border);"></div>
     </div>
-
     <div style="display:flex;align-items:center;gap:10px;">
       <button class="btn btn-outline" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</button>
       <span id="reflectionRecordStatus" style="font-size:15px;color:var(--muted);flex:1;"></span>
@@ -396,7 +293,6 @@
 <!-- ══════════════ READ VIEW ══════════════ -->
 <section class="view" id="readView">
 
-  <!-- Book header -->
   <div class="book-header">
     <span class="book-title">Tim's Progress Journal</span>
     <div class="book-header-right">
@@ -409,7 +305,6 @@
     </div>
   </div>
 
-  <!-- Filter panel (hidden by default) -->
   <div id="filterPanel" class="filter-panel" style="display:none;">
     <div class="filter-panel-inner">
       <div class="fp-row">
@@ -438,18 +333,15 @@
     </div>
   </div>
 
-  <!-- Page container for swipe -->
   <div id="bookPage" class="book-page">
     <div id="bookContent" class="book-content"></div>
   </div>
-
-  <!-- Page loading indicator -->
   <div id="bookStatus"></div>
 
 </section>
 
 <!-- ══════════════ NAV ══════════════ -->
-<nav class="tab-nav">
+<nav class="tab-nav" id="appNav" style="display:none;">
   <div class="tab-toggle">
     <button class="tab-btn active" id="tab-write" onclick="switchTab('write')">Write</button>
     <button class="tab-btn"        id="tab-read"  onclick="switchTab('read')">Read</button>
@@ -458,74 +350,16 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
-  const PASSPHRASE  = 'olive-badger-23';
-  const STORAGE_KEY = 'tjAuth';
-
-  // ── Auth ──────────────────────────────────────────────────
-  function checkAuth() {
-    try {
-      if (sessionStorage.getItem(STORAGE_KEY) === 'ok') {
-        document.getElementById('lockScreen').style.display = 'none';
-        return true;
-      }
-    } catch(e) {}
-    return false;
-  }
-
-  function submitPassphrase() {
-    const val = document.getElementById('passphraseInput').value.trim();
-    if (val === PASSPHRASE) {
-      try { sessionStorage.setItem(STORAGE_KEY, 'ok'); } catch(e) {}
-      document.getElementById('lockScreen').style.display = 'none';
-      document.getElementById('passphraseInput').value = '';
-      initApp();
-    } else {
-      document.getElementById('lockError').textContent = 'Incorrect passphrase.';
-      document.getElementById('passphraseInput').value = '';
-      document.getElementById('passphraseInput').focus();
-    }
-  }
-
-  function initApp() {
-    const now = new Date();
-    const todayStr = isoDate(now);
-    document.getElementById('todayLabel').textContent =
-      now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
-    document.getElementById('writeDatePicker').value = todayStr;
-    document.getElementById('filterFrom') && (document.getElementById('filterFrom').value = todayStr);
-    document.getElementById('filterTo')   && (document.getElementById('filterTo').value   = todayStr);
-    document.getElementById('screenshotInput').addEventListener('change', function() {
-      const files = this.files;
-      if (!files || !files.length) return;
-      const label = files.length === 1 ? files[0].name : files.length + ' files selected';
-      document.getElementById('screenshotName').textContent = label;
-      document.getElementById('clearScreenshotBtn').style.display = 'inline';
-    });
-    setTimeout(() => { checkTodayEntry(); getTasks(); }, 100);
-  }
+  const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
+  const GOOGLE_CLIENT_ID = '334749757917-t606nr5dfec4h2va1dah61nu9rm5rbk9.apps.googleusercontent.com';
 
   // ── State ─────────────────────────────────────────────────
+  let idToken        = null;
   let tasksData      = [];
   let existingPageId = null;
   let extractedTasks = [];
 
-  // ── API helper ────────────────────────────────────────────
-  async function api(action, params) {
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body:   JSON.stringify({ action, params: params || {}, passphrase: PASSPHRASE }),
-    });
-    const text = await res.text();
-    if (text.trim().startsWith('<')) {
-      throw new Error('Apps Script returned an error page — check deployment is set to "Anyone" access and URL is correct.');
-    }
-    const data = JSON.parse(text);
-    if (!data.success) throw new Error(data.error);
-    return data.data;
-  }
-
-  // ── Utilities (defined first so available everywhere) ─────
+  // ── Utilities ─────────────────────────────────────────────
   function isoDate(d) { return d.toISOString().split('T')[0]; }
 
   function getWriteDate() {
@@ -536,17 +370,74 @@
     return today;
   }
 
+  // ── Google Auth ───────────────────────────────────────────
+  function initGoogleAuth() {
+    google.accounts.id.initialize({
+      client_id:  GOOGLE_CLIENT_ID,
+      callback:   handleCredentialResponse,
+      auto_select: true,
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('googleSignInBtn'),
+      { theme: 'outline', size: 'large', text: 'sign_in_with', shape: 'pill' }
+    );
+    google.accounts.id.prompt();
+  }
+
+  function handleCredentialResponse(response) {
+    idToken = response.credential;
+    document.getElementById('lockScreen').style.display  = 'none';
+    document.getElementById('appHeader').style.display   = '';
+    document.getElementById('appNav').style.display      = '';
+    document.getElementById('writeView').classList.add('active');
+    initApp();
+  }
+
+  // ── API helper ────────────────────────────────────────────
+  async function api(action, params) {
+    const res  = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body:   JSON.stringify({ action, params: params || {}, idToken }),
+    });
+    const text = await res.text();
+    if (text.trim().startsWith('<')) {
+      throw new Error('Apps Script returned an error page — check deployment access is set to "Anyone".');
+    }
+    const data = JSON.parse(text);
+    if (!data.success) throw new Error(data.error);
+    return data.data;
+  }
+
   // ── Init ──────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    if (checkAuth()) initApp();
-    else document.getElementById('passphraseInput').focus();
+    // Wait for Google GSI library to load
+    const interval = setInterval(() => {
+      if (window.google && google.accounts) {
+        clearInterval(interval);
+        initGoogleAuth();
+      }
+    }, 100);
   });
+
+  function initApp() {
+    const now = new Date();
+    const todayStr = isoDate(now);
+    document.getElementById('todayLabel').textContent =
+      now.toLocaleDateString('en-GB', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).replace(',', '');
+    document.getElementById('writeDatePicker').value = todayStr;
+    document.getElementById('screenshotInput').addEventListener('change', function() {
+      const files = this.files;
+      if (!files || !files.length) return;
+      document.getElementById('screenshotName').textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
+      document.getElementById('clearScreenshotBtn').style.display = 'inline';
+    });
+    setTimeout(() => { checkTodayEntry(); getTasks(); }, 100);
+  }
 
   // ── Date change ───────────────────────────────────────────
   function changeWriteDate(dateStr) {
     if (!dateStr) return;
-    existingPageId = null;
-    tasksData      = [];
+    existingPageId = null; tasksData = [];
     document.getElementById('reflectionBox').value    = '';
     document.getElementById('tasksDisplay').innerHTML = '';
     document.getElementById('tasksStatus').innerHTML  = '';
@@ -563,8 +454,7 @@
     document.getElementById('tasksStatus').innerHTML = '';
     try {
       const entry = await api('getEntryForDate', { date });
-      setBtnLoading(btn, null);
-      btn.textContent = 'Refresh tasks';
+      setBtnLoading(btn, null); btn.textContent = 'Refresh tasks';
       if (entry && entry.tasksText) {
         tasksData = entry.tasksText.split('\n').map(l => {
           const line = l.replace(/^•\s*/, '').trim();
@@ -573,13 +463,10 @@
           const starred = line.startsWith('★ ');
           return { list: '—', starred, title: starred ? line.slice(2) : line };
         }).filter(t => t.title);
-      } else {
-        tasksData = [];
-      }
+      } else { tasksData = []; }
       renderTasks();
     } catch(err) {
-      setBtnLoading(btn, null);
-      btn.textContent = 'Refresh tasks';
+      setBtnLoading(btn, null); btn.textContent = 'Refresh tasks';
       showStatus('tasksStatus', 'Error: ' + err.message, 'err');
     }
   }
@@ -593,8 +480,7 @@
     if (existingLower.has(title.toLowerCase())) { showStatus('manualTaskStatus', 'Task already in list.', 'err'); return; }
     tasksData.push({ title, list, starred: false });
     renderTasks();
-    input.value = '';
-    input.focus();
+    input.value = ''; input.focus();
     showStatus('manualTaskStatus', '✓ Added', 'ok');
     setTimeout(() => document.getElementById('manualTaskStatus').innerHTML = '', 2000);
   }
@@ -610,7 +496,7 @@
       const list    = typeof t === 'object' ? (t.list || '—') : '—';
       const starred = typeof t === 'object' ? !!t.starred : false;
       if (!groups[list]) groups[list] = [];
-      groups[list].push({ title, starred, idx: i, list }); // ← list included on item
+      groups[list].push({ title, starred, idx: i, list });
     });
     const keys = Object.keys(groups).sort((a, b) => {
       const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
@@ -627,9 +513,7 @@
         ? `<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);padding:10px 0 4px;">${esc(g.list)}</div>`
         : '';
       const rows = g.items.map(item => {
-        const opts = LIST_OPTIONS.map(l =>
-          `<option value="${l}"${l === item.list ? ' selected' : ''}>${l}</option>`
-        ).join('');
+        const opts = LIST_OPTIONS.map(l => `<option value="${l}"${l === item.list ? ' selected' : ''}>${l}</option>`).join('');
         return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);">
           <select onchange="updateTaskList(${item.idx},this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Jost',sans-serif;font-size:13px;padding:5px 6px;width:90px;flex-shrink:0;color-scheme:dark;">${opts}</select>
           <input type="text" value="${esc(item.title)}" onchange="updateTaskTitle(${item.idx},this.value)" style="flex:1;background:transparent;border:none;color:var(--text);font-family:'Jost',sans-serif;font-size:15px;padding:5px 4px;min-width:0;" />
@@ -643,10 +527,7 @@
 
   function renderTasks() {
     const display = document.getElementById('tasksDisplay');
-    if (!tasksData.length) {
-      display.innerHTML = '<div class="empty-note">No completed tasks found for today yet.</div>';
-      return;
-    }
+    if (!tasksData.length) { display.innerHTML = '<div class="empty-note">No completed tasks found for today yet.</div>'; return; }
     const groups = groupTasksByList(tasksData);
     const withHeadings = groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—');
     display.innerHTML = renderGroupedTasks(groups, withHeadings);
@@ -654,21 +535,20 @@
 
   function tasksAsText() {
     return tasksData.map(t => {
-      const list    = typeof t === 'object' ? (t.list    || '—') : '—';
-      const title   = typeof t === 'object' ? t.title   : t;
-      const starred = typeof t === 'object' ? !!t.starred : false;
-      const star    = starred ? '★ ' : '';
+      const list  = typeof t === 'object' ? (t.list  || '—') : '—';
+      const title = typeof t === 'object' ? t.title  : t;
+      const star  = typeof t === 'object' && t.starred ? '★ ' : '';
       return list && list !== '—' ? `• [${list}] ${star}${title}` : `• ${star}${title}`;
     }).join('\n');
   }
 
-  function updateTaskTitle(index, value) { if (tasksData[index]) tasksData[index].title = value.trim(); }
-  function updateTaskList(index, value)  { if (tasksData[index]) { tasksData[index].list = value; renderTasks(); } }
-  function deleteTask(index)             { tasksData.splice(index, 1); renderTasks(); }
-  function toggleStar(index) {
-    if (!tasksData[index]) return;
-    if (typeof tasksData[index] === 'string') tasksData[index] = { title: tasksData[index], list: '—', starred: true };
-    else tasksData[index].starred = !tasksData[index].starred;
+  function updateTaskTitle(i, v) { if (tasksData[i]) tasksData[i].title = v.trim(); }
+  function updateTaskList(i, v)  { if (tasksData[i]) { tasksData[i].list = v; renderTasks(); } }
+  function deleteTask(i)         { tasksData.splice(i, 1); renderTasks(); }
+  function toggleStar(i) {
+    if (!tasksData[i]) return;
+    if (typeof tasksData[i] === 'string') tasksData[i] = { title: tasksData[i], list: '—', starred: true };
+    else tasksData[i].starred = !tasksData[i].starred;
     renderTasks();
   }
 
@@ -691,18 +571,14 @@
         renderTasks();
       }
       document.getElementById('saveBtn').textContent = 'Update entry';
-    } catch(err) { /* silent */ }
+    } catch(e) { /* silent */ }
   }
 
   // ── Save / update entry ───────────────────────────────────
   async function saveEntry() {
     const btn = document.getElementById('saveBtn');
     setBtnLoading(btn, 'Saving…');
-    const payload = {
-      date:       getWriteDate(),
-      tasksText:  tasksAsText(),
-      reflection: document.getElementById('reflectionBox').value.trim(),
-    };
+    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: document.getElementById('reflectionBox').value.trim() };
     try {
       if (existingPageId) {
         await api('updateEntry', { pageId: existingPageId, payload });
@@ -734,42 +610,29 @@
 
   async function extractFromScreenshot() {
     const input = document.getElementById('screenshotInput');
-    if (!input.files || !input.files.length) {
-      showStatus('screenshotStatus', 'Please select a screenshot first.', 'err'); return;
-    }
+    if (!input.files || !input.files.length) { showStatus('screenshotStatus', 'Please select a screenshot first.', 'err'); return; }
     const files = Array.from(input.files);
     extractedTasks = [];
     const btn = document.getElementById('extractBtn');
     setBtnLoading(btn, 'Extracting…');
     document.getElementById('extractedBox').style.display = 'none';
     document.getElementById('addTasksRow').style.display  = 'none';
-
     try {
       for (let i = 0; i < files.length; i++) {
         showStatus('screenshotStatus', `<span class="spin"></span> Extracting from image ${i+1} of ${files.length}…`, 'info');
-        const base64    = await toBase64(files[i]);
-        const mediaType = files[i].type || 'image/jpeg';
-        const extracted = await api('extractTasksFromImage', { base64Data: base64, mediaType });
-        extractedTasks  = extractedTasks.concat(extracted || []);
+        const base64 = await toBase64(files[i]);
+        const extracted = await api('extractTasksFromImage', { base64Data: base64, mediaType: files[i].type || 'image/jpeg' });
+        extractedTasks = extractedTasks.concat(extracted || []);
       }
-
       setBtnLoading(btn, null); btn.textContent = 'Extract from screenshot';
-
-      if (!extractedTasks.length) {
-        showStatus('screenshotStatus', 'No completed tasks found.', 'err');
-        clearScreenshot(); return;
-      }
-
-      document.getElementById('extractedBox').value = extractedTasks.map(t =>
-        (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title
-      ).join('\n');
+      if (!extractedTasks.length) { showStatus('screenshotStatus', 'No completed tasks found.', 'err'); clearScreenshot(); return; }
+      document.getElementById('extractedBox').value = extractedTasks.map(t => (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title).join('\n');
       document.getElementById('extractedBox').style.display = 'block';
       document.getElementById('addTasksRow').style.display  = 'block';
       document.getElementById('screenshotStatus').innerHTML = '';
       document.getElementById('screenshotInput').value = '';
       document.getElementById('screenshotName').textContent = '';
       document.getElementById('clearScreenshotBtn').style.display = 'none';
-
     } catch(err) {
       setBtnLoading(btn, null); btn.textContent = 'Extract from screenshot';
       showStatus('screenshotStatus', 'Error: ' + err.message, 'err');
@@ -777,30 +640,22 @@
   }
 
   // ── Task voice recording ──────────────────────────────────
-  let recognition     = null;
-  let voiceTranscript = '';
-  let isRecording     = false;
+  let recognition = null, voiceTranscript = '', isRecording = false;
 
   function toggleRecording() { isRecording ? stopRecording() : startRecording(); }
 
   function startRecording() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { showStatus('screenshotStatus', 'Voice not supported. Try Safari or Chrome.', 'err'); return; }
-    recognition = new SR();
-    recognition.lang = 'en-GB'; recognition.continuous = true; recognition.interimResults = true;
+    recognition = new SR(); recognition.lang = 'en-GB'; recognition.continuous = true; recognition.interimResults = true;
     voiceTranscript = ''; isRecording = true;
-    document.getElementById('recordStatus').textContent      = '🔴 Recording…';
-    document.getElementById('recordBtn').textContent         = '⏹ Stop';
+    document.getElementById('recordStatus').textContent = '🔴 Recording…';
+    document.getElementById('recordBtn').textContent    = '⏹ Stop';
     document.getElementById('extractVoiceBtn').style.display = 'none';
-    document.getElementById('extractedBox').style.display   = 'none';
-    document.getElementById('addTasksRow').style.display    = 'none';
-    document.getElementById('screenshotStatus').innerHTML   = '';
-    recognition.onresult = e => {
-      let t = '';
-      for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
-      voiceTranscript = t;
-      document.getElementById('recordStatus').textContent = '🔴 ' + t.slice(-60);
-    };
+    document.getElementById('extractedBox').style.display    = 'none';
+    document.getElementById('addTasksRow').style.display     = 'none';
+    document.getElementById('screenshotStatus').innerHTML    = '';
+    recognition.onresult = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript; voiceTranscript = t; document.getElementById('recordStatus').textContent = '🔴 ' + t.slice(-60); };
     recognition.onerror = e => { stopRecording(); showStatus('screenshotStatus', 'Recording error: ' + e.error, 'err'); };
     recognition.onend   = () => { if (isRecording) stopRecording(); };
     recognition.start();
@@ -813,9 +668,7 @@
     if (voiceTranscript) {
       document.getElementById('recordStatus').textContent = '✓ ' + voiceTranscript.slice(0, 80) + (voiceTranscript.length > 80 ? '…' : '');
       document.getElementById('extractVoiceBtn').style.display = 'inline-flex';
-    } else {
-      document.getElementById('recordStatus').textContent = 'Nothing recorded.';
-    }
+    } else { document.getElementById('recordStatus').textContent = 'Nothing recorded.'; }
   }
 
   async function extractFromVoice() {
@@ -826,30 +679,22 @@
     try {
       const extracted = await api('extractTasksFromTranscript', { transcript: voiceTranscript });
       setBtnLoading(btn, null); btn.textContent = 'Extract from recording';
-      if (!extracted || !extracted.length) {
-        showStatus('screenshotStatus', 'No tasks found in recording.', 'err'); return;
-      }
+      if (!extracted || !extracted.length) { showStatus('screenshotStatus', 'No tasks found in recording.', 'err'); return; }
       extractedTasks = extracted;
-      document.getElementById('extractedBox').value = extracted.map(t =>
-        (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title
-      ).join('\n');
+      document.getElementById('extractedBox').value = extracted.map(t => (t.list && t.list !== '—') ? `[${t.list}] ${t.title}` : t.title).join('\n');
       document.getElementById('extractedBox').style.display = 'block';
       document.getElementById('addTasksRow').style.display  = 'block';
       document.getElementById('screenshotStatus').innerHTML = '';
-    } catch(err) {
-      setBtnLoading(btn, null); btn.textContent = 'Extract from recording';
-      showStatus('screenshotStatus', 'Error: ' + err.message, 'err');
-    }
+    } catch(err) { setBtnLoading(btn, null); btn.textContent = 'Extract from recording'; showStatus('screenshotStatus', 'Error: ' + err.message, 'err'); }
   }
 
   function addExtractedTasks() {
     if (!extractedTasks.length) return;
     const existingLower = new Set(tasksData.map(t => (typeof t === 'object' ? t.title : t).toLowerCase()));
     extractedTasks.forEach(t => {
-      const key = t.title.trim().toLowerCase();
-      if (!existingLower.has(key)) {
+      if (!existingLower.has(t.title.trim().toLowerCase())) {
         tasksData.push({ title: t.title.trim(), list: t.list || '—', starred: false });
-        existingLower.add(key);
+        existingLower.add(t.title.trim().toLowerCase());
       }
     });
     renderTasks();
@@ -866,40 +711,30 @@
     document.getElementById('photoName').textContent = file.name;
     showStatus('ocrStatus', '<span class="spin"></span> Transcribing…', 'info');
     try {
-      const base64    = await toBase64(file);
-      const mediaType = file.type || 'image/jpeg';
-      const text      = await api('ocrImage', { base64Data: base64, mediaType });
-      const box       = document.getElementById('reflectionBox');
-      box.value       = box.value ? box.value + '\n\n' + text : text;
+      const text = await api('ocrImage', { base64Data: await toBase64(file), mediaType: file.type || 'image/jpeg' });
+      const box  = document.getElementById('reflectionBox');
+      box.value  = box.value ? box.value + '\n\n' + text : text;
       showStatus('ocrStatus', '✓ Transcription added', 'ok');
       setTimeout(() => document.getElementById('ocrStatus').innerHTML = '', 4000);
-    } catch(err) {
-      showStatus('ocrStatus', 'OCR failed: ' + err.message, 'err');
-    }
+    } catch(err) { showStatus('ocrStatus', 'OCR failed: ' + err.message, 'err'); }
     e.target.value = '';
   }
 
   // ── Reflection voice recording ────────────────────────────
-  let reflectionRecognition = null;
-  let isReflectionRecording = false;
-  let reflectionTranscript  = '';
+  let reflectionRecognition = null, isReflectionRecording = false, reflectionTranscript = '';
 
   function toggleReflectionRecording() { isReflectionRecording ? stopReflectionRecording() : startReflectionRecording(); }
 
   function startReflectionRecording() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { showStatus('reflectionVoiceStatus', 'Voice not supported. Try Safari or Chrome.', 'err'); return; }
-    reflectionRecognition = new SR();
-    reflectionRecognition.lang = 'en-GB'; reflectionRecognition.continuous = true; reflectionRecognition.interimResults = true;
+    reflectionRecognition = new SR(); reflectionRecognition.lang = 'en-GB'; reflectionRecognition.continuous = true; reflectionRecognition.interimResults = true;
     reflectionTranscript = ''; isReflectionRecording = true;
     document.getElementById('reflectionRecordBtn').textContent    = '⏹ Stop';
     document.getElementById('reflectionRecordStatus').textContent = '🔴 Recording…';
     reflectionRecognition.onresult = e => {
       let final = '', interim = '';
-      for (let i = 0; i < e.results.length; i++) {
-        if (e.results[i].isFinal) final   += e.results[i][0].transcript + ' ';
-        else                       interim += e.results[i][0].transcript;
-      }
+      for (let i = 0; i < e.results.length; i++) { if (e.results[i].isFinal) final += e.results[i][0].transcript + ' '; else interim += e.results[i][0].transcript; }
       reflectionTranscript = final + interim;
       document.getElementById('reflectionRecordStatus').textContent = '🔴 ' + reflectionTranscript.slice(-60);
     };
@@ -917,19 +752,12 @@
       box.value = box.value ? box.value + '\n\n' + reflectionTranscript.trim() : reflectionTranscript.trim();
       document.getElementById('reflectionRecordStatus').textContent = '✓ Added to reflection';
       setTimeout(() => document.getElementById('reflectionRecordStatus').textContent = '', 3000);
-    } else {
-      document.getElementById('reflectionRecordStatus').textContent = 'Nothing recorded.';
-    }
+    } else { document.getElementById('reflectionRecordStatus').textContent = 'Nothing recorded.'; }
   }
 
-  // ── Load entries (Read view) ───────────────────────────────
-  // ── Book read view state ──────────────────────────────────
-  let bookEntries    = [];
-  let bookIndex      = 0;
-  let bookField      = 'all';
-  let bookLoadingMore = false;
-  let stepsInDirection = 0;
-  let lastDirection    = 0;
+  // ── Book read view ────────────────────────────────────────
+  let bookEntries = [], bookIndex = 0, bookField = 'all';
+  let bookLoadingMore = false, stepsInDirection = 0, lastDirection = 0;
 
   async function initReadView() {
     bookField = document.getElementById('filterField').value;
@@ -937,81 +765,55 @@
     document.getElementById('bookContent').innerHTML = '';
     bookEntries = []; bookIndex = 0; stepsInDirection = 0; lastDirection = 0;
     try {
-      const today    = new Date();
-      const monthAgo = new Date(today);
+      const today    = new Date(), monthAgo = new Date(today);
       monthAgo.setDate(today.getDate() - 30);
       const entries  = await api('getEntries', { startDate: isoDate(monthAgo), endDate: isoDate(today) });
       document.getElementById('bookStatus').innerHTML = '';
       bookEntries = entries.filter(e => e.date);
       bookIndex   = 0;
       renderBookPage(false);
-    } catch(err) {
-      showStatus('bookStatus', 'Error: ' + err.message, 'err');
-    }
+    } catch(err) { showStatus('bookStatus', 'Error: ' + err.message, 'err'); }
   }
 
   async function loadMoreEntries(direction) {
     if (bookLoadingMore || !bookEntries.length) return;
     bookLoadingMore = true;
-
     try {
       if (direction === -1) {
-        // Load older entries
-        const oldest  = bookEntries[bookEntries.length - 1].date;
-        const endDate = new Date(oldest + 'T12:00:00');
-        endDate.setDate(endDate.getDate() - 1);
-        const startDate = new Date(endDate);
-        startDate.setDate(startDate.getDate() - 30);
+        const oldest    = bookEntries[bookEntries.length - 1].date;
+        const endDate   = new Date(oldest + 'T12:00:00'); endDate.setDate(endDate.getDate() - 1);
+        const startDate = new Date(endDate); startDate.setDate(startDate.getDate() - 30);
         const more = await api('getEntries', { startDate: isoDate(startDate), endDate: isoDate(endDate) });
         if (more && more.length) bookEntries = bookEntries.concat(more.filter(e => e.date));
       } else {
-        // Load newer entries
-        const newest   = bookEntries[0].date;
-        const startDate = new Date(newest + 'T12:00:00');
-        startDate.setDate(startDate.getDate() + 1);
-        const endDate  = new Date();
-        const more = await api('getEntries', { startDate: isoDate(startDate), endDate: isoDate(endDate) });
-        if (more && more.length) {
-          bookEntries = more.filter(e => e.date).concat(bookEntries);
-          bookIndex  += more.length;
-        }
+        const newest    = bookEntries[0].date;
+        const startDate = new Date(newest + 'T12:00:00'); startDate.setDate(startDate.getDate() + 1);
+        const more = await api('getEntries', { startDate: isoDate(startDate), endDate: isoDate(new Date()) });
+        if (more && more.length) { bookEntries = more.filter(e => e.date).concat(bookEntries); bookIndex += more.length; }
       }
     } catch(e) { /* silent */ }
-
-    bookLoadingMore = false;
-    updateNavArrows();
+    bookLoadingMore = false; updateNavArrows();
   }
 
   function renderBookPage(animate, direction) {
     const content = document.getElementById('bookContent');
     const entry   = bookEntries[bookIndex];
-
     updateNavArrows();
-
     if (entry) {
       const d = new Date(entry.date + 'T12:00:00');
-      document.getElementById('bookDateLabel').textContent =
-        d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
-    } else {
-      document.getElementById('bookDateLabel').textContent = '';
-    }
+      document.getElementById('bookDateLabel').textContent = d.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    } else { document.getElementById('bookDateLabel').textContent = ''; }
 
-    if (animate) {
-      content.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
-      content.style.opacity    = '0';
-      content.style.transform  = `translateX(${direction === 1 ? '-30px' : '30px'})`;
-    }
+    if (animate) { content.style.transition = 'opacity 0.18s ease, transform 0.18s ease'; content.style.opacity = '0'; content.style.transform = `translateX(${direction === 1 ? '-30px' : '30px'})`; }
 
     setTimeout(() => {
       content.innerHTML = entry ? buildPageHTML(entry) : '<div class="book-empty">No entry for this day.</div>';
       const inFrom = direction === 1 ? '30px' : '-30px';
-      content.style.transition = 'none';
-      content.style.opacity    = '0';
+      content.style.transition = 'none'; content.style.opacity = '0';
       content.style.transform  = animate ? `translateX(${inFrom})` : 'translateX(0)';
       requestAnimationFrame(() => requestAnimationFrame(() => {
         content.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
-        content.style.opacity    = '1';
-        content.style.transform  = 'translateX(0)';
+        content.style.opacity    = '1'; content.style.transform = 'translateX(0)';
       }));
     }, animate ? 180 : 0);
   }
@@ -1021,21 +823,51 @@
     document.getElementById('nextDayBtn').disabled = bookIndex <= 0;
   }
 
-  function navigateDay(direction) {
-    const next = bookIndex + direction; // -1 older, +1 newer (entries newest first)
-    if (next < 0 || next >= bookEntries.length) return;
-    bookIndex = next;
-    renderBookPage(true, direction);
+  function buildPageHTML(entry) {
+    const d = new Date(entry.date + 'T12:00:00');
+    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
+    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    let html = `<div class="book-day-heading">${dateStr}</div><div class="book-day-sub">${dayName}</div>`;
+    const field = bookField;
 
-    // Track consecutive steps in same direction
-    if (direction === lastDirection) stepsInDirection++;
-    else { stepsInDirection = 1; lastDirection = direction; }
+    if ((field === 'all' || field === 'tasks' || field === 'starred' || field.startsWith('list:')) && entry.tasksText) {
+      let taskObjs = entry.tasksText.split('\n').map(line => {
+        const m = line.match(/^•\s*\[(.+?)\]\s+(★\s+)?(.+)$/);
+        if (m) return { list: m[1], starred: !!m[2], title: m[3] };
+        const clean = line.replace(/^•\s*/, '').trim(); const starred = clean.startsWith('★ ');
+        return { list: '—', starred, title: starred ? clean.slice(2) : clean };
+      }).filter(t => t.title);
 
-    // After 7 steps, background load more in that direction
-    if (stepsInDirection >= 7) {
-      stepsInDirection = 0;
-      loadMoreEntries(direction);
+      if (field === 'starred') taskObjs = taskObjs.filter(t => t.starred);
+      else if (field.startsWith('list:')) {
+        const ln = field.slice(5);
+        taskObjs = ln === 'Other' ? taskObjs.filter(t => LIST_ORDER.indexOf(t.list) === -1 && t.list !== '—') : taskObjs.filter(t => t.list === ln);
+      }
+
+      if (taskObjs.length) {
+        html += '<div class="book-section-label">Completed</div>';
+        const groups = groupTasksByList(taskObjs);
+        const withH  = !field.startsWith('list:') && field !== 'starred' && (groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—'));
+        groups.forEach(g => {
+          if (withH && g.list && g.list !== '—') html += `<div class="book-task-group-label">${esc(g.list)}</div>`;
+          g.items.forEach(t => { const star = t.starred ? '<span class="book-star">★</span>' : ''; html += `<div class="book-task-row">${star}${esc(t.title)}</div>`; });
+        });
+      }
     }
+
+    if ((field === 'all' || field === 'reflection') && !field.startsWith('list:') && field !== 'starred' && entry.reflection) {
+      html += '<div class="book-section-label">Reflection</div>';
+      html += `<div class="book-reflection">${esc(entry.reflection)}</div>`;
+    }
+    return html;
+  }
+
+  function navigateDay(direction) {
+    const next = bookIndex + direction;
+    if (next < 0 || next >= bookEntries.length) return;
+    bookIndex = next; renderBookPage(true, direction);
+    if (direction === lastDirection) stepsInDirection++; else { stepsInDirection = 1; lastDirection = direction; }
+    if (stepsInDirection >= 7) { stepsInDirection = 0; loadMoreEntries(direction); }
   }
 
   function jumpToDate() {
@@ -1044,8 +876,7 @@
     const idx = bookEntries.findIndex(e => e.date <= dateStr);
     bookIndex = idx >= 0 ? idx : bookEntries.length - 1;
     stepsInDirection = 0; lastDirection = 0;
-    toggleFilterPanel();
-    renderBookPage(false);
+    toggleFilterPanel(); renderBookPage(false);
   }
 
   function toggleFilterPanel() {
@@ -1053,78 +884,19 @@
     panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
   }
 
-
-  function buildPageHTML(entry) {
-    const d = new Date(entry.date + 'T12:00:00');
-    const dayName = d.toLocaleDateString('en-GB', { weekday: 'long' });
-    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-    let html = `<div class="book-day-heading">${dateStr}</div>
-                <div class="book-day-sub">${dayName}</div>`;
-
-    const field = bookField;
-
-    // Tasks
-    if ((field === 'all' || field === 'tasks' || field === 'starred' || field.startsWith('list:')) && entry.tasksText) {
-      let taskObjs = entry.tasksText.split('\n').map(line => {
-        const m = line.match(/^•\s*\[(.+?)\]\s+(★\s+)?(.+)$/);
-        if (m) return { list: m[1], starred: !!m[2], title: m[3] };
-        const clean   = line.replace(/^•\s*/, '').trim();
-        const starred = clean.startsWith('★ ');
-        return { list: '—', starred, title: starred ? clean.slice(2) : clean };
-      }).filter(t => t.title);
-
-      if (field === 'starred')            taskObjs = taskObjs.filter(t => t.starred);
-      else if (field.startsWith('list:')) {
-        const ln = field.slice(5);
-        taskObjs = ln === 'Other'
-          ? taskObjs.filter(t => LIST_ORDER.indexOf(t.list) === -1 && t.list !== '—')
-          : taskObjs.filter(t => t.list === ln);
-      }
-
-      if (taskObjs.length) {
-        html += '<div class="book-section-label">Completed</div>';
-        const groups = groupTasksByList(taskObjs);
-        const withHeadings = !field.startsWith('list:') && field !== 'starred' &&
-          (groups.length > 1 || (groups.length === 1 && groups[0].list && groups[0].list !== '—'));
-        groups.forEach(g => {
-          if (withHeadings && g.list && g.list !== '—')
-            html += `<div class="book-task-group-label">${esc(g.list)}</div>`;
-          g.items.forEach(t => {
-            const star = t.starred ? '<span class="book-star">★</span>' : '';
-            html += `<div class="book-task-row">${star}${esc(t.title)}</div>`;
-          });
-        });
-      }
-    }
-
-    // Reflection
-    if ((field === 'all' || field === 'reflection') && !field.startsWith('list:') && field !== 'starred' && entry.reflection) {
-      html += '<div class="book-section-label">Reflection</div>';
-      html += `<div class="book-reflection">${esc(entry.reflection)}</div>`;
-    }
-
-    return html;
-  }
-
-  // ── Swipe gestures for book ────────────────────────────────
+  // ── Swipe gestures ────────────────────────────────────────
   (function() {
     let startX = 0, startY = 0;
-    const page = document.getElementById('bookPage');
-    if (!page) return;
-
     document.addEventListener('touchstart', e => {
       if (!document.getElementById('readView').classList.contains('active')) return;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
     }, { passive: true });
-
     document.addEventListener('touchend', e => {
       if (!document.getElementById('readView').classList.contains('active')) return;
       const dx = e.changedTouches[0].clientX - startX;
       const dy = e.changedTouches[0].clientY - startY;
       if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
-      if (dx < 0) navigateDay(-1); // swipe left = older
-      else         navigateDay(1);  // swipe right = newer
+      if (dx < 0) navigateDay(-1); else navigateDay(1);
     }, { passive: true });
   })();
 
@@ -1134,33 +906,20 @@
       document.getElementById(t + 'View').classList.toggle('active', t === tab);
       document.getElementById('tab-' + t).classList.toggle('active', t === tab);
     });
-    if (tab === 'read') {
-      const todayStr = isoDate(new Date());
-      document.getElementById('filterJumpDate').value = todayStr;
-      initReadView();
-    }
+    if (tab === 'read') { document.getElementById('filterJumpDate').value = isoDate(new Date()); initReadView(); }
   }
 
   // ── Helpers ───────────────────────────────────────────────
   function toBase64(file) {
-    return new Promise((res, rej) => {
-      const r = new FileReader();
-      r.onload  = () => res(r.result.split(',')[1]);
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    });
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
   }
-
   function showStatus(id, msg, type) { document.getElementById(id).innerHTML = `<div class="status ${type}">${msg}</div>`; }
   function autoClear(id, ms) { setTimeout(() => document.getElementById(id).innerHTML = '', ms); }
   function setBtnLoading(btn, label) {
     if (label) { btn._orig = btn.textContent; btn.disabled = true; btn.innerHTML = `<span class="spin"></span> ${label}`; }
     else        { btn.disabled = false; btn.textContent = btn._orig || btn.textContent; }
   }
-  function esc(s) {
-    if (!s) return '';
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
+  function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
 </body>
 </html>
