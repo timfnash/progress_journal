@@ -718,7 +718,7 @@
 
   // ── Tasks rendering ───────────────────────────────────────
   const LIST_ORDER   = ['Basic', 'Personal', 'Work', 'Zipf'];
-  const LIST_OPTIONS = ['—', 'Basic', 'Personal', 'Work', 'Zipf', 'Other'];
+  const LIST_OPTIONS = ['Basic', 'Personal', 'Work', 'Zipf', 'Other'];
 
   function parseTasksText(text) {
     if (!text) return [];
@@ -727,7 +727,7 @@
       const m    = line.match(/^\[(.+?)\]\s+(★\s+)?(.+)$/);
       if (m) return { list: m[1], starred: !!m[2], title: m[3] };
       const starred = line.startsWith('★ ');
-      return { list: '—', starred, title: starred ? line.slice(2) : line };
+      return { list: 'Other', starred, title: starred ? line.slice(2) : line };
     }).filter(t => t.title);
   }
 
@@ -742,7 +742,7 @@
   function groupByList(tasks) {
     const groups = {};
     tasks.forEach((t, i) => {
-      const list = t.list || '—';
+      const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       if (!groups[list]) groups[list] = [];
       groups[list].push({ ...t, idx: i });
     });
@@ -784,7 +784,7 @@
     });
     // If only one list, add a global "+ Add" at the bottom
     if (!withH) {
-      html += `<div class="j-add-btn" style="margin-top:8px;display:inline-block;" onclick="addTaskToList('—')">+ Add task</div>`;
+      html += `<div class="j-add-btn" style="margin-top:8px;display:inline-block;" onclick="addTaskToList('Other')">+ Add task</div>`;
     }
     display.innerHTML = html;
     bindDrag();
@@ -1044,9 +1044,7 @@
     const existing = new Set(tasksData.map(t=>t.title.toLowerCase()));
     extractedTasks.forEach(t => {
       if (!existing.has(t.title.trim().toLowerCase())) {
-        // Remap list names not in LIST_OPTIONS to 'Other'
-        const knownLists = ['Basic','Personal','Work','Zipf','Other'];
-        const list = knownLists.includes(t.list) ? t.list : 'Other';
+        const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
         tasksData.push({ title: t.title.trim(), list, starred: false });
         existing.add(t.title.trim().toLowerCase());
       }
