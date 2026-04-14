@@ -206,8 +206,37 @@
 
     select { -webkit-appearance: none; }
 
-    .empty-note { font-size: 14px; color: var(--card-muted); text-align: center; padding: 16px 0; font-style: italic; }
-    .book-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 60px 0; font-style: italic; }
+    /* Home screen */
+    .h-date-pill {
+      background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45);
+      border-radius: 6px; padding: 5px 10px; cursor: pointer; user-select: none;
+      font-size: 14px; font-weight: 600; color: var(--accent);
+      display: inline-block;
+    }
+    .h-range-row {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .h-range-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .h-stat-row:last-of-type { border-bottom: none; }
+    .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
+    .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
+    .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
+    .h-count     { font-size: 14px; font-weight: 600; color: var(--card-text); width: 40px; text-align: right; flex-shrink: 0; font-family: 'Jost', sans-serif; }
+    .h-rule      { border: none; border-top: 1px solid var(--card-border); margin: 8px 0 6px; }
+    .h-total-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; }
+    .h-total-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
+    .h-total-count { font-size: 14px; font-weight: 600; color: var(--card-text); font-family: 'Jost', sans-serif; }
+    .h-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+      padding: 10px 20px; border-radius: 8px; cursor: pointer; user-select: none;
+    }
+    .h-btn.primary { background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); color: var(--accent); }
+    .h-btn.outline { background: rgba(120,120,120,0.08); border: 1px solid rgba(120,120,120,0.25); color: var(--muted); }
+    /* Hidden date pickers for home range */
+    #homeDateFrom, #homeDateTo { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
   </style>
 </head>
 <body>
@@ -220,11 +249,48 @@
   <div id="lockError"></div>
 </div>
 
-<!-- ══════════════ READ VIEW ══════════════ -->
+<!-- ══════════════ HOME VIEW ══════════════ -->
+<section class="view" id="homeView">
+
+  <div class="j-header">
+    <div class="j-title-row">Tim's Journal</div>
+    <div class="h-range-row">
+      <span class="h-range-label">From</span>
+      <div class="h-date-pill" id="homeFromPill" onclick="document.getElementById('homeDateFrom').click()">—</div>
+      <span class="h-range-label">to</span>
+      <div class="h-date-pill" id="homeToPill"   onclick="document.getElementById('homeDateTo').click()">—</div>
+      <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()">
+      <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()">
+    </div>
+  </div>
+
+  <div style="padding:14px 14px 0;">
+    <div class="j-card" id="homeStatsCard">
+      <div class="j-card-header">
+        <span class="j-card-title">Completed tasks</span>
+      </div>
+      <div class="j-card-body" id="homeStatsBody">
+        <div class="empty-note">Loading…</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px;padding-bottom:40px;">
+      <div class="h-btn primary" onclick="showWriteScreen(isoDate(new Date()))">✏ Add</div>
+      <div class="h-btn outline" onclick="goToReadToday()">📖 Review</div>
+    </div>
+    <div id="homeStatus"></div>
+  </div>
+
+</section>
+
+
 <section class="view" id="readView">
 
   <div class="j-header" id="readHeader">
-    <div class="j-title-row">Tim's Journal</div>
+    <div class="j-title-row" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>Tim's Journal</span>
+      <div class="j-nav-btn text" style="font-size:11px;" onclick="goHome()">← Home</div>
+    </div>
     <div class="j-nav-row">
       <div class="j-nav-btn" id="prevDayBtn" onclick="navigateDay(-1)">‹</div>
       <div class="j-date-block">
@@ -426,21 +492,121 @@
     }, 100);
   });
 
-  // ── Init — launch on Read screen ──────────────────────────
+  // ── Init — launch on Home screen ─────────────────────────
   function initApp() {
-    document.getElementById('readView').classList.add('active');
+    document.getElementById('homeView').classList.add('active');
     const todayStr = isoDate(new Date());
+    // Default range: 90 days ago to today
+    const ninetyAgo = new Date(); ninetyAgo.setDate(ninetyAgo.getDate() - 90);
+    document.getElementById('homeDateFrom').value = isoDate(ninetyAgo);
+    document.getElementById('homeDateTo').value   = todayStr;
+    updateHomePills();
     document.getElementById('filterJumpDate').value = todayStr;
     document.getElementById('screenshotInput').addEventListener('change', function() {
       if (this.files && this.files.length) extractFromScreenshot();
     });
-    loadReadView();
+    loadHomeStats();
   }
 
+  // ── Home screen ───────────────────────────────────────────
+  function updateHomePills() {
+    const from = document.getElementById('homeDateFrom').value;
+    const to   = document.getElementById('homeDateTo').value;
+    const fmt  = d => new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('homeFromPill').textContent = from ? fmt(from) : '—';
+    document.getElementById('homeToPill').textContent   = to   ? fmt(to)   : '—';
+  }
+
+  function onHomeRangeChange() { updateHomePills(); loadHomeStats(); }
+
+  async function loadHomeStats() {
+    document.getElementById('homeStatsBody').innerHTML = '<div class="empty-note">Loading…</div>';
+    const from = document.getElementById('homeDateFrom').value;
+    const to   = document.getElementById('homeDateTo').value;
+    if (!from || !to) return;
+    try {
+      const entries = await api('getEntries', { startDate: from, endDate: to });
+      renderHomeStats(entries);
+    } catch(e) {
+      document.getElementById('homeStatsBody').innerHTML = `<div class="empty-note" style="color:var(--red);">Error: ${e.message}</div>`;
+    }
+  }
+
+  function renderHomeStats(entries) {
+    // Count tasks per list
+    const counts = {};
+    let total = 0;
+    entries.forEach(entry => {
+      if (!entry.tasksText) return;
+      parseTasksText(entry.tasksText).forEach(t => {
+        const list = t.list || '—';
+        counts[list] = (counts[list] || 0) + 1;
+        total++;
+      });
+    });
+
+    if (!total) {
+      document.getElementById('homeStatsBody').innerHTML = '<div class="empty-note">No tasks found in this date range.</div>';
+      return;
+    }
+
+    // Sort by LIST_ORDER then alphabetical
+    const keys = Object.keys(counts).sort((a, b) => {
+      const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1; if (bi === -1) return -1;
+      return ai - bi;
+    });
+
+    const max = Math.max(...Object.values(counts));
+    let html = keys.map(k => {
+      const pct = Math.round((counts[k] / max) * 100);
+      return `<div class="h-stat-row">
+        <span class="h-list-name">${esc(k)}</span>
+        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${pct}%"></div></div>
+        <span class="h-count">${counts[k].toLocaleString()}</span>
+      </div>`;
+    }).join('');
+
+    html += `<hr class="h-rule">
+      <div class="h-total-row">
+        <span class="h-total-label">Total</span>
+        <span class="h-total-count">${total.toLocaleString()}</span>
+      </div>`;
+
+    document.getElementById('homeStatsBody').innerHTML = html;
+  }
+
+  function goToReadToday() {
+    document.getElementById('homeView').classList.remove('active');
+    document.getElementById('readView').classList.add('active');
+    if (bookEntries.length) {
+      // Navigate to today's entry
+      const todayStr = isoDate(new Date());
+      const idx = bookEntries.findIndex(e => e.date <= todayStr);
+      bookIndex = idx >= 0 ? idx : 0;
+      renderBookPage(false);
+    } else {
+      loadReadView();
+    }
+  }
+
+  function goHome() {
+    ['readView','writeView'].forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById('homeView').classList.add('active');
+    loadHomeStats();
+  }
+
+
+
   // ── WRITE SCREEN ──────────────────────────────────────────
+  let callerView = 'home'; // which view launched write screen
+
   function showWriteScreen(date) {
-    lastReadDate = bookEntries[bookIndex]?.date || isoDate(new Date());
-    document.getElementById('readView').classList.remove('active');
+    // Track which screen we came from
+    if (document.getElementById('homeView').classList.contains('active')) callerView = 'home';
+    else callerView = 'read';
+    ['homeView','readView'].forEach(id => document.getElementById(id).classList.remove('active'));
     document.getElementById('writeView').classList.add('active');
     tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
@@ -453,23 +619,22 @@
 
   function exitToRead() {
     document.getElementById('writeView').classList.remove('active');
-    document.getElementById('readView').classList.add('active');
-    // Reload the entry we were viewing (may have been updated)
     const date = getWriteDate();
-    const idx  = bookEntries.findIndex(e => e.date === date);
-    if (idx >= 0) {
-      bookIndex = idx;
-      // Refresh that entry from Notion
-      api('getEntryForDate', { date }).then(entry => {
-        if (entry) {
-          bookEntries[bookIndex].tasksText  = entry.tasksText;
-          bookEntries[bookIndex].reflection = entry.reflection;
-          existingPageId = entry.id;
-        }
-        renderBookPage(false);
-      }).catch(() => renderBookPage(false));
+    if (callerView === 'home') {
+      document.getElementById('homeView').classList.add('active');
+      loadHomeStats();
     } else {
-      renderBookPage(false);
+      document.getElementById('readView').classList.add('active');
+      const idx = bookEntries.findIndex(e => e.date === date);
+      if (idx >= 0) {
+        bookIndex = idx;
+        api('getEntryForDate', { date }).then(entry => {
+          if (entry) { bookEntries[bookIndex].tasksText = entry.tasksText; bookEntries[bookIndex].reflection = entry.reflection; }
+          renderBookPage(false);
+        }).catch(() => renderBookPage(false));
+      } else {
+        renderBookPage(false);
+      }
     }
   }
 
