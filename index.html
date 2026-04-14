@@ -320,6 +320,13 @@
       </div>
     </div>
 
+    <div class="j-card" id="homeMilestonesCard" style="display:none;">
+      <div class="j-card-header">
+        <span class="j-card-title">Milestones</span>
+      </div>
+      <div class="j-card-body" id="homeMilestonesBody"></div>
+    </div>
+
     <div style="display:flex;gap:10px;margin-top:4px;padding-bottom:40px;">
       <div class="h-btn primary" onclick="showWriteScreen(isoDate(new Date()))">✏ Add</div>
       <div class="h-btn outline" onclick="goToReadToday()">📖 Review</div>
@@ -366,16 +373,22 @@
         <label class="fp-label">Show
           <select id="filterField" onchange="bookField=this.value;renderBookPage(false);">
             <option value="all">Everything</option>
+            <option value="milestones_reflections">Milestones &amp; reflections</option>
+            <option value="reflection">Reflections only</option>
             <option value="tasks">Tasks only</option>
             <option value="starred">Starred tasks</option>
-            <option value="reflection">Reflections only</option>
-            <optgroup label="Tasks by list">
-              <option value="list:Basic">Basic</option>
-              <option value="list:Personal">Personal</option>
-              <option value="list:Work">Work</option>
-              <option value="list:Zipf">Zipf</option>
-              <option value="list:Other">Other</option>
-            </optgroup>
+          </select>
+        </label>
+      </div>
+      <div class="fp-row">
+        <label class="fp-label">List
+          <select id="filterList" onchange="bookFilterList=this.value;renderBookPage(false);">
+            <option value="all">All lists</option>
+            <option value="Basic">Basic</option>
+            <option value="Personal">Personal</option>
+            <option value="Work">Work</option>
+            <option value="Zipf">Zipf</option>
+            <option value="Other">Other</option>
           </select>
         </label>
       </div>
@@ -434,6 +447,16 @@
     <div id="tasksSaveStatus" style="padding:0 14px;"></div>
   </div>
 
+  <!-- Milestones card -->
+  <div class="j-card" id="milestonesCard">
+    <div class="j-card-header">
+      <span class="j-card-title">Milestones</span>
+      <div class="j-save-btn" id="milestonesSaveBtn" style="display:none;" onclick="saveMilestones()">Save</div>
+    </div>
+    <div id="milestonesDisplay"></div>
+    <div id="milestonesSaveStatus" style="padding:0 14px;"></div>
+  </div>
+
   <!-- Reflection card -->
   <div class="j-card" id="reflectionCard">
     <div class="j-card-header">
@@ -455,16 +478,6 @@
       </div>
     </div>
     <div id="reflectionSaveStatus" style="padding:0 14px;"></div>
-  </div>
-
-  <!-- Milestones card -->
-  <div class="j-card" id="milestonesCard">
-    <div class="j-card-header">
-      <span class="j-card-title">Milestones</span>
-      <div class="j-save-btn" id="milestonesSaveBtn" style="display:none;" onclick="saveMilestones()">Save</div>
-    </div>
-    <div id="milestonesDisplay"></div>
-    <div id="milestonesSaveStatus" style="padding:0 14px;"></div>
   </div>
   </div>
 
@@ -488,6 +501,7 @@
   let bookEntries      = [];
   let bookIndex        = 0;
   let bookField        = 'all';
+  let bookFilterList   = 'all';
   let bookLoadingMore  = false;
   let stepsInDir       = 0;
   let lastDir          = 0;
@@ -648,31 +662,33 @@
         </div>`;
     }
 
+    document.getElementById('homeStatsBody').innerHTML = html;
+
+    // Milestones card
+    const msCard = document.getElementById('homeMilestonesCard');
+    const msBody = document.getElementById('homeMilestonesBody');
     if (allMilestones.length) {
-      // Group by list in LIST_ORDER
       const msGroups = {};
-      allMilestones.forEach(m => {
-        if (!msGroups[m.list]) msGroups[m.list] = [];
-        msGroups[m.list].push(m);
-      });
+      allMilestones.forEach(m => { if (!msGroups[m.list]) msGroups[m.list]=[]; msGroups[m.list].push(m); });
       const msKeys = REFL_LISTS.filter(l => msGroups[l]);
-      html += `<hr class="h-rule" style="margin-top:14px;">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--card-muted);padding:6px 0 8px;">Milestones</div>`;
+      let mhtml = '';
       msKeys.forEach(list => {
-        html += `<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);margin:8px 0 4px;">${esc(list)}</div>`;
+        mhtml += `<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);margin:10px 0 4px;">${esc(list)}</div>`;
         msGroups[list].forEach(m => {
           const d = new Date(m.date+'T12:00:00');
           const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-          html += `<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px;color:var(--card-text);">
+          mhtml += `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px;color:var(--card-text);">
             <span style="color:#c8a96e;flex-shrink:0;font-size:12px;margin-top:2px;">★</span>
             <span style="flex:1;">${esc(m.text)}</span>
-            <span style="font-size:11px;color:var(--card-muted);flex-shrink:0;">${dateStr}</span>
+            <span style="font-size:11px;color:var(--card-muted);flex-shrink:0;white-space:nowrap;">${dateStr}</span>
           </div>`;
         });
       });
+      msBody.innerHTML = mhtml;
+      msCard.style.display = '';
+    } else {
+      msCard.style.display = 'none';
     }
-
-    document.getElementById('homeStatsBody').innerHTML = html;
   }
 
   function goToReadToday() {
@@ -1322,62 +1338,69 @@
     if(next){if(bookIndex<=0)next.classList.add('disabled');else next.classList.remove('disabled');}
   }
 
+
   function buildPageHTML(entry) {
-    const field=bookField; let html='';
-    if((field==='all'||field==='tasks'||field==='starred'||field.startsWith('list:'))&&entry.tasksText){
-      let taskObjs=parseTasksText(entry.tasksText);
-      if(field==='starred') taskObjs=taskObjs.filter(t=>t.starred);
-      else if(field.startsWith('list:')){const ln=field.slice(5);taskObjs=ln==='Other'?taskObjs.filter(t=>LIST_ORDER.indexOf(t.list)===-1&&t.list!=='—'):taskObjs.filter(t=>t.list===ln);}
-      if(taskObjs.length){
-        const groups=groupByList(taskObjs);
-        const withH=!field.startsWith('list:')&&field!=='starred'&&(groups.length>1||(groups.length===1&&groups[0].list!=='—'));
-        let inner='';
-        groups.forEach(g=>{
-          if(withH&&g.list!=='—') inner+=`<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
-          g.items.forEach(t=>{const star=t.starred?`<span class="j-read-star">★</span>`:'';inner+=`<div class="j-read-task">${star}${esc(t.title)}</div>`;});
+    const field = bookField;
+    const flist = bookFilterList;
+    let html = '';
+
+    const showTasks      = field === 'all' || field === 'tasks' || field === 'starred';
+    const showMilestones = field === 'all' || field === 'milestones_reflections';
+    const showReflection = field === 'all' || field === 'milestones_reflections' || field === 'reflection';
+
+    // Tasks
+    if (showTasks && entry.tasksText) {
+      let taskObjs = parseTasksText(entry.tasksText);
+      if (field === 'starred') taskObjs = taskObjs.filter(t => t.starred);
+      if (flist !== 'all') taskObjs = taskObjs.filter(t => (t.list||'Other') === flist);
+      if (taskObjs.length) {
+        const groups = groupByList(taskObjs);
+        const withH = groups.length > 1 || (groups.length === 1 && groups[0].list !== '—');
+        let inner = '';
+        groups.forEach(g => {
+          if (withH) inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
+          g.items.forEach(t => { const star = t.starred ? `<span class="j-read-star">★</span>` : ''; inner += `<div class="j-read-task">${star}${esc(t.title)}</div>`; });
         });
-        html+=`<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
       }
     }
-    if((field==='all'||field==='reflection')&&!field.startsWith('list:')&&field!=='starred'&&entry.reflection){
-      const blocks = reflParse(entry.reflection);
-      if (blocks.length) {
-        let rhtml = '';
-        blocks.forEach(b => {
-          const nonEmpty = REFL_FIELDS.filter(f => b[f] && b[f].trim());
-          if (!nonEmpty.length) return;
-          rhtml += `<div class="refl-read-block"><div class="refl-read-list">${esc(b.list)}</div>`;
-          nonEmpty.forEach(f => {
-            rhtml += `<div class="refl-read-field"><div class="refl-read-label">${REFL_LABELS[f]}</div><div class="refl-read-text">${esc(b[f])}</div></div>`;
-          });
-          rhtml += '</div>';
-        });
-        if (rhtml) html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${rhtml}</div></div>`;
-      }
-    }
-    if((field==='all')&&entry.milestones){
-      const ms = msParse(entry.milestones);
-      if(ms.length){
-        // Group by list in LIST_ORDER
+
+    // Milestones
+    if (showMilestones && entry.milestones) {
+      let ms = msParse(entry.milestones);
+      if (flist !== 'all') ms = ms.filter(m => (m.list||'Other') === flist);
+      if (ms.length) {
         const groups = {};
-        ms.forEach(m => {
-          const list = m.list || 'Other';
-          if (!groups[list]) groups[list] = [];
-          groups[list].push(m);
-        });
+        ms.forEach(m => { const l = m.list||'Other'; if (!groups[l]) groups[l]=[]; groups[l].push(m); });
         const keys = REFL_LISTS.filter(l => groups[l]);
         let mhtml = '';
         keys.forEach(list => {
           mhtml += `<div class="ms-read-block"><div class="ms-read-list">${esc(list)}</div>`;
-          groups[list].forEach(m => {
-            mhtml += `<div class="ms-read-item"><span class="ms-read-star">★</span>${esc(m.text)}</div>`;
-          });
+          groups[list].forEach(m => { mhtml += `<div class="ms-read-item"><span class="ms-read-star">★</span>${esc(m.text)}</div>`; });
           mhtml += '</div>';
         });
-        if (mhtml) html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Milestones</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${mhtml}</div></div>`;
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Milestones</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${mhtml}</div></div>`;
       }
     }
-    return html||'<div class="book-empty">No entry for this day.</div>';
+
+    // Reflection
+    if (showReflection && entry.reflection) {
+      let blocks = reflParse(entry.reflection);
+      if (flist !== 'all') blocks = blocks.filter(b => b.list === flist);
+      const nonEmpty = blocks.filter(b => REFL_FIELDS.some(f => b[f] && b[f].trim()));
+      if (nonEmpty.length) {
+        let rhtml = '';
+        nonEmpty.forEach(b => {
+          const fields = REFL_FIELDS.filter(f => b[f] && b[f].trim());
+          rhtml += `<div class="refl-read-block"><div class="refl-read-list">${esc(b.list)}</div>`;
+          fields.forEach(f => { rhtml += `<div class="refl-read-field"><div class="refl-read-label">${REFL_LABELS[f]}</div><div class="refl-read-text">${esc(b[f])}</div></div>`; });
+          rhtml += '</div>';
+        });
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${rhtml}</div></div>`;
+      }
+    }
+
+    return html || '<div class="book-empty">No entry for this day.</div>';
   }
 
   function navigateDay(direction) {
