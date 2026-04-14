@@ -1044,7 +1044,10 @@
     const existing = new Set(tasksData.map(t=>t.title.toLowerCase()));
     extractedTasks.forEach(t => {
       if (!existing.has(t.title.trim().toLowerCase())) {
-        tasksData.push({ title: t.title.trim(), list: t.list||'—', starred: false });
+        // Remap list names not in LIST_OPTIONS to 'Other'
+        const knownLists = ['Basic','Personal','Work','Zipf','Other'];
+        const list = knownLists.includes(t.list) ? t.list : 'Other';
+        tasksData.push({ title: t.title.trim(), list, starred: false });
         existing.add(t.title.trim().toLowerCase());
       }
     });
