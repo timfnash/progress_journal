@@ -207,7 +207,18 @@
     .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.15); border-top-color: currentColor; border-radius: 50%; animation: rot 0.65s linear infinite; vertical-align: -2px; }
     @keyframes rot { to { transform: rotate(360deg); } }
 
-    /* Drag over indicator */
+    /* Star action popup */
+    .star-popup {
+      position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 8px; padding: 4px; display: flex; gap: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10;
+    }
+    .star-popup-btn {
+      font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif;
+      background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd);
+      border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none;
+    }
     .j-task-row.drag-over { border-top: 2px solid var(--card-accent); }
 
     /* Date input */
@@ -677,7 +688,8 @@
         msGroups[list].forEach(m => {
           const d = new Date(m.date+'T12:00:00');
           const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-          mhtml += `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px;color:var(--card-text);">
+          mhtml += `<div onclick="goToReadDate('${m.date}')"
+            style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px;color:var(--card-text);cursor:pointer;">
             <span style="color:#c8a96e;flex-shrink:0;font-size:12px;margin-top:2px;">★</span>
             <span style="flex:1;">${esc(m.text)}</span>
             <span style="font-size:11px;color:var(--card-muted);flex-shrink:0;white-space:nowrap;">${dateStr}</span>
@@ -688,6 +700,21 @@
       msCard.style.display = '';
     } else {
       msCard.style.display = 'none';
+    }
+  }
+
+  function goToReadDate(date) {
+    document.getElementById('homeView').classList.remove('active');
+    document.getElementById('readView').classList.add('active');
+    if (!bookEntries.length) {
+      loadReadView().then(() => {
+        const idx = bookEntries.findIndex(e => e.date === date);
+        if (idx >= 0) { bookIndex = idx; renderBookPage(false); }
+      });
+    } else {
+      const idx = bookEntries.findIndex(e => e.date === date);
+      if (idx >= 0) { bookIndex = idx; renderBookPage(false); }
+      else loadReadView();
     }
   }
 
@@ -852,8 +879,7 @@
       g.items.forEach(item => {
         const opts = LIST_OPTIONS.map(l => `<option value="${l}"${l === item.list ? ' selected':''}>${l}</option>`).join('');
         const starBtn = item.starred
-          ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">★</button>
-             <button class="j-del-btn" title="Add as milestone" onclick="starToMilestone('${esc(item.list)}','${esc(item.title).replace(/'/g,"\\'")}')">🏆</button>`
+          ? `<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e" title="Starred — tap to change">★</button>`
           : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
         html += `<div class="j-task-row" data-idx="${item.idx}">
           <span class="j-drag-handle">⠿</span>
@@ -873,16 +899,22 @@
   }
 
   function addTaskToList(list) {
-    // Insert a new empty task at end of this list's items
-    const existing = tasksData.filter(t => (t.list||'—') === list);
-    const lastIdx  = tasksData.lastIndexOf(tasksData.filter(t=>(t.list||'—')===list).slice(-1)[0]);
+    const lastIdx  = tasksData.reduce((acc, t, i) => ((t.list||'Other') === list ? i : acc), -1);
     const insertAt = lastIdx >= 0 ? lastIdx + 1 : tasksData.length;
     tasksData.splice(insertAt, 0, { list, starred: false, title: '' });
     renderWriteTasks();
     markTasksDirty();
-    // Focus the new input
-    const inputs = document.querySelectorAll('.j-task-title');
-    if (inputs[insertAt]) inputs[insertAt].focus();
+    // Focus the newly inserted input
+    setTimeout(() => {
+      const rows = document.querySelectorAll('.j-task-row');
+      for (const row of rows) {
+        if (parseInt(row.dataset.idx) === insertAt) {
+          const input = row.querySelector('.j-task-title');
+          if (input) { input.focus(); input.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+          break;
+        }
+      }
+    }, 50);
   }
 
   function markTasksDirty() {
@@ -998,6 +1030,45 @@
     markTasksDirty(); renderWriteTasks();
   }
 
+  function promptStarAction(i) {
+    // Close any existing popups first
+    document.querySelectorAll('.star-popup').forEach(p => p.remove());
+    const task = tasksData[i]; if (!task) return;
+    // Find the row
+    const row = document.querySelector(`.j-task-row[data-idx="${i}"]`);
+    if (!row) return;
+    const popup = document.createElement('div');
+    popup.className = 'star-popup';
+    popup.innerHTML = `
+      <div class="star-popup-btn" onclick="unstarTask(${i})">☆ Unstar</div>
+      <div class="star-popup-btn" onclick="starAndMilestone(${i})">★ → Milestone</div>
+    `;
+    row.appendChild(popup);
+    // Close on outside click
+    setTimeout(() => {
+      document.addEventListener('click', function closePopup(e) {
+        if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopup); }
+      });
+    }, 10);
+  }
+
+  function unstarTask(i) {
+    document.querySelectorAll('.star-popup').forEach(p => p.remove());
+    if (!tasksData[i]) return;
+    tasksData[i].starred = false;
+    markTasksDirty(); renderWriteTasks();
+  }
+
+  function starAndMilestone(i) {
+    document.querySelectorAll('.star-popup').forEach(p => p.remove());
+    const task = tasksData[i]; if (!task) return;
+    addMilestone(task.list || 'Other', task.title);
+    setTimeout(() => {
+      const card = document.getElementById('milestonesCard');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
   // ── Save tasks ────────────────────────────────────────────
   async function saveTasks() {
     const btn = document.getElementById('tasksSaveBtn');
@@ -1086,30 +1157,23 @@
     const container = document.getElementById('milestonesDisplay');
     if (!container) return;
     let html = '';
-    // Show all lists with existing milestones expanded, rest collapsed
     REFL_LISTS.forEach(list => {
       const items = milestonesData.filter(m => m.list === list);
-      if (items.length) {
-        items.forEach((m, i) => {
-          const globalIdx = milestonesData.indexOf(m);
-          html += `<div class="ms-milestone-row">
-            <span class="ms-star">★</span>
-            <textarea class="ms-text-input" rows="2" placeholder="Describe the milestone…"
-              oninput="updateMilestone(${globalIdx}, this.value)">${esc(m.text||'')}</textarea>
-            <button class="ms-del-btn" onclick="deleteMilestone(${globalIdx})">✕</button>
-          </div>`;
-        });
-        // Show list label + add after items
-        html += `<div class="ms-list-row">
-          <span class="ms-list-name">${esc(list)}</span>
-          <div class="refl-add-btn" onclick="addMilestone('${list}')">+ Add</div>
+      // List label row always first
+      html += `<div class="ms-list-row">
+        <span class="ms-list-name">${esc(list)}</span>
+        <div class="refl-add-btn" onclick="addMilestone('${list}')">+ Add</div>
+      </div>`;
+      // Then any existing milestones for this list
+      items.forEach(m => {
+        const globalIdx = milestonesData.indexOf(m);
+        html += `<div class="ms-milestone-row" data-ms-idx="${globalIdx}">
+          <span class="ms-star">★</span>
+          <textarea class="ms-text-input" rows="2" placeholder="Describe the milestone…"
+            oninput="updateMilestone(${globalIdx}, this.value)">${esc(m.text||'')}</textarea>
+          <button class="ms-del-btn" onclick="deleteMilestone(${globalIdx})">✕</button>
         </div>`;
-      } else {
-        html += `<div class="ms-list-row">
-          <span class="ms-list-name">${esc(list)}</span>
-          <div class="refl-add-btn" onclick="addMilestone('${list}')">+ Add</div>
-        </div>`;
-      }
+      });
     });
     container.innerHTML = html;
   }
@@ -1117,10 +1181,11 @@
   function addMilestone(list, text) {
     milestonesData.push({ list, text: text || '' });
     markMilestonesDirty(); renderMilestones();
-    // Focus the new textarea
+    // Focus the new textarea for this list specifically
     setTimeout(() => {
-      const textareas = document.querySelectorAll('.ms-text-input');
-      if (textareas.length) textareas[textareas.length - 1].focus();
+      const newIdx = milestonesData.length - 1;
+      const ta = document.querySelector(`.ms-milestone-row[data-ms-idx="${newIdx}"] .ms-text-input`);
+      if (ta) { ta.focus(); ta.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
     }, 50);
   }
 
