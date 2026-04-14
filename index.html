@@ -266,6 +266,23 @@
     .refl-read-field { margin-bottom: 5px; }
     .refl-read-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); margin-bottom: 2px; }
     .refl-read-text  { font-size: 14px; color: var(--card-text); line-height: 1.65; }
+    /* Milestones */
+    .ms-list-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .ms-list-row:last-of-type { border-bottom: none; }
+    .ms-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); }
+    .ms-milestone-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .ms-milestone-row:last-of-type { border-bottom: none; }
+    .ms-star { color: #c8a96e; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+    .ms-text-input { flex: 1; background: var(--card-bg3); border: 1px solid transparent; border-radius: 6px; padding: 6px 10px; font-size: 14px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.6; resize: none; min-height: 36px; }
+    .ms-text-input:focus { outline: none; border-color: var(--card-accent); }
+    .ms-text-input::placeholder { color: var(--card-muted); font-style: italic; }
+    .ms-del-btn { background: none; border: none; font-size: 13px; color: #bbb; cursor: pointer; padding: 0; flex-shrink: 0; margin-top: 4px; }
+    /* Read view milestones */
+    .ms-read-block { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .ms-read-block:last-child { border-bottom: none; }
+    .ms-read-list { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); margin-bottom: 6px; }
+    .ms-read-item { display: flex; align-items: flex-start; gap: 6px; padding: 3px 0; font-size: 14px; color: var(--card-text); line-height: 1.6; }
+    .ms-read-star { color: #c8a96e; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -439,6 +456,16 @@
     </div>
     <div id="reflectionSaveStatus" style="padding:0 14px;"></div>
   </div>
+
+  <!-- Milestones card -->
+  <div class="j-card" id="milestonesCard">
+    <div class="j-card-header">
+      <span class="j-card-title">Milestones</span>
+      <div class="j-save-btn" id="milestonesSaveBtn" style="display:none;" onclick="saveMilestones()">Save</div>
+    </div>
+    <div id="milestonesDisplay"></div>
+    <div id="milestonesSaveStatus" style="padding:0 14px;"></div>
+  </div>
   </div>
 
 </section>
@@ -576,40 +603,74 @@
     entries.forEach(entry => {
       if (!entry.tasksText) return;
       parseTasksText(entry.tasksText).forEach(t => {
-        const list = t.list || '—';
+        const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
         counts[list] = (counts[list] || 0) + 1;
         total++;
       });
     });
 
-    if (!total) {
+    // Collect milestones across range
+    const allMilestones = [];
+    entries.forEach(entry => {
+      if (!entry.milestones) return;
+      msParse(entry.milestones).forEach(m => {
+        if (m.text && m.text.trim()) allMilestones.push({ date: entry.date, list: m.list || 'Other', text: m.text });
+      });
+    });
+
+    if (!total && !allMilestones.length) {
       document.getElementById('homeStatsBody').innerHTML = '<div class="empty-note">No tasks found in this date range.</div>';
       return;
     }
 
-    // Sort by LIST_ORDER then alphabetical
-    const keys = Object.keys(counts).sort((a, b) => {
-      const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
-      if (ai === -1 && bi === -1) return a.localeCompare(b);
-      if (ai === -1) return 1; if (bi === -1) return -1;
-      return ai - bi;
-    });
+    let html = '';
 
-    const max = Math.max(...Object.values(counts));
-    let html = keys.map(k => {
-      const pct = Math.round((counts[k] / max) * 100);
-      return `<div class="h-stat-row">
-        <span class="h-list-name">${esc(k)}</span>
-        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${pct}%"></div></div>
-        <span class="h-count">${counts[k].toLocaleString()}</span>
-      </div>`;
-    }).join('');
+    if (total) {
+      const keys = Object.keys(counts).sort((a, b) => {
+        const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1; if (bi === -1) return -1;
+        return ai - bi;
+      });
+      const max = Math.max(...Object.values(counts));
+      html += keys.map(k => {
+        const pct = Math.round((counts[k] / max) * 100);
+        return `<div class="h-stat-row">
+          <span class="h-list-name">${esc(k)}</span>
+          <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${pct}%"></div></div>
+          <span class="h-count">${counts[k].toLocaleString()}</span>
+        </div>`;
+      }).join('');
+      html += `<hr class="h-rule">
+        <div class="h-total-row">
+          <span class="h-total-label">Total</span>
+          <span class="h-total-count">${total.toLocaleString()}</span>
+        </div>`;
+    }
 
-    html += `<hr class="h-rule">
-      <div class="h-total-row">
-        <span class="h-total-label">Total</span>
-        <span class="h-total-count">${total.toLocaleString()}</span>
-      </div>`;
+    if (allMilestones.length) {
+      // Group by list in LIST_ORDER
+      const msGroups = {};
+      allMilestones.forEach(m => {
+        if (!msGroups[m.list]) msGroups[m.list] = [];
+        msGroups[m.list].push(m);
+      });
+      const msKeys = REFL_LISTS.filter(l => msGroups[l]);
+      html += `<hr class="h-rule" style="margin-top:14px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--card-muted);padding:6px 0 8px;">Milestones</div>`;
+      msKeys.forEach(list => {
+        html += `<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);margin:8px 0 4px;">${esc(list)}</div>`;
+        msGroups[list].forEach(m => {
+          const d = new Date(m.date+'T12:00:00');
+          const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+          html += `<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px;color:var(--card-text);">
+            <span style="color:#c8a96e;flex-shrink:0;font-size:12px;margin-top:2px;">★</span>
+            <span style="flex:1;">${esc(m.text)}</span>
+            <span style="font-size:11px;color:var(--card-muted);flex-shrink:0;">${dateStr}</span>
+          </div>`;
+        });
+      });
+    }
 
     document.getElementById('homeStatsBody').innerHTML = html;
   }
@@ -645,11 +706,12 @@
     else callerView = 'read';
     ['homeView','readView'].forEach(id => document.getElementById(id).classList.remove('active'));
     document.getElementById('writeView').classList.add('active');
-    tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false; reflData = [];
-    document.getElementById('tasksSaveBtn').style.display      = 'none';
-    document.getElementById('reflectionSaveBtn').style.display = 'none';
+    tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false; reflData = []; milestonesData = []; milestonesDirty = false;
+    document.getElementById('tasksSaveBtn').style.display       = 'none';
+    document.getElementById('reflectionSaveBtn').style.display  = 'none';
+    document.getElementById('milestonesSaveBtn').style.display  = 'none';
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
-    renderReflectionBlocks();
+    renderReflectionBlocks(); renderMilestones();
     setWriteDate(date);
     loadWriteEntry(date);
   }
@@ -676,28 +738,28 @@
   }
 
   function changeWriteDate(dateStr) {
-    tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false; reflData = [];
-    document.getElementById('tasksSaveBtn').style.display      = 'none';
-    document.getElementById('reflectionSaveBtn').style.display = 'none';
-    renderReflectionBlocks();
-    setWriteDate(dateStr);
-    loadWriteEntry(dateStr);
+    tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false; reflData = []; milestonesData = []; milestonesDirty = false;
+    document.getElementById('tasksSaveBtn').style.display       = 'none';
+    document.getElementById('reflectionSaveBtn').style.display  = 'none';
+    document.getElementById('milestonesSaveBtn').style.display  = 'none';
+    renderReflectionBlocks(); renderMilestones();
+    setWriteDate(dateStr); loadWriteEntry(dateStr);
   }
 
   async function loadWriteEntry(date) {
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
-    reflData = []; renderReflectionBlocks();
+    reflData = []; milestonesData = []; renderReflectionBlocks(); renderMilestones();
     try {
       const entry = await api('getEntryForDate', { date });
       if (entry) {
-        existingPageId = entry.id;
-        tasksData = parseTasksText(entry.tasksText);
-        reflData  = reflParse(entry.reflection);
+        existingPageId  = entry.id;
+        tasksData       = parseTasksText(entry.tasksText);
+        reflData        = reflParse(entry.reflection);
+        milestonesData  = msParse(entry.milestones);
       } else {
         tasksData = [];
       }
-      renderWriteTasks();
-      renderReflectionBlocks();
+      renderWriteTasks(); renderReflectionBlocks(); renderMilestones();
     } catch(e) {
       document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note" style="color:var(--red);">Error loading entry.</div>';
     }
@@ -773,12 +835,16 @@
       }
       g.items.forEach(item => {
         const opts = LIST_OPTIONS.map(l => `<option value="${l}"${l === item.list ? ' selected':''}>${l}</option>`).join('');
+        const starBtn = item.starred
+          ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">★</button>
+             <button class="j-del-btn" title="Add as milestone" onclick="starToMilestone('${esc(item.list)}','${esc(item.title).replace(/'/g,"\\'")}')">🏆</button>`
+          : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
         html += `<div class="j-task-row" data-idx="${item.idx}">
           <span class="j-drag-handle">⠿</span>
           <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
           <input class="j-task-title" type="text" value="${esc(item.title)}" onchange="updateTaskTitle(${item.idx},this.value)" oninput="markTasksDirty()">
-          <button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:${item.starred?'#c8a96e':'#c8b89a'}">${item.starred?'★':'☆'}</button>
-          <button class="j-del-btn"  onclick="deleteTask(${item.idx})">✕</button>
+          ${starBtn}
+          <button class="j-del-btn" onclick="deleteTask(${item.idx})">✕</button>
         </div>`;
       });
     });
@@ -920,7 +986,7 @@
   async function saveTasks() {
     const btn = document.getElementById('tasksSaveBtn');
     btn.textContent = 'Saving…';
-    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: reflSerialise() };
+    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: reflSerialise(), milestones: msSerialise() };
     try {
       if (existingPageId) { await api('updateEntry', { pageId: existingPageId, payload }); }
       else { const r = await api('saveEntry', { payload }); existingPageId = r.id; }
@@ -933,7 +999,7 @@
   async function saveReflection() {
     const btn = document.getElementById('reflectionSaveBtn');
     btn.textContent = 'Saving…';
-    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: reflSerialise() };
+    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: reflSerialise(), milestones: msSerialise() };
     try {
       if (existingPageId) { await api('updateEntry', { pageId: existingPageId, payload }); }
       else { const r = await api('saveEntry', { payload }); existingPageId = r.id; }
@@ -983,6 +1049,104 @@
         document.getElementById('reflectionImportStatus').innerHTML='';
       } catch(e){showStatus('reflectionImportStatus','Error: '+e.message,'err');}
     } else document.getElementById('reflectionImportStatus').innerHTML='';
+  }
+
+  // ── Milestones ────────────────────────────────────────────
+  let milestonesData  = []; // array of { list, text }
+  let milestonesDirty = false;
+
+  function msSerialise() {
+    const nonEmpty = milestonesData.filter(m => m.text && m.text.trim());
+    return nonEmpty.length ? JSON.stringify(nonEmpty) : '';
+  }
+
+  function msParse(raw) {
+    if (!raw) return [];
+    try { const p = JSON.parse(raw); if (Array.isArray(p)) return p; } catch(e) {}
+    return [];
+  }
+
+  function renderMilestones() {
+    const container = document.getElementById('milestonesDisplay');
+    if (!container) return;
+    let html = '';
+    // Show all lists with existing milestones expanded, rest collapsed
+    REFL_LISTS.forEach(list => {
+      const items = milestonesData.filter(m => m.list === list);
+      if (items.length) {
+        items.forEach((m, i) => {
+          const globalIdx = milestonesData.indexOf(m);
+          html += `<div class="ms-milestone-row">
+            <span class="ms-star">★</span>
+            <textarea class="ms-text-input" rows="2" placeholder="Describe the milestone…"
+              oninput="updateMilestone(${globalIdx}, this.value)">${esc(m.text||'')}</textarea>
+            <button class="ms-del-btn" onclick="deleteMilestone(${globalIdx})">✕</button>
+          </div>`;
+        });
+        // Show list label + add after items
+        html += `<div class="ms-list-row">
+          <span class="ms-list-name">${esc(list)}</span>
+          <div class="refl-add-btn" onclick="addMilestone('${list}')">+ Add</div>
+        </div>`;
+      } else {
+        html += `<div class="ms-list-row">
+          <span class="ms-list-name">${esc(list)}</span>
+          <div class="refl-add-btn" onclick="addMilestone('${list}')">+ Add</div>
+        </div>`;
+      }
+    });
+    container.innerHTML = html;
+  }
+
+  function addMilestone(list, text) {
+    milestonesData.push({ list, text: text || '' });
+    markMilestonesDirty(); renderMilestones();
+    // Focus the new textarea
+    setTimeout(() => {
+      const textareas = document.querySelectorAll('.ms-text-input');
+      if (textareas.length) textareas[textareas.length - 1].focus();
+    }, 50);
+  }
+
+  function deleteMilestone(idx) {
+    milestonesData.splice(idx, 1);
+    markMilestonesDirty(); renderMilestones();
+  }
+
+  function updateMilestone(idx, value) {
+    if (milestonesData[idx]) { milestonesData[idx].text = value; markMilestonesDirty(); }
+  }
+
+  function markMilestonesDirty() {
+    milestonesDirty = true;
+    document.getElementById('milestonesSaveBtn').style.display = 'flex';
+  }
+
+  // Called from a starred task's → Milestone button
+  function starToMilestone(list, title) {
+    addMilestone(list, title);
+    // Scroll to milestones card
+    setTimeout(() => {
+      const card = document.getElementById('milestonesCard');
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  async function saveMilestones() {
+    const btn = document.getElementById('milestonesSaveBtn');
+    btn.textContent = 'Saving…';
+    const payload = {
+      date:       getWriteDate(),
+      tasksText:  tasksAsText(),
+      reflection: reflSerialise(),
+      milestones: msSerialise(),
+    };
+    try {
+      if (existingPageId) { await api('updateEntry', { pageId: existingPageId, payload }); }
+      else { const r = await api('saveEntry', { payload }); existingPageId = r.id; }
+      milestonesDirty = false; btn.style.display = 'none';
+      showStatus('milestonesSaveStatus', '✓ Saved', 'ok'); autoClear('milestonesSaveStatus', 3000);
+    } catch(e) { btn.textContent = 'Save'; showStatus('milestonesSaveStatus', 'Error: ' + e.message, 'err'); }
   }
 
   // ── Drag and drop ─────────────────────────────────────────
@@ -1189,6 +1353,28 @@
           rhtml += '</div>';
         });
         if (rhtml) html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${rhtml}</div></div>`;
+      }
+    }
+    if((field==='all')&&entry.milestones){
+      const ms = msParse(entry.milestones);
+      if(ms.length){
+        // Group by list in LIST_ORDER
+        const groups = {};
+        ms.forEach(m => {
+          const list = m.list || 'Other';
+          if (!groups[list]) groups[list] = [];
+          groups[list].push(m);
+        });
+        const keys = REFL_LISTS.filter(l => groups[l]);
+        let mhtml = '';
+        keys.forEach(list => {
+          mhtml += `<div class="ms-read-block"><div class="ms-read-list">${esc(list)}</div>`;
+          groups[list].forEach(m => {
+            mhtml += `<div class="ms-read-item"><span class="ms-read-star">★</span>${esc(m.text)}</div>`;
+          });
+          mhtml += '</div>';
+        });
+        if (mhtml) html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Milestones</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${mhtml}</div></div>`;
       }
     }
     return html||'<div class="book-empty">No entry for this day.</div>';
