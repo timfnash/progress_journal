@@ -590,7 +590,7 @@
 
   function addReflSection(list) {
     reflSections.push({ list, text: '' });
-    onReflectionChange(); renderReflSections();
+    renderReflSections(); // don't mark dirty — no content yet
     setTimeout(() => {
       const tas = document.querySelectorAll('.refl-section-ta');
       if (tas.length) { tas[tas.length-1].focus(); tas[tas.length-1].scrollIntoView({behavior:'smooth',block:'nearest'}); }
@@ -599,7 +599,9 @@
 
   function removeReflSection(i) {
     reflSections.splice(i, 1);
-    onReflectionChange(); renderReflSections();
+    renderReflSections();
+    // Only dirty if there was content in the removed section
+    onReflectionChange();
   }
 
   function updateReflSection(i, value) {
@@ -618,14 +620,17 @@
   }
 
   async function saveReflection() {
-    const btn=document.getElementById('reflectionSaveBtn'); btn.textContent='Saving…';
-    const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
+    const btn=document.getElementById('reflectionSaveBtn');
+    const date=getWriteDate();
+    if(!date){showStatus('reflectionSaveStatus','No date set.','err');return;}
+    btn.textContent='Saving…'; btn.style.display='flex';
+    const payload={date, tasksText:tasksAsText(), reflection:reflectionSerialise()};
     try {
       if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
       else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
-      reflectionDirty=false;btn.style.display='none';
-      showStatus('reflectionSaveStatus','✓ Saved','ok');autoClear('reflectionSaveStatus',3000);
-    } catch(e){btn.textContent='Save';showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
+      reflectionDirty=false; btn.style.display='none';
+      showStatus('reflectionSaveStatus','✓ Saved','ok'); autoClear('reflectionSaveStatus',3000);
+    } catch(e){btn.textContent='Save'; showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
   }
 
   // ── Screenshot extraction ─────────────────────────────────
