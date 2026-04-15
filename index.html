@@ -167,7 +167,6 @@
     .h-total-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; }
     .h-total-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
     .h-total-count { font-size: 14px; font-weight: 600; color: var(--card-text); font-family: 'Jost', sans-serif; }
-    #homeDateFrom, #homeDateTo { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
     /* Status / spinner */
     .status { font-size: 14px; padding: 10px 12px; border-radius: 8px; margin: 8px 0; line-height: 1.45; }
@@ -326,18 +325,16 @@
       <span>Tim's Journal</span>
       <div class="j-nav-btn text" style="font-size:11px;" onclick="exitReview()">Exit</div>
     </div>
-    <div class="j-nav-row" style="padding-bottom:12px;">
-      <div class="j-date-block" style="text-align:left;">
-        <div class="j-day-label">Review</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin-top:3px;">
-          <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">From</span>
-          <div class="h-date-pill" id="homeFromPill" onclick="document.getElementById('homeDateFrom').click()">—</div>
-          <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">to</span>
-          <div class="h-date-pill" id="homeToPill" onclick="document.getElementById('homeDateTo').click()">—</div>
-          <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()">
-          <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()">
-        </div>
+    <div style="padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;">
+        <span style="font-size:17px;font-weight:700;color:var(--accent);">Review</span>
+        <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">from</span>
+        <div class="h-date-pill" onclick="document.getElementById('homeDateFrom').showPicker ? document.getElementById('homeDateFrom').showPicker() : document.getElementById('homeDateFrom').click()" id="homeFromPill">—</div>
+        <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">to</span>
+        <div class="h-date-pill" onclick="document.getElementById('homeDateTo').showPicker ? document.getElementById('homeDateTo').showPicker() : document.getElementById('homeDateTo').click()" id="homeToPill">—</div>
       </div>
+      <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+      <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
     </div>
   </div>
 
@@ -542,9 +539,22 @@
     if (!raw) return { general: '', sections: [] };
     try {
       const p = JSON.parse(raw);
+      // Current format: { general, sections }
       if (p && typeof p === 'object' && 'general' in p) return { general: p.general || '', sections: p.sections || [] };
       // Old single-tag format: { tag, text }
-      if (p && p.text !== undefined) return { general: p.text || '', sections: [] };
+      if (p && p.text !== undefined && !Array.isArray(p)) return { general: p.text || '', sections: [] };
+      // Old structured blocks format: array of { list, thankful, sad, learned, thoughts }
+      if (Array.isArray(p)) {
+        const LABELS = { thankful: 'Thankful for', sad: 'Sad about', learned: 'Learned', thoughts: 'Thoughts' };
+        const sections = [];
+        p.forEach(block => {
+          const parts = ['thankful','sad','learned','thoughts']
+            .filter(f => block[f] && block[f].trim())
+            .map(f => `${LABELS[f]}: ${block[f].trim()}`);
+          if (parts.length) sections.push({ list: block.list || 'Other', text: parts.join('\n') });
+        });
+        return { general: '', sections };
+      }
     } catch(e) {}
     return { general: raw, sections: [] }; // legacy plain text
   }
