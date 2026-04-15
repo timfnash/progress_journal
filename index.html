@@ -325,16 +325,24 @@
       <span>Tim's Journal</span>
       <div class="j-nav-btn text" style="font-size:11px;" onclick="exitReview()">Exit</div>
     </div>
-    <div style="padding-bottom:12px;border-bottom:1px solid var(--border);">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;">
-        <span style="font-size:17px;font-weight:700;color:var(--accent);">Review</span>
-        <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">from</span>
-        <div class="h-date-pill" onclick="document.getElementById('homeDateFrom').showPicker ? document.getElementById('homeDateFrom').showPicker() : document.getElementById('homeDateFrom').click()" id="homeFromPill">—</div>
-        <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;flex-shrink:0;">to</span>
-        <div class="h-date-pill" onclick="document.getElementById('homeDateTo').showPicker ? document.getElementById('homeDateTo').showPicker() : document.getElementById('homeDateTo').click()" id="homeToPill">—</div>
+    <div class="j-nav-row" style="justify-content:center;">
+      <div class="j-date-block" style="text-align:center;flex:unset;">
+        <div class="j-date-label">Review</div>
       </div>
-      <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
-      <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+    </div>
+  </div>
+
+  <div class="filter-panel" style="border-bottom:1px solid var(--border);">
+    <div class="filter-panel-inner">
+      <div class="fp-row">
+        <label class="fp-label">From
+          <input type="date" id="homeDateFrom" onchange="updateHomePills()">
+        </label>
+        <label class="fp-label">To
+          <input type="date" id="homeDateTo" onchange="updateHomePills()">
+        </label>
+        <div class="j-nav-btn text" onclick="onHomeRangeChange()" style="height:auto;padding:8px 14px;font-size:13px;flex-shrink:0;">Go</div>
+      </div>
     </div>
   </div>
 
@@ -438,7 +446,6 @@
     const ninetyAgo = new Date(); ninetyAgo.setDate(ninetyAgo.getDate()-90);
     document.getElementById('homeDateFrom').value = isoDate(ninetyAgo);
     document.getElementById('homeDateTo').value   = todayStr;
-    updateHomePills();
     showWriteScreen(todayStr);
   }
 
@@ -959,15 +966,9 @@
   })();
 
   // ── REVIEW SCREEN ─────────────────────────────────────────
-  function updateHomePills(){
-    const from=document.getElementById('homeDateFrom').value;
-    const to=document.getElementById('homeDateTo').value;
-    const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    document.getElementById('homeFromPill').textContent=from?fmt(from):'—';
-    document.getElementById('homeToPill').textContent=to?fmt(to):'—';
-  }
+  function updateHomePills(){ /* pills removed — date inputs are now direct */ }
 
-  function onHomeRangeChange(){updateHomePills();loadHomeStats();}
+  function onHomeRangeChange(){ loadHomeStats(); clearReviewDetail(); }
 
   async function loadHomeStats(){
     document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">Loading…</div>';
