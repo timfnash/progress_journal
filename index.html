@@ -323,16 +323,21 @@
 <section class="view" id="reviewView">
   <div class="j-header">
     <div class="j-title-row">
-      <span>Review</span>
+      <span>Tim's Journal</span>
       <div class="j-nav-btn text" style="font-size:11px;" onclick="exitReview()">Exit</div>
     </div>
-    <div class="h-range-row" style="margin-bottom:0;">
-      <span class="h-range-label">From</span>
-      <div class="h-date-pill" id="homeFromPill" onclick="document.getElementById('homeDateFrom').click()">—</div>
-      <span class="h-range-label">to</span>
-      <div class="h-date-pill" id="homeToPill" onclick="document.getElementById('homeDateTo').click()">—</div>
-      <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()">
-      <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()">
+    <div class="j-nav-row" style="padding-bottom:12px;">
+      <div class="j-date-block" style="text-align:left;">
+        <div class="j-day-label">Review</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin-top:3px;">
+          <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">From</span>
+          <div class="h-date-pill" id="homeFromPill" onclick="document.getElementById('homeDateFrom').click()">—</div>
+          <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">to</span>
+          <div class="h-date-pill" id="homeToPill" onclick="document.getElementById('homeDateTo').click()">—</div>
+          <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()">
+          <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1076,31 +1081,9 @@
   async function generateListSummary(list, tasks, reflections) {
     const from = document.getElementById('homeDateFrom').value;
     const to   = document.getElementById('homeDateTo').value;
-    const fmt  = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const fmt  = d => new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
     const dateRange = `${fmt(from)} to ${fmt(to)}`;
-
-    const prompt = `You are reviewing a personal progress journal for the list "${list}" covering ${dateRange}.
-
-Completed tasks (${tasks.length} total, starred = significant):
-${tasks.slice(0, 80).join('\n')}
-
-Reflections written during this period${reflections.length ? ':' : ': (none)'}
-${reflections.slice(0, 10).join('\n\n')}
-
-Write a single paragraph (3-5 sentences) summarising progress in "${list}" during this period. Be specific about patterns, volume, and any themes from the reflections. Write in second person ("You..."). Be honest and direct — this is a personal progress review, not cheerleading. Do not use bullet points or headings. Return only the paragraph text.`;
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 300,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    return data.content[0].text.trim();
+    return await api('generateListSummary', { list, tasks, reflections, dateRange });
   }
 
 </script>
