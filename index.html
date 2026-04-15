@@ -143,12 +143,22 @@
     .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 160px); }
     .book-content { padding: 16px 14px 60px; }
 
-    /* Review screen */
-    .h-date-pill { background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 6px; padding: 5px 10px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--accent); display: inline-block; }
+    /* Review drill-down */
+    .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; user-select: none; }
+    .h-stat-row:last-of-type { border-bottom: none; }
+    .h-stat-row.active .h-list-name { color: var(--accent); }
+    .review-detail { margin-top: 14px; }
+    .review-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .review-detail-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
+    .review-summary { font-size: 15px; color: var(--card-text); line-height: 1.8; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; font-style: italic; }
+    .review-date-group { margin-bottom: 12px; }
+    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 6px 0 4px; border-bottom: 1px solid var(--card-border); margin-bottom: 4px; }
+    .review-task-item { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 4px 0 4px 18px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.04); }
+    .review-task-item:last-child { border-bottom: none; }
+    .review-task-item::before { content: '•'; position: absolute; left: 4px; color: var(--card-muted); }
+    .review-task-star { color: #b07030; margin-right: 3px; font-size: 12px; } background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 6px; padding: 5px 10px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--accent); display: inline-block; }
     .h-range-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .h-range-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-    .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .h-stat-row:last-of-type { border-bottom: none; }
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
@@ -330,6 +340,15 @@
     <div class="j-card">
       <div class="j-card-header"><span class="j-card-title">Completed tasks</span></div>
       <div class="j-card-body" id="homeStatsBody"><div class="empty-note">Loading…</div></div>
+    </div>
+    <div id="reviewDetailCard" style="display:none;">
+      <div class="j-card">
+        <div class="j-card-header">
+          <span class="j-card-title" id="reviewDetailTitle"></span>
+          <div class="j-btn" onclick="clearReviewDetail()">Clear</div>
+        </div>
+        <div class="j-card-body" id="reviewDetailBody"></div>
+      </div>
     </div>
     <div id="homeStatus"></div>
   </div>
@@ -944,7 +963,14 @@
     catch(e){document.getElementById('homeStatsBody').innerHTML=`<div class="empty-note" style="color:var(--red);">Error: ${e.message}</div>`;}
   }
 
+  let reviewEntries    = []; // cached entries for current date range
+  let reviewActiveList = null;
+
   function renderHomeStats(entries){
+    reviewEntries = entries; // cache for drill-down
+    reviewActiveList = null;
+    document.getElementById('reviewDetailCard').style.display = 'none';
+
     const counts={};let total=0;
     entries.forEach(entry=>{
       if(!entry.tasksText)return;
@@ -956,10 +982,127 @@
     if(!total){document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">No tasks found in this date range.</div>';return;}
     const keys=Object.keys(counts).sort((a,b)=>{const ai=LIST_ORDER.indexOf(a),bi=LIST_ORDER.indexOf(b);if(ai===-1&&bi===-1)return a.localeCompare(b);if(ai===-1)return 1;if(bi===-1)return -1;return ai-bi;});
     const max=Math.max(...Object.values(counts));
-    let html=keys.map(k=>`<div class="h-stat-row"><span class="h-list-name">${esc(k)}</span><div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%"></div></div><span class="h-count">${counts[k].toLocaleString()}</span></div>`).join('');
+    let html=keys.map(k=>
+      `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
+        <span class="h-list-name">${esc(k)}</span>
+        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%"></div></div>
+        <span class="h-count">${counts[k].toLocaleString()}</span>
+      </div>`
+    ).join('');
     html+=`<hr class="h-rule"><div class="h-total-row"><span class="h-total-label">Total</span><span class="h-total-count">${total.toLocaleString()}</span></div>`;
     document.getElementById('homeStatsBody').innerHTML=html;
   }
+
+  function clearReviewDetail() {
+    document.getElementById('reviewDetailCard').style.display = 'none';
+    if (reviewActiveList) {
+      const row = document.getElementById('stat-row-' + reviewActiveList);
+      if (row) row.classList.remove('active');
+    }
+    reviewActiveList = null;
+  }
+
+  async function toggleReviewList(list) {
+    // Deactivate previous
+    if (reviewActiveList) {
+      const prev = document.getElementById('stat-row-' + reviewActiveList);
+      if (prev) prev.classList.remove('active');
+      if (reviewActiveList === list) { clearReviewDetail(); return; }
+    }
+    reviewActiveList = list;
+    const row = document.getElementById('stat-row-' + list);
+    if (row) row.classList.add('active');
+
+    // Show card with spinner
+    document.getElementById('reviewDetailTitle').textContent = list;
+    document.getElementById('reviewDetailBody').innerHTML = '<div class="empty-note"><span class="spin"></span> Loading…</div>';
+    document.getElementById('reviewDetailCard').style.display = 'block';
+    document.getElementById('reviewDetailCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Build task list grouped by date (newest first)
+    const byDate = {};
+    reviewEntries.forEach(entry => {
+      if (!entry.tasksText) return;
+      const tasks = parseTasksText(entry.tasksText).filter(t => (LIST_OPTIONS.includes(t.list) ? t.list : 'Other') === list);
+      if (tasks.length) byDate[entry.date] = tasks;
+    });
+
+    // Collect reflections for this list
+    const reflTexts = [];
+    reviewEntries.forEach(entry => {
+      if (!entry.reflection) return;
+      const refl = reflectionParse(entry.reflection);
+      if (refl.general && refl.general.trim()) reflTexts.push(refl.general.trim());
+      (refl.sections || []).filter(s => s.list === list && s.text && s.text.trim()).forEach(s => reflTexts.push(s.text.trim()));
+    });
+
+    // Render task list
+    const dates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
+    let taskHtml = '';
+    if (!dates.length) {
+      taskHtml = '<div class="empty-note">No tasks found.</div>';
+    } else {
+      taskHtml = dates.map(date => {
+        const d = new Date(date + 'T12:00:00');
+        const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        const items = byDate[date].map(t => {
+          const star = t.starred ? `<span class="review-task-star">★</span>` : '';
+          return `<div class="review-task-item">${star}${esc(t.title)}</div>`;
+        }).join('');
+        return `<div class="review-date-group">
+          <div class="review-date-label">${esc(dateStr)}</div>
+          ${items}
+        </div>`;
+      }).join('');
+    }
+
+    // Show task list immediately, then generate summary
+    document.getElementById('reviewDetailBody').innerHTML =
+      `<div id="reviewSummarySlot"><div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary…</div></div>` +
+      taskHtml;
+
+    // Generate AI summary
+    try {
+      const allTaskTitles = dates.flatMap(date => byDate[date].map(t => (t.starred ? '★ ' : '') + t.title));
+      const summaryText = await generateListSummary(list, allTaskTitles, reflTexts);
+      document.getElementById('reviewSummarySlot').innerHTML =
+        `<div class="review-summary">${esc(summaryText)}</div>`;
+    } catch(e) {
+      document.getElementById('reviewSummarySlot').innerHTML =
+        `<div class="empty-note" style="color:var(--red);">Summary error: ${esc(e.message)}</div>`;
+    }
+  }
+
+  async function generateListSummary(list, tasks, reflections) {
+    const from = document.getElementById('homeDateFrom').value;
+    const to   = document.getElementById('homeDateTo').value;
+    const fmt  = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    const dateRange = `${fmt(from)} to ${fmt(to)}`;
+
+    const prompt = `You are reviewing a personal progress journal for the list "${list}" covering ${dateRange}.
+
+Completed tasks (${tasks.length} total, starred = significant):
+${tasks.slice(0, 80).join('\n')}
+
+Reflections written during this period${reflections.length ? ':' : ': (none)'}
+${reflections.slice(0, 10).join('\n\n')}
+
+Write a single paragraph (3-5 sentences) summarising progress in "${list}" during this period. Be specific about patterns, volume, and any themes from the reflections. Write in second person ("You..."). Be honest and direct — this is a personal progress review, not cheerleading. Do not use bullet points or headings. Return only the paragraph text.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.content[0].text.trim();
+  }
+
 </script>
 </body>
 </html>
