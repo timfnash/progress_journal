@@ -9,105 +9,57 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
-      --bg:         #0d0d0d;
-      --surface:    #171717;
-      --surface2:   #202020;
-      --border:     #2a2a2a;
-      --text:       #e4e4e4;
-      --muted:      #777;
-      --accent:     #c8a96e;
-      --accent-dim: rgba(200,169,110,0.12);
-      --green:      #6eb87e;
-      --green-dim:  rgba(110,184,126,0.12);
-      --red:        #c87070;
-      --red-dim:    rgba(200,112,112,0.12);
-      /* Journal card colours */
-      --card-bg:     #f5f0e8;
-      --card-border: #ddd5c0;
-      --card-bg2:    #ede8e0;
-      --card-bg3:    #ece5d4;
-      --card-text:   #3a2e1e;
-      --card-muted:  #8a7a5a;
-      --card-accent: #8a6030;
-      --card-btn-bg: rgba(180,140,80,0.14);
-      --card-btn-bd: rgba(180,140,80,0.4);
+      --bg:             #0d0d0d;
+      --surface:        #171717;
+      --surface2:       #202020;
+      --border:         #2a2a2a;
+      --text:           #e4e4e4;
+      --muted:          #777;
+      --accent:         #c8a96e;
+      --accent-dim:     rgba(200,169,110,0.12);
+      --green:          #6eb87e;
+      --green-dim:      rgba(110,184,126,0.12);
+      --red:            #c87070;
+      --red-dim:        rgba(200,112,112,0.12);
+      --card-bg:        #f5f0e8;
+      --card-border:    #ddd5c0;
+      --card-bg2:       #ede8e0;
+      --card-bg3:       #ece5d4;
+      --card-text:      #3a2e1e;
+      --card-muted:     #8a7a5a;
+      --card-accent:    #8a6030;
+      --card-btn-bg:    rgba(180,140,80,0.14);
+      --card-btn-bd:    rgba(180,140,80,0.4);
       --card-btn-color: #7a6040;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { overflow-x: hidden; max-width: 100vw; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: 'Jost', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100dvh;
-      -webkit-font-smoothing: antialiased;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'Jost', -apple-system, sans-serif; min-height: 100dvh; -webkit-font-smoothing: antialiased; }
 
     /* ── Lock screen ── */
-    #lockScreen {
-      position: fixed; inset: 0; background: var(--bg);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 24px; padding: 32px; z-index: 999;
-    }
+    #lockScreen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 32px; z-index: 999; }
     .lock-title { font-size: 28px; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
     .lock-sub   { font-size: 13px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
     #lockError  { font-size: 14px; color: var(--red); min-height: 20px; text-align: center; }
 
     /* ── Shared header ── */
-    .j-header {
-      background: var(--bg);
-      padding: 14px 16px 0;
-      position: sticky; top: 0; z-index: 30;
-    }
-    .j-title-row {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--muted);
-      padding-bottom: 10px; border-bottom: 1px solid var(--border);
-      margin-bottom: 10px;
-    }
-    .j-nav-row {
-      display: flex; align-items: center; gap: 8px;
-      padding-bottom: 10px; border-bottom: 1px solid var(--border);
-    }
-    .j-nav-btn {
-      width: 34px; height: 34px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--accent-dim);
-      border: 1px solid rgba(200,169,110,0.45);
-      border-radius: 8px; cursor: pointer;
-      color: var(--accent); font-size: 20px; line-height: 1;
-      user-select: none;
-    }
-    .j-nav-btn.text {
-      width: auto; padding: 0 12px;
-      font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
-    }
+    .j-header { background: var(--bg); padding: 14px 16px 0; position: sticky; top: 0; z-index: 30; }
+    .j-title-row { font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding-bottom: 10px; border-bottom: 1px solid var(--border); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .j-nav-row { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .j-nav-btn { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 8px; cursor: pointer; color: var(--accent); font-size: 20px; line-height: 1; user-select: none; }
+    .j-nav-btn.text { width: auto; padding: 0 12px; font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
     .j-nav-btn.disabled { opacity: 0.3; cursor: default; }
     .j-date-block { flex: 1; text-align: center; }
     .j-day-label  { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
     .j-date-label { font-size: 17px; font-weight: 700; color: var(--accent); white-space: nowrap; }
-    .j-filter-btn {
-      width: 34px; height: 34px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45);
-      border-radius: 8px; cursor: pointer; user-select: none;
-    }
+    .j-filter-btn { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 8px; cursor: pointer; user-select: none; }
     .j-filter-lines { display: flex; flex-direction: column; gap: 3px; align-items: center; }
     .j-filter-line  { background: var(--accent); border-radius: 1px; height: 1.5px; }
     .j-filter-line:nth-child(1) { width: 14px; }
     .j-filter-line:nth-child(2) { width: 9px; }
     .j-filter-line:nth-child(3) { width: 5px; }
-
-    /* Write-mode editing indicator */
-    .j-editing-row {
-      padding: 7px 0 10px; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; gap: 6px;
-    }
-    .j-editing-label {
-      font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--muted);
-    }
-    .j-editing-icon { font-size: 12px; color: var(--muted); }
+    .j-editing-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
     /* ── Views ── */
     .view { display: none; padding: 14px 14px 60px; }
@@ -118,40 +70,19 @@
     .j-card-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px 8px; border-bottom: 1px solid var(--card-border); }
     .j-card-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); flex: 1; }
     .j-card-body  { padding: 10px 14px 12px; }
-
-    .j-btn {
-      display: flex; align-items: center; gap: 3px;
-      font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif;
-      background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd);
-      border-radius: 5px; padding: 4px 9px; cursor: pointer;
-      white-space: nowrap; user-select: none; flex-shrink: 0;
-    }
-    .j-icon-btn {
-      width: 26px; height: 26px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd);
-      border-radius: 50%; cursor: pointer; color: var(--card-btn-color); font-size: 14px;
-    }
+    .j-btn { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 5px; padding: 4px 9px; cursor: pointer; white-space: nowrap; user-select: none; flex-shrink: 0; }
     .j-edit-btn { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 5px; padding: 4px 9px; cursor: pointer; user-select: none; }
+    .j-icon-btn { width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 50%; cursor: pointer; color: var(--card-btn-color); font-size: 14px; }
+    .j-save-btn { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b4a10; font-family: 'Jost', sans-serif; background: var(--accent); border: 1px solid rgba(160,110,30,0.5); border-radius: 5px; padding: 4px 10px; cursor: pointer; white-space: nowrap; user-select: none; flex-shrink: 0; }
 
-    /* Task list inside cards */
+    /* Task list */
     .j-list-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); margin: 12px 0 4px; display: flex; align-items: center; justify-content: space-between; }
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-
-    /* Save button — prominent gold */
-    .j-save-btn {
-      display: inline-flex; align-items: center; gap: 3px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: #6b4a10; font-family: 'Jost', sans-serif;
-      background: var(--accent); border: 1px solid rgba(160,110,30,0.5);
-      border-radius: 5px; padding: 4px 10px; cursor: pointer;
-      white-space: nowrap; user-select: none; flex-shrink: 0;
-    }
-
-    .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
+    .j-task-row.drag-over { border-top: 2px solid var(--card-accent); }
     .j-drag-handle { color: #c8b89a; font-size: 14px; cursor: grab; flex-shrink: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     .j-task-list-pill { font-size: 11px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 5px; padding: 2px 6px; flex-shrink: 0; }
     .j-task-list-pill select { background: transparent; border: none; color: var(--card-accent); font-family: 'Jost', sans-serif; font-size: 11px; padding: 0; cursor: pointer; -webkit-appearance: none; }
@@ -160,21 +91,27 @@
     .j-star-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0; line-height: 1; }
     .j-del-btn  { background: none; border: none; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; color: #bbb; line-height: 1; }
 
-    .j-new-task-input { width: 100%; margin-top: 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; padding: 7px 10px; font-size: 14px; color: var(--card-text); font-family: 'Jost', sans-serif; }
-    .j-new-task-input:focus { outline: none; border-color: var(--card-accent); }
-    .j-new-task-input::placeholder { color: var(--card-muted); font-style: italic; }
+    /* Star action popup */
+    .star-popup { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px; display: flex; gap: 4px; z-index: 10; }
+    .star-popup-btn { font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none; }
 
     /* Read task rows */
-    .j-read-task { font-size: 15px; color: var(--card-text); line-height: 1.6; padding: 5px 0 5px 20px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); font-family: 'Jost', sans-serif; }
+    .j-read-task { font-size: 15px; color: var(--card-text); line-height: 1.6; padding: 5px 0 5px 20px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '•'; position: absolute; left: 5px; color: var(--card-muted); }
     .j-read-star { color: #b07030; margin-right: 3px; font-size: 12px; }
-    .j-reflection-text { font-size: 15px; color: var(--card-text); line-height: 1.9; white-space: pre-line; font-family: 'Jost', sans-serif; }
 
-    /* Textarea */
+    /* Reflection */
     .j-textarea { width: 100%; min-height: 120px; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 15px; line-height: 1.65; padding: 12px 14px; resize: vertical; display: block; }
     .j-textarea:focus { outline: none; }
     .j-textarea::placeholder { color: var(--card-muted); }
+    .j-reflection-text { font-size: 15px; color: var(--card-text); line-height: 1.9; white-space: pre-line; }
+
+    /* Reflection list tag row */
+    .refl-tag-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--card-border); background: var(--card-bg2); }
+    .refl-tag-label { font-size: 10px; color: var(--card-muted); letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0; }
+    .refl-tag-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 8px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; }
+    .refl-tag-btn.active { background: var(--accent); color: #6b4a10; border-color: rgba(160,110,30,0.5); font-weight: 600; }
 
     /* Add strip */
     .j-add-strip { border-top: 1px solid var(--card-border); padding: 8px 14px; display: flex; gap: 8px; background: var(--card-bg2); }
@@ -197,47 +134,9 @@
     .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 160px); }
     .book-content { padding: 16px 14px 60px; }
 
-    /* Status */
-    .status { font-size: 14px; padding: 10px 12px; border-radius: 8px; margin-top: 10px; line-height: 1.45; }
-    .status.info { background: var(--accent-dim); color: var(--accent); }
-    .status.ok   { background: var(--green-dim);  color: var(--green);  }
-    .status.err  { background: var(--red-dim);    color: var(--red);    }
-
-    /* Spinner */
-    .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.15); border-top-color: currentColor; border-radius: 50%; animation: rot 0.65s linear infinite; vertical-align: -2px; }
-    @keyframes rot { to { transform: rotate(360deg); } }
-
-    /* Star action popup */
-    .star-popup {
-      position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 8px; padding: 4px; display: flex; gap: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10;
-    }
-    .star-popup-btn {
-      font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif;
-      background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd);
-      border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none;
-    }
-    .j-task-row.drag-over { border-top: 2px solid var(--card-accent); }
-
-    /* Date input */
-    input[type="date"] { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 15px; padding: 8px 12px; color-scheme: dark; -webkit-appearance: none; direction: ltr; text-align: left; }
-    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
-
-    select { -webkit-appearance: none; }
-
-    /* Home screen */
-    .h-date-pill {
-      background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45);
-      border-radius: 6px; padding: 5px 10px; cursor: pointer; user-select: none;
-      font-size: 14px; font-weight: 600; color: var(--accent);
-      display: inline-block;
-    }
-    .h-range-row {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-      padding-bottom: 12px; border-bottom: 1px solid var(--border);
-    }
+    /* Review screen */
+    .h-date-pill { background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 6px; padding: 5px 10px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--accent); display: inline-block; }
+    .h-range-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .h-range-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
     .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
     .h-stat-row:last-of-type { border-bottom: none; }
@@ -249,51 +148,20 @@
     .h-total-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; }
     .h-total-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
     .h-total-count { font-size: 14px; font-weight: 600; color: var(--card-text); font-family: 'Jost', sans-serif; }
-    .h-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
-      padding: 10px 20px; border-radius: 8px; cursor: pointer; user-select: none;
-    }
-    .h-btn.primary { background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); color: var(--accent); }
-    .h-btn.outline { background: rgba(120,120,120,0.08); border: 1px solid rgba(120,120,120,0.25); color: var(--muted); }
-    /* Hidden date pickers for home range */
     #homeDateFrom, #homeDateTo { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
-    /* Reflection blocks */
-    .refl-list-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .refl-list-row:last-of-type { border-bottom: none; }
-    .refl-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); }
-    .refl-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; }
-    .refl-block { border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
-    .refl-block-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px 4px; }
-    .refl-block-list { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); }
-    .refl-field { padding: 3px 14px; }
-    .refl-field-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); margin-bottom: 3px; }
-    .refl-field-input { width: 100%; background: var(--card-bg3); border: 1px solid transparent; border-radius: 6px; padding: 6px 10px; font-size: 14px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.6; resize: none; min-height: 38px; }
-    .refl-field-input:focus { outline: none; border-color: var(--card-accent); }
-    .refl-field-input::placeholder { color: var(--card-muted); font-style: italic; }
-    .refl-read-block { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .refl-read-block:last-child { border-bottom: none; }
-    .refl-read-list { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); margin-bottom: 6px; }
-    .refl-read-field { margin-bottom: 5px; }
-    .refl-read-label { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); margin-bottom: 2px; }
-    .refl-read-text  { font-size: 14px; color: var(--card-text); line-height: 1.65; }
-    /* Milestones */
-    .ms-list-row { display: flex; align-items: center; justify-content: space-between; padding: 7px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .ms-list-row:last-of-type { border-bottom: none; }
-    .ms-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); }
-    .ms-milestone-row { display: flex; align-items: flex-start; gap: 8px; padding: 6px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .ms-milestone-row:last-of-type { border-bottom: none; }
-    .ms-star { color: #c8a96e; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
-    .ms-text-input { flex: 1; background: var(--card-bg3); border: 1px solid transparent; border-radius: 6px; padding: 6px 10px; font-size: 14px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.6; resize: none; min-height: 36px; }
-    .ms-text-input:focus { outline: none; border-color: var(--card-accent); }
-    .ms-text-input::placeholder { color: var(--card-muted); font-style: italic; }
-    .ms-del-btn { background: none; border: none; font-size: 13px; color: #bbb; cursor: pointer; padding: 0; flex-shrink: 0; margin-top: 4px; }
-    /* Read view milestones */
-    .ms-read-block { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
-    .ms-read-block:last-child { border-bottom: none; }
-    .ms-read-list { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); margin-bottom: 6px; }
-    .ms-read-item { display: flex; align-items: flex-start; gap: 6px; padding: 3px 0; font-size: 14px; color: var(--card-text); line-height: 1.6; }
-    .ms-read-star { color: #c8a96e; font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+
+    /* Status / spinner */
+    .status { font-size: 14px; padding: 10px 12px; border-radius: 8px; margin: 8px 0; line-height: 1.45; }
+    .status.info { background: var(--accent-dim); color: var(--accent); }
+    .status.ok   { background: var(--green-dim);  color: var(--green);  }
+    .status.err  { background: var(--red-dim);    color: var(--red);    }
+    .spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,0.15); border-top-color: currentColor; border-radius: 50%; animation: rot 0.65s linear infinite; vertical-align: -2px; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    input[type="date"] { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Jost', sans-serif; font-size: 15px; padding: 8px 12px; color-scheme: dark; -webkit-appearance: none; direction: ltr; text-align: left; }
+    select { -webkit-appearance: none; }
+    .empty-note { font-size: 14px; color: var(--card-muted); text-align: center; padding: 16px 0; font-style: italic; }
+    .book-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 60px 0; font-style: italic; }
   </style>
 </head>
 <body>
@@ -306,54 +174,84 @@
   <div id="lockError"></div>
 </div>
 
-<!-- ══════════════ HOME VIEW ══════════════ -->
-<section class="view" id="homeView">
-
+<!-- ══════════════ WRITE VIEW ══════════════ -->
+<section class="view" id="writeView">
   <div class="j-header">
-    <div class="j-title-row">Tim's Journal</div>
-    <div class="h-range-row">
-      <span class="h-range-label">From</span>
-      <div class="h-date-pill" id="homeFromPill" onclick="document.getElementById('homeDateFrom').click()">—</div>
-      <span class="h-range-label">to</span>
-      <div class="h-date-pill" id="homeToPill"   onclick="document.getElementById('homeDateTo').click()">—</div>
-      <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()">
-      <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()">
+    <div class="j-title-row">
+      <span>Tim's Journal</span>
+    </div>
+    <div class="j-nav-row">
+      <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),-1))">‹</div>
+      <div class="j-date-block">
+        <div class="j-day-label" id="writeDayLabel">✏ Editing</div>
+        <div class="j-date-label" id="writeDateLabel" data-date=""></div>
+      </div>
+      <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),1))">›</div>
+      <div class="j-nav-btn text" onclick="exitWriteToRead()">Exit</div>
     </div>
   </div>
 
   <div style="padding:14px 14px 0;">
-    <div class="j-card" id="homeStatsCard">
+
+    <!-- Completed tasks card -->
+    <div class="j-card">
       <div class="j-card-header">
         <span class="j-card-title">Completed tasks</span>
+        <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
+        <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">↻</div>
       </div>
-      <div class="j-card-body" id="homeStatsBody">
-        <div class="empty-note">Loading…</div>
+      <div class="j-card-body" id="tasksDisplay"><div class="empty-note">Loading…</div></div>
+      <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+      <div class="j-add-strip">
+        <div class="j-strip-btn" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</div>
+        <div class="j-strip-btn" id="taskRecordBtn" onclick="toggleTaskRecording()">🎤 Record</div>
       </div>
+      <div id="tasksImportStatus" style="padding:0 14px;"></div>
+      <div class="j-extracted" id="tasksExtracted">
+        <textarea id="extractedBox" placeholder="Extracted tasks will appear here…"></textarea>
+        <div class="j-extracted-actions">
+          <div class="j-btn" onclick="addExtractedTasks()">Add to tasks</div>
+          <div class="j-btn" onclick="clearImport()">Clear</div>
+        </div>
+      </div>
+      <div id="tasksSaveStatus" style="padding:0 14px;"></div>
     </div>
 
-    <div class="j-card" id="homeMilestonesCard" style="display:none;">
+    <!-- Reflection card -->
+    <div class="j-card">
       <div class="j-card-header">
-        <span class="j-card-title">Milestones</span>
+        <span class="j-card-title">Reflection</span>
+        <div class="j-save-btn" id="reflectionSaveBtn" style="display:none;" onclick="saveReflection()">Save</div>
       </div>
-      <div class="j-card-body" id="homeMilestonesBody"></div>
+      <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today…" oninput="onReflectionChange()"></textarea>
+      <!-- List tag row -->
+      <div class="refl-tag-row">
+        <span class="refl-tag-label">Tag:</span>
+        <div class="refl-tag-btn" data-list="" onclick="setReflectionTag(this, '')">General</div>
+        <div class="refl-tag-btn" data-list="Basic" onclick="setReflectionTag(this, 'Basic')">Basic</div>
+        <div class="refl-tag-btn" data-list="Personal" onclick="setReflectionTag(this, 'Personal')">Personal</div>
+        <div class="refl-tag-btn" data-list="Work" onclick="setReflectionTag(this, 'Work')">Work</div>
+        <div class="refl-tag-btn" data-list="Zipf" onclick="setReflectionTag(this, 'Zipf')">Zipf</div>
+        <div class="refl-tag-btn" data-list="Other" onclick="setReflectionTag(this, 'Other')">Other</div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleReflectionPhoto(event)">
+      <div class="j-add-strip">
+        <div class="j-strip-btn" onclick="document.getElementById('photoInput').click()">📷 Screenshot</div>
+        <div class="j-strip-btn" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</div>
+      </div>
+      <div id="reflectionImportStatus" style="padding:0 14px;"></div>
+      <div id="reflectionSaveStatus" style="padding:0 14px;"></div>
     </div>
 
-    <div style="display:flex;gap:10px;margin-top:4px;padding-bottom:40px;">
-      <div class="h-btn primary" onclick="showWriteScreen(isoDate(new Date()))">✏ Add</div>
-      <div class="h-btn outline" onclick="goToReadToday()">📖 Review</div>
-    </div>
-    <div id="homeStatus"></div>
   </div>
-
 </section>
 
-
+<!-- ══════════════ READ VIEW ══════════════ -->
 <section class="view" id="readView">
-
-  <div class="j-header" id="readHeader">
-    <div class="j-title-row" style="display:flex;align-items:center;justify-content:space-between;">
+  <div class="j-header">
+    <div class="j-title-row">
       <span>Tim's Journal</span>
-      <div class="j-nav-btn text" style="font-size:11px;" onclick="goHome()">← Home</div>
+      <div class="j-nav-btn text" style="font-size:11px;" onclick="goToReview()">Review</div>
     </div>
     <div class="j-nav-row">
       <div class="j-nav-btn" id="prevDayBtn" onclick="navigateDay(-1)">‹</div>
@@ -384,15 +282,13 @@
         <label class="fp-label">Show
           <select id="filterField" onchange="bookField=this.value;renderBookPage(false);">
             <option value="all">Everything</option>
-            <option value="milestones_reflections">Milestones &amp; reflections</option>
+            <option value="starred_reflections">Starred &amp; reflections</option>
             <option value="reflection">Reflections only</option>
-            <option value="tasks">Tasks only</option>
-            <option value="starred">Starred tasks</option>
           </select>
         </label>
       </div>
       <div class="fp-row">
-        <label class="fp-label">List
+        <label class="fp-label">Focus
           <select id="filterList" onchange="bookFilterList=this.value;renderBookPage(false);">
             <option value="all">All lists</option>
             <option value="Basic">Basic</option>
@@ -410,93 +306,37 @@
     <div id="bookContent" class="book-content"></div>
   </div>
   <div id="bookStatus" style="padding:0 14px;"></div>
-
 </section>
 
-<!-- ══════════════ WRITE VIEW ══════════════ -->
-<section class="view" id="writeView">
-
-  <div class="j-header" id="writeHeader">
-    <div class="j-title-row">Tim's Journal</div>
-    <div class="j-nav-row">
-      <div class="j-nav-btn" id="wPrevBtn" onclick="changeWriteDate(offsetDate(getWriteDate(),-1))">‹</div>
-      <div class="j-date-block">
-        <div class="j-day-label" id="writeDayLabel">✏ Editing</div>
-        <div class="j-date-label" id="writeDateLabel"></div>
-      </div>
-      <div class="j-nav-btn" id="wNextBtn" onclick="changeWriteDate(offsetDate(getWriteDate(),1))">›</div>
-      <div class="j-nav-btn text" onclick="exitToRead()">Exit</div>
+<!-- ══════════════ REVIEW VIEW ══════════════ -->
+<section class="view" id="reviewView">
+  <div class="j-header">
+    <div class="j-title-row">
+      <span>Review</span>
+      <div class="j-nav-btn text" style="font-size:11px;" onclick="exitReview()">Exit</div>
+    </div>
+    <div class="h-range-row" style="margin-bottom:0;">
+      <span class="h-range-label">From</span>
+      <div class="h-date-pill" id="homeFromPill" onclick="document.getElementById('homeDateFrom').click()">—</div>
+      <span class="h-range-label">to</span>
+      <div class="h-date-pill" id="homeToPill" onclick="document.getElementById('homeDateTo').click()">—</div>
+      <input type="date" id="homeDateFrom" onchange="onHomeRangeChange()">
+      <input type="date" id="homeDateTo"   onchange="onHomeRangeChange()">
     </div>
   </div>
 
-  <!-- Completed tasks card -->
-  <div style="padding:14px 14px 0;">
-  <div class="j-card" id="tasksCard">
-    <div class="j-card-header">
-      <span class="j-card-title">Completed tasks</span>
-      <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
-      <div class="j-icon-btn" onclick="refreshTasks()" title="Reload from Notion">↻</div>
+  <div style="padding:14px 14px 60px;">
+    <div class="j-card">
+      <div class="j-card-header"><span class="j-card-title">Completed tasks</span></div>
+      <div class="j-card-body" id="homeStatsBody"><div class="empty-note">Loading…</div></div>
     </div>
-    <div class="j-card-body" id="tasksDisplay">
-      <div class="empty-note">Loading…</div>
-    </div>
-    <!-- Import strip -->
-    <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
-    <input type="file" id="photoInput"      accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleReflectionPhoto(event)">
-    <div class="j-add-strip">
-      <div class="j-strip-btn" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</div>
-      <div class="j-strip-btn" id="taskRecordBtn" onclick="toggleTaskRecording()">🎤 Record</div>
-    </div>
-    <div id="tasksImportStatus" style="padding:0 14px;"></div>
-    <div class="j-extracted" id="tasksExtracted">
-      <textarea id="extractedBox" placeholder="Extracted tasks will appear here…"></textarea>
-      <div class="j-extracted-actions">
-        <div class="j-btn" onclick="addExtractedTasks()">Add to tasks</div>
-        <div class="j-btn" onclick="clearImport()">Clear</div>
-      </div>
-    </div>
-    <div id="tasksSaveStatus" style="padding:0 14px;"></div>
+    <div id="homeStatus"></div>
   </div>
-
-  <!-- Milestones card -->
-  <div class="j-card" id="milestonesCard">
-    <div class="j-card-header">
-      <span class="j-card-title">Milestones</span>
-      <div class="j-save-btn" id="milestonesSaveBtn" style="display:none;" onclick="saveMilestones()">Save</div>
-    </div>
-    <div id="milestonesDisplay"></div>
-    <div id="milestonesSaveStatus" style="padding:0 14px;"></div>
-  </div>
-
-  <!-- Reflection card -->
-  <div class="j-card" id="reflectionCard">
-    <div class="j-card-header">
-      <span class="j-card-title">Reflection</span>
-      <div class="j-save-btn" id="reflectionSaveBtn" style="display:none;" onclick="saveReflection()">Save</div>
-    </div>
-    <div id="reflectionBlocksDisplay"></div>
-    <div class="j-add-strip">
-      <div class="j-strip-btn" onclick="document.getElementById('photoInput').click()">📷 Screenshot</div>
-      <div class="j-strip-btn" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</div>
-    </div>
-    <div id="reflectionImportStatus" style="padding:0 14px;"></div>
-    <div id="reflectionExtracted" style="display:none;padding:10px 14px;border-top:1px solid var(--card-border);background:var(--card-bg3);">
-      <div style="font-size:12px;color:var(--card-muted);margin-bottom:8px;font-style:italic;">Extracted reflection — review and approve:</div>
-      <div id="reflectionExtractedPreview"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <div class="j-btn" onclick="addExtractedReflection()">Add to reflection</div>
-        <div class="j-btn" onclick="clearReflectionImport()">Clear</div>
-      </div>
-    </div>
-    <div id="reflectionSaveStatus" style="padding:0 14px;"></div>
-  </div>
-  </div>
-
 </section>
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL      = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
+  const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
   const GOOGLE_CLIENT_ID = '334749757917-t606nr5dfec4h2va1dah61nu9rm5rbk9.apps.googleusercontent.com';
 
   // ── State ─────────────────────────────────────────────────
@@ -506,9 +346,9 @@
   let extractedTasks   = [];
   let tasksDirty       = false;
   let reflectionDirty  = false;
-  let lastReadDate     = null; // date user was viewing before going to write
+  let reflectionTag    = '';  // current tag for reflection
 
-  // Book state
+  // Book
   let bookEntries      = [];
   let bookIndex        = 0;
   let bookField        = 'all';
@@ -517,39 +357,35 @@
   let stepsInDir       = 0;
   let lastDir          = 0;
 
-  // Voice state
+  // Voice
   let taskRecognition  = null, taskVoiceTranscript = '', taskRecording = false;
   let reflRecognition  = null, reflVoiceTranscript = '', reflRecording = false;
 
-  // ── Utilities ─────────────────────────────────────────────
-  function isoDate(d) { return d.toISOString().split('T')[0]; }
+  const LIST_ORDER   = ['Basic', 'Personal', 'Work', 'Zipf'];
+  const LIST_OPTIONS = ['Basic', 'Personal', 'Work', 'Zipf', 'Other'];
 
-  function getWriteDate() {
-    return document.getElementById('writeDateLabel').dataset.date || isoDate(new Date());
-  }
+  // ── Utilities ─────────────────────────────────────────────
+  function isoDate(d)   { return d.toISOString().split('T')[0]; }
+  function esc(s)       { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function showStatus(id,msg,type){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="status ${type}">${msg}</div>`;}
+  function autoClear(id,ms){setTimeout(()=>{const el=document.getElementById(id);if(el)el.innerHTML='';},ms);}
+  function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
+
+  function getWriteDate() { return document.getElementById('writeDateLabel').dataset.date || isoDate(new Date()); }
+  function offsetDate(dateStr, days) { const d=new Date(dateStr+'T12:00:00'); d.setDate(d.getDate()+days); return isoDate(d); }
 
   function setWriteDate(dateStr) {
-    const d = new Date(dateStr + 'T12:00:00');
+    const d = new Date(dateStr+'T12:00:00');
     document.getElementById('writeDateLabel').dataset.date = dateStr;
-    document.getElementById('writeDateLabel').textContent  =
-      d.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
-    document.getElementById('writeDayLabel').textContent = '✏ Editing';
-  }
-
-  function offsetDate(dateStr, days) {
-    const d = new Date(dateStr + 'T12:00:00');
-    d.setDate(d.getDate() + days);
-    return isoDate(d);
+    document.getElementById('writeDateLabel').textContent  = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('writeDayLabel').textContent   = '✏ Editing';
   }
 
   // ── API ───────────────────────────────────────────────────
   async function api(action, params) {
-    const res  = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body:   JSON.stringify({ action, params: params || {}, idToken }),
-    });
+    const res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
     const text = await res.text();
-    if (text.trim().startsWith('<')) throw new Error('Apps Script error — check deployment access.');
+    if (text.trim().startsWith('<')) throw new Error('Apps Script error — check deployment.');
     const data = JSON.parse(text);
     if (!data.success) throw new Error(data.error);
     return data.data;
@@ -557,15 +393,8 @@
 
   // ── Google Auth ───────────────────────────────────────────
   function initGoogleAuth() {
-    google.accounts.id.initialize({
-      client_id:   GOOGLE_CLIENT_ID,
-      callback:    handleCredentialResponse,
-      auto_select: true,
-    });
-    google.accounts.id.renderButton(
-      document.getElementById('googleSignInBtn'),
-      { theme:'outline', size:'large', text:'sign_in_with', shape:'pill' }
-    );
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
+    google.accounts.id.renderButton(document.getElementById('googleSignInBtn'), { theme:'outline', size:'large', text:'sign_in_with', shape:'pill' });
     google.accounts.id.prompt();
   }
 
@@ -576,312 +405,188 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const iv = setInterval(() => {
-      if (window.google && google.accounts) { clearInterval(iv); initGoogleAuth(); }
-    }, 100);
+    const iv = setInterval(() => { if (window.google&&google.accounts) { clearInterval(iv); initGoogleAuth(); } }, 100);
+    document.getElementById('screenshotInput').addEventListener('change', function() { if(this.files&&this.files.length) extractFromScreenshot(); });
   });
 
-  // ── Init — launch on Home screen ─────────────────────────
+  // ── Init — launch on Write screen for today ───────────────
   function initApp() {
-    document.getElementById('homeView').classList.add('active');
     const todayStr = isoDate(new Date());
-    // Default range: 90 days ago to today
-    const ninetyAgo = new Date(); ninetyAgo.setDate(ninetyAgo.getDate() - 90);
+    document.getElementById('filterJumpDate').value = todayStr;
+    // Review defaults
+    const ninetyAgo = new Date(); ninetyAgo.setDate(ninetyAgo.getDate()-90);
     document.getElementById('homeDateFrom').value = isoDate(ninetyAgo);
     document.getElementById('homeDateTo').value   = todayStr;
     updateHomePills();
-    document.getElementById('filterJumpDate').value = todayStr;
-    document.getElementById('screenshotInput').addEventListener('change', function() {
-      if (this.files && this.files.length) extractFromScreenshot();
-    });
-    loadHomeStats();
+    showWriteScreen(todayStr);
   }
 
-  // ── Home screen ───────────────────────────────────────────
-  function updateHomePills() {
-    const from = document.getElementById('homeDateFrom').value;
-    const to   = document.getElementById('homeDateTo').value;
-    const fmt  = d => new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    document.getElementById('homeFromPill').textContent = from ? fmt(from) : '—';
-    document.getElementById('homeToPill').textContent   = to   ? fmt(to)   : '—';
-  }
-
-  function onHomeRangeChange() { updateHomePills(); loadHomeStats(); }
-
-  async function loadHomeStats() {
-    document.getElementById('homeStatsBody').innerHTML = '<div class="empty-note">Loading…</div>';
-    const from = document.getElementById('homeDateFrom').value;
-    const to   = document.getElementById('homeDateTo').value;
-    if (!from || !to) return;
-    try {
-      const entries = await api('getEntries', { startDate: from, endDate: to });
-      renderHomeStats(entries);
-    } catch(e) {
-      document.getElementById('homeStatsBody').innerHTML = `<div class="empty-note" style="color:var(--red);">Error: ${e.message}</div>`;
-    }
-  }
-
-  function renderHomeStats(entries) {
-    // Count tasks per list
-    const counts = {};
-    let total = 0;
-    entries.forEach(entry => {
-      if (!entry.tasksText) return;
-      parseTasksText(entry.tasksText).forEach(t => {
-        const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
-        counts[list] = (counts[list] || 0) + 1;
-        total++;
-      });
-    });
-
-    // Collect milestones across range
-    const allMilestones = [];
-    entries.forEach(entry => {
-      if (!entry.milestones) return;
-      msParse(entry.milestones).forEach(m => {
-        if (m.text && m.text.trim()) allMilestones.push({ date: entry.date, list: m.list || 'Other', text: m.text });
-      });
-    });
-
-    if (!total && !allMilestones.length) {
-      document.getElementById('homeStatsBody').innerHTML = '<div class="empty-note">No tasks found in this date range.</div>';
-      return;
-    }
-
-    let html = '';
-
-    if (total) {
-      const keys = Object.keys(counts).sort((a, b) => {
-        const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
-        if (ai === -1 && bi === -1) return a.localeCompare(b);
-        if (ai === -1) return 1; if (bi === -1) return -1;
-        return ai - bi;
-      });
-      const max = Math.max(...Object.values(counts));
-      html += keys.map(k => {
-        const pct = Math.round((counts[k] / max) * 100);
-        return `<div class="h-stat-row">
-          <span class="h-list-name">${esc(k)}</span>
-          <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${pct}%"></div></div>
-          <span class="h-count">${counts[k].toLocaleString()}</span>
-        </div>`;
-      }).join('');
-      html += `<hr class="h-rule">
-        <div class="h-total-row">
-          <span class="h-total-label">Total</span>
-          <span class="h-total-count">${total.toLocaleString()}</span>
-        </div>`;
-    }
-
-    document.getElementById('homeStatsBody').innerHTML = html;
-
-    // Milestones card
-    const msCard = document.getElementById('homeMilestonesCard');
-    const msBody = document.getElementById('homeMilestonesBody');
-    if (allMilestones.length) {
-      const msGroups = {};
-      allMilestones.forEach(m => { if (!msGroups[m.list]) msGroups[m.list]=[]; msGroups[m.list].push(m); });
-      const msKeys = REFL_LISTS.filter(l => msGroups[l]);
-      let mhtml = '';
-      msKeys.forEach(list => {
-        mhtml += `<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);margin:10px 0 4px;">${esc(list)}</div>`;
-        msGroups[list].forEach(m => {
-          const d = new Date(m.date+'T12:00:00');
-          const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-          mhtml += `<div onclick="goToReadDate('${m.date}')"
-            style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.06);font-size:13px;color:var(--card-text);cursor:pointer;">
-            <span style="color:#c8a96e;flex-shrink:0;font-size:12px;margin-top:2px;">★</span>
-            <span style="flex:1;">${esc(m.text)}</span>
-            <span style="font-size:11px;color:var(--card-muted);flex-shrink:0;white-space:nowrap;">${dateStr}</span>
-          </div>`;
-        });
-      });
-      msBody.innerHTML = mhtml;
-      msCard.style.display = '';
-    } else {
-      msCard.style.display = 'none';
-    }
-  }
-
-  function goToReadDate(date) {
-    document.getElementById('homeView').classList.remove('active');
-    document.getElementById('readView').classList.add('active');
-    if (!bookEntries.length) {
-      loadReadView().then(() => {
-        const idx = bookEntries.findIndex(e => e.date === date);
-        if (idx >= 0) { bookIndex = idx; renderBookPage(false); }
-      });
-    } else {
-      const idx = bookEntries.findIndex(e => e.date === date);
-      if (idx >= 0) { bookIndex = idx; renderBookPage(false); }
-      else loadReadView();
-    }
-  }
-
-  function goToReadToday() {
-    document.getElementById('homeView').classList.remove('active');
-    document.getElementById('readView').classList.add('active');
-    if (bookEntries.length) {
-      // Navigate to today's entry
-      const todayStr = isoDate(new Date());
-      const idx = bookEntries.findIndex(e => e.date <= todayStr);
-      bookIndex = idx >= 0 ? idx : 0;
-      renderBookPage(false);
-    } else {
-      loadReadView();
-    }
-  }
-
-  function goHome() {
-    ['readView','writeView'].forEach(id => document.getElementById(id).classList.remove('active'));
-    document.getElementById('homeView').classList.add('active');
-    loadHomeStats();
-  }
-
-
-
-  // ── WRITE SCREEN ──────────────────────────────────────────
-  let callerView = 'home'; // which view launched write screen
+  // ── Navigation ────────────────────────────────────────────
+  function showView(id) { ['writeView','readView','reviewView'].forEach(v => document.getElementById(v).classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
   function showWriteScreen(date) {
-    // Track which screen we came from
-    if (document.getElementById('homeView').classList.contains('active')) callerView = 'home';
-    else callerView = 'read';
-    ['homeView','readView'].forEach(id => document.getElementById(id).classList.remove('active'));
-    document.getElementById('writeView').classList.add('active');
-    tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false; reflData = []; milestonesData = []; milestonesDirty = false;
-    document.getElementById('tasksSaveBtn').style.display       = 'none';
-    document.getElementById('reflectionSaveBtn').style.display  = 'none';
-    document.getElementById('milestonesSaveBtn').style.display  = 'none';
+    showView('writeView');
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; reflectionTag='';
+    document.getElementById('tasksSaveBtn').style.display      = 'none';
+    document.getElementById('reflectionSaveBtn').style.display = 'none';
+    document.getElementById('reflectionBox').value = '';
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
-    renderReflectionBlocks(); renderMilestones();
+    resetReflectionTags();
     setWriteDate(date);
     loadWriteEntry(date);
   }
 
-  function exitToRead() {
-    document.getElementById('writeView').classList.remove('active');
+  function exitWriteToRead() {
     const date = getWriteDate();
-    if (callerView === 'home') {
-      document.getElementById('homeView').classList.add('active');
-      loadHomeStats();
-    } else {
-      document.getElementById('readView').classList.add('active');
-      const idx = bookEntries.findIndex(e => e.date === date);
-      if (idx >= 0) {
-        bookIndex = idx;
-        api('getEntryForDate', { date }).then(entry => {
-          if (entry) { bookEntries[bookIndex].tasksText = entry.tasksText; bookEntries[bookIndex].reflection = entry.reflection; }
-          renderBookPage(false);
-        }).catch(() => renderBookPage(false));
-      } else {
+    showView('readView');
+    if (!bookEntries.length) { loadReadView(); return; }
+    const idx = bookEntries.findIndex(e => e.date === date);
+    if (idx >= 0) {
+      bookIndex = idx;
+      api('getEntryForDate',{date}).then(entry => {
+        if (entry) { bookEntries[bookIndex].tasksText=entry.tasksText; bookEntries[bookIndex].reflection=entry.reflection; }
         renderBookPage(false);
-      }
+      }).catch(()=>renderBookPage(false));
+    } else { loadReadView(); }
+  }
+
+  function goToReview() {
+    showView('reviewView');
+    loadHomeStats();
+  }
+
+  function exitReview() {
+    showView('readView');
+    if (!bookEntries.length) loadReadView();
+    else renderBookPage(false);
+  }
+
+  // ── Write screen ──────────────────────────────────────────
+  async function loadWriteEntry(date) {
+    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
+    try {
+      const entry = await api('getEntryForDate', {date});
+      if (entry) {
+        existingPageId = entry.id;
+        tasksData = parseTasksText(entry.tasksText);
+        document.getElementById('reflectionBox').value = entry.reflection || '';
+        // Restore tag if stored in reflection as JSON wrapper
+        try {
+          const parsed = JSON.parse(entry.reflection);
+          if (parsed && parsed.tag !== undefined) {
+            reflectionTag = parsed.tag || '';
+            document.getElementById('reflectionBox').value = parsed.text || '';
+            setReflectionTagUI(reflectionTag);
+          }
+        } catch(e) {}
+      } else { tasksData = []; }
+      renderWriteTasks();
+    } catch(e) {
+      document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note" style="color:var(--red);">Error loading.</div>';
     }
   }
 
   function changeWriteDate(dateStr) {
-    tasksData = []; existingPageId = null; tasksDirty = false; reflectionDirty = false; reflData = []; milestonesData = []; milestonesDirty = false;
-    document.getElementById('tasksSaveBtn').style.display       = 'none';
-    document.getElementById('reflectionSaveBtn').style.display  = 'none';
-    document.getElementById('milestonesSaveBtn').style.display  = 'none';
-    renderReflectionBlocks(); renderMilestones();
-    setWriteDate(dateStr); loadWriteEntry(dateStr);
-  }
-
-  async function loadWriteEntry(date) {
-    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
-    reflData = []; milestonesData = []; renderReflectionBlocks(); renderMilestones();
-    try {
-      const entry = await api('getEntryForDate', { date });
-      if (entry) {
-        existingPageId  = entry.id;
-        tasksData       = parseTasksText(entry.tasksText);
-        reflData        = reflParse(entry.reflection);
-        milestonesData  = msParse(entry.milestones);
-      } else {
-        tasksData = [];
-      }
-      renderWriteTasks(); renderReflectionBlocks(); renderMilestones();
-    } catch(e) {
-      document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note" style="color:var(--red);">Error loading entry.</div>';
-    }
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; reflectionTag='';
+    document.getElementById('tasksSaveBtn').style.display      = 'none';
+    document.getElementById('reflectionSaveBtn').style.display = 'none';
+    document.getElementById('reflectionBox').value = '';
+    resetReflectionTags();
+    setWriteDate(dateStr);
+    loadWriteEntry(dateStr);
   }
 
   async function refreshTasks() {
     const date = getWriteDate();
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
     try {
-      const entry = await api('getEntryForDate', { date });
-      if (entry) { tasksData = parseTasksText(entry.tasksText); existingPageId = entry.id; }
-      else tasksData = [];
-      tasksDirty = false;
-      document.getElementById('tasksSaveBtn').style.display = 'none';
+      const entry = await api('getEntryForDate',{date});
+      if (entry) { tasksData=parseTasksText(entry.tasksText); existingPageId=entry.id; } else tasksData=[];
+      tasksDirty=false; document.getElementById('tasksSaveBtn').style.display='none';
       renderWriteTasks();
-    } catch(e) { showStatus('tasksSaveStatus', 'Error: ' + e.message, 'err'); }
+    } catch(e) { showStatus('tasksSaveStatus','Error: '+e.message,'err'); }
   }
 
-  // ── Tasks rendering ───────────────────────────────────────
-  const LIST_ORDER   = ['Basic', 'Personal', 'Work', 'Zipf'];
-  const LIST_OPTIONS = ['Basic', 'Personal', 'Work', 'Zipf', 'Other'];
+  // ── Reflection tag ────────────────────────────────────────
+  function setReflectionTag(el, tag) {
+    reflectionTag = tag;
+    setReflectionTagUI(tag);
+    onReflectionChange();
+  }
 
-  function parseTasksText(text) {
-    if (!text) return [];
-    return text.split('\n').map(l => {
-      const line = l.replace(/^•\s*/, '').trim();
+  function setReflectionTagUI(tag) {
+    document.querySelectorAll('.refl-tag-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.list === tag);
+    });
+  }
+
+  function resetReflectionTags() {
+    reflectionTag = '';
+    document.querySelectorAll('.refl-tag-btn').forEach(btn => btn.classList.remove('active'));
+  }
+
+  function reflectionSerialise() {
+    const text = document.getElementById('reflectionBox').value.trim();
+    if (!text) return '';
+    if (!reflectionTag) return text; // plain text, no tag = backward compatible
+    return JSON.stringify({ tag: reflectionTag, text });
+  }
+
+  function onReflectionChange() {
+    reflectionDirty = true;
+    document.getElementById('reflectionSaveBtn').style.display = 'flex';
+  }
+
+  // ── Tasks ─────────────────────────────────────────────────
+  function parseTasksText(raw) {
+    if (!raw) return [];
+    return raw.split('\n').map(l => {
+      const line = l.replace(/^•\s*/,'').trim();
       const m    = line.match(/^\[(.+?)\]\s+(★\s+)?(.+)$/);
-      if (m) return { list: m[1], starred: !!m[2], title: m[3] };
+      if (m) return { list:m[1], starred:!!m[2], title:m[3] };
       const starred = line.startsWith('★ ');
-      return { list: 'Other', starred, title: starred ? line.slice(2) : line };
+      return { list:'Other', starred, title: starred ? line.slice(2) : line };
     }).filter(t => t.title);
   }
 
   function tasksAsText() {
     return tasksData.map(t => {
-      const list  = t.list  || '—';
-      const star  = t.starred ? '★ ' : '';
-      return list !== '—' ? `• [${list}] ${star}${t.title}` : `• ${star}${t.title}`;
+      const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+      const star = t.starred ? '★ ' : '';
+      return `• [${list}] ${star}${t.title}`;
     }).join('\n');
   }
 
   function groupByList(tasks) {
     const groups = {};
-    tasks.forEach((t, i) => {
+    tasks.forEach((t,i) => {
       const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
-      if (!groups[list]) groups[list] = [];
-      groups[list].push({ ...t, idx: i });
+      if (!groups[list]) groups[list]=[];
+      groups[list].push({...t, idx:i});
     });
-    const keys = Object.keys(groups).sort((a, b) => {
-      const ai = LIST_ORDER.indexOf(a), bi = LIST_ORDER.indexOf(b);
-      if (ai === -1 && bi === -1) return a.localeCompare(b);
-      if (ai === -1) return 1; if (bi === -1) return -1;
-      return ai - bi;
+    const keys = Object.keys(groups).sort((a,b) => {
+      const ai=LIST_ORDER.indexOf(a), bi=LIST_ORDER.indexOf(b);
+      if(ai===-1&&bi===-1) return a.localeCompare(b);
+      if(ai===-1) return 1; if(bi===-1) return -1;
+      return ai-bi;
     });
-    return keys.map(k => ({ list: k, items: groups[k] }));
+    return keys.map(k=>({list:k,items:groups[k]}));
   }
 
   function renderWriteTasks() {
     const display = document.getElementById('tasksDisplay');
-    if (!tasksData.length) {
-      display.innerHTML = '<div class="empty-note">No tasks yet — add one below.</div>';
-      return;
-    }
+    if (!tasksData.length) { display.innerHTML='<div class="empty-note">No tasks yet — add one below.</div>'; return; }
     const groups = groupByList(tasksData);
-    const withH  = groups.length > 1 || (groups.length === 1 && groups[0].list !== '—');
-    let html = '';
+    const withH  = groups.length>1||(groups.length===1&&groups[0].list!=='Other');
+    let html='';
     groups.forEach(g => {
-      if (withH && g.list !== '—') {
-        html += `<div class="j-list-label">
-          <span>${esc(g.list)}</span>
-          <div class="j-add-btn" onclick="addTaskToList('${esc(g.list)}')">+ Add</div>
-        </div>`;
-      }
+      if (withH) html+=`<div class="j-list-label"><span>${esc(g.list)}</span><div class="j-add-btn" onclick="addTaskToList('${g.list}')">+ Add</div></div>`;
       g.items.forEach(item => {
-        const opts = LIST_OPTIONS.map(l => `<option value="${l}"${l === item.list ? ' selected':''}>${l}</option>`).join('');
-        const starBtn = item.starred
-          ? `<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e" title="Starred — tap to change">★</button>`
-          : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
-        html += `<div class="j-task-row" data-idx="${item.idx}">
+        const opts=LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
+        const starBtn=item.starred
+          ?`<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e" title="Starred">★</button>`
+          :`<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
+        html+=`<div class="j-task-row" data-idx="${item.idx}">
           <span class="j-drag-handle">⠿</span>
           <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
           <input class="j-task-title" type="text" value="${esc(item.title)}" onchange="updateTaskTitle(${item.idx},this.value)" oninput="markTasksDirty()">
@@ -890,421 +595,105 @@
         </div>`;
       });
     });
-    // If only one list, add a global "+ Add" at the bottom
-    if (!withH) {
-      html += `<div class="j-add-btn" style="margin-top:8px;display:inline-block;" onclick="addTaskToList('Other')">+ Add task</div>`;
-    }
-    display.innerHTML = html;
+    if (!withH) html+=`<div class="j-add-btn" style="margin-top:8px;display:inline-block;" onclick="addTaskToList('Other')">+ Add task</div>`;
+    display.innerHTML=html;
     bindDrag();
   }
 
   function addTaskToList(list) {
-    const lastIdx  = tasksData.reduce((acc, t, i) => ((t.list||'Other') === list ? i : acc), -1);
-    const insertAt = lastIdx >= 0 ? lastIdx + 1 : tasksData.length;
-    tasksData.splice(insertAt, 0, { list, starred: false, title: '' });
-    renderWriteTasks();
-    markTasksDirty();
-    // Focus the newly inserted input
-    setTimeout(() => {
-      const rows = document.querySelectorAll('.j-task-row');
-      for (const row of rows) {
-        if (parseInt(row.dataset.idx) === insertAt) {
-          const input = row.querySelector('.j-task-title');
-          if (input) { input.focus(); input.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-          break;
-        }
-      }
-    }, 50);
+    const lastIdx = tasksData.reduce((acc,t,i)=>((LIST_OPTIONS.includes(t.list)?t.list:'Other')===list?i:acc),-1);
+    const insertAt = lastIdx>=0 ? lastIdx+1 : tasksData.length;
+    tasksData.splice(insertAt,0,{list,starred:false,title:''});
+    renderWriteTasks(); markTasksDirty();
+    setTimeout(()=>{
+      const rows=document.querySelectorAll('.j-task-row');
+      for(const row of rows){ if(parseInt(row.dataset.idx)===insertAt){ const inp=row.querySelector('.j-task-title'); if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'nearest'});} break; } }
+    },50);
   }
 
-  function markTasksDirty() {
-    tasksDirty = true;
-    document.getElementById('tasksSaveBtn').style.display = 'flex';
-  }
+  function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
+  function updateTaskTitle(i,v){if(tasksData[i]){tasksData[i].title=v.trim();markTasksDirty();}}
+  function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
+  function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
 
-  // ── Reflection blocks ─────────────────────────────────────
-  const REFL_LISTS  = ['Basic', 'Personal', 'Work', 'Zipf', 'Other'];
-  const REFL_FIELDS = ['thankful', 'sad', 'learned', 'thoughts'];
-  const REFL_LABELS = { thankful:'Thankful for', sad:'Sad about', learned:'Learned', thoughts:'Thoughts' };
-  let reflData      = [];
-  let extractedRefl = null;
-
-  function reflSerialise() {
-    const nonEmpty = reflData.filter(b => REFL_FIELDS.some(f => b[f] && b[f].trim()));
-    return nonEmpty.length ? JSON.stringify(nonEmpty) : '';
-  }
-
-  function reflParse(raw) {
-    if (!raw) return [];
-    try { const p = JSON.parse(raw); if (Array.isArray(p)) return p; } catch(e){}
-    return [{ list:'Other', thankful:'', sad:'', learned:'', thoughts: raw }];
-  }
-
-  function renderReflectionBlocks() {
-    const container = document.getElementById('reflectionBlocksDisplay');
-    let html = '';
-    REFL_LISTS.forEach(list => {
-      const block = reflData.find(b => b.list === list);
-      if (block) {
-        html += `<div class="refl-block" data-list="${list}">
-          <div class="refl-block-header">
-            <span class="refl-block-list">${esc(list)}</span>
-            <button class="refl-add-btn" onclick="removeReflBlock('${list}')">✕ Remove</button>
-          </div>`;
-        REFL_FIELDS.forEach(f => {
-          html += `<div class="refl-field">
-            <div class="refl-field-label">${REFL_LABELS[f]}</div>
-            <textarea class="refl-field-input" rows="2" placeholder="${REFL_LABELS[f]}…"
-              oninput="updateReflField('${list}','${f}',this.value)">${esc(block[f]||'')}</textarea>
-          </div>`;
-        });
-        html += `<div style="height:6px;"></div></div>`;
-      } else {
-        html += `<div class="refl-list-row">
-          <span class="refl-list-name">${esc(list)}</span>
-          <div class="refl-add-btn" onclick="addReflBlock('${list}')">+ Add</div>
-        </div>`;
-      }
-    });
-    container.innerHTML = html;
-  }
-
-  function addReflBlock(list) {
-    if (!reflData.find(b => b.list === list))
-      reflData.push({ list, thankful:'', sad:'', learned:'', thoughts:'' });
-    onReflectionChange(); renderReflectionBlocks();
-    setTimeout(()=>{ const el=document.querySelector(`.refl-block[data-list="${list}"]`); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },50);
-  }
-
-  function removeReflBlock(list) {
-    reflData = reflData.filter(b => b.list !== list);
-    onReflectionChange(); renderReflectionBlocks();
-  }
-
-  function updateReflField(list, field, value) {
-    const b = reflData.find(b => b.list === list);
-    if (b) { b[field] = value; onReflectionChange(); }
-  }
-
-  function onReflectionChange() {
-    reflectionDirty = true;
-    document.getElementById('reflectionSaveBtn').style.display = 'flex';
-  }
-
-  function showExtractedReflection(blocks) {
-    extractedRefl = blocks;
-    let html = '';
-    blocks.forEach(b => {
-      html += `<div style="margin-bottom:10px;"><strong style="font-size:11px;color:var(--card-accent);text-transform:uppercase;letter-spacing:0.1em;">${esc(b.list)}</strong>`;
-      REFL_FIELDS.forEach(f => {
-        if (b[f]) html += `<div style="font-size:12px;color:var(--card-muted);margin-top:3px;">${REFL_LABELS[f]}: <span style="color:var(--card-text);">${esc(b[f])}</span></div>`;
-      });
-      html += '</div>';
-    });
-    document.getElementById('reflectionExtractedPreview').innerHTML = html;
-    document.getElementById('reflectionExtracted').style.display = 'block';
-  }
-
-  function addExtractedReflection() {
-    if (!extractedRefl) return;
-    extractedRefl.forEach(b => {
-      let block = reflData.find(x => x.list === b.list);
-      if (!block) { block = { list:b.list, thankful:'', sad:'', learned:'', thoughts:'' }; reflData.push(block); }
-      REFL_FIELDS.forEach(f => { if (b[f]) block[f] = block[f] ? block[f]+'\n'+b[f] : b[f]; });
-    });
-    onReflectionChange(); renderReflectionBlocks(); clearReflectionImport();
-  }
-
-  function clearReflectionImport() {
-    extractedRefl = null;
-    document.getElementById('reflectionExtracted').style.display = 'none';
-    document.getElementById('reflectionImportStatus').innerHTML  = '';
-  }
-
-  function updateTaskTitle(i, v) { if (tasksData[i]) { tasksData[i].title = v.trim(); markTasksDirty(); } }
-  function updateTaskList(i, v)  { if (tasksData[i]) { tasksData[i].list  = v; markTasksDirty(); renderWriteTasks(); } }
-  function deleteTask(i)         { tasksData.splice(i, 1); markTasksDirty(); renderWriteTasks(); }
-  function toggleStar(i) {
-    if (!tasksData[i]) return;
-    tasksData[i].starred = !tasksData[i].starred;
-    markTasksDirty(); renderWriteTasks();
-  }
+  function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
 
   function promptStarAction(i) {
-    // Close any existing popups first
-    document.querySelectorAll('.star-popup').forEach(p => p.remove());
-    const task = tasksData[i]; if (!task) return;
-    // Find the row
-    const row = document.querySelector(`.j-task-row[data-idx="${i}"]`);
-    if (!row) return;
-    const popup = document.createElement('div');
-    popup.className = 'star-popup';
-    popup.innerHTML = `
-      <div class="star-popup-btn" onclick="unstarTask(${i})">☆ Unstar</div>
-      <div class="star-popup-btn" onclick="starAndMilestone(${i})">★ → Milestone</div>
-    `;
+    document.querySelectorAll('.star-popup').forEach(p=>p.remove());
+    const row=document.querySelector(`.j-task-row[data-idx="${i}"]`); if(!row) return;
+    const popup=document.createElement('div'); popup.className='star-popup';
+    popup.innerHTML=`<div class="star-popup-btn" onclick="unstarTask(${i})">☆ Unstar</div>`;
     row.appendChild(popup);
-    // Close on outside click
-    setTimeout(() => {
-      document.addEventListener('click', function closePopup(e) {
-        if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', closePopup); }
-      });
-    }, 10);
+    setTimeout(()=>{ document.addEventListener('click',function cl(e){if(!popup.contains(e.target)){popup.remove();document.removeEventListener('click',cl);}}); },10);
   }
 
-  function unstarTask(i) {
-    document.querySelectorAll('.star-popup').forEach(p => p.remove());
-    if (!tasksData[i]) return;
-    tasksData[i].starred = false;
-    markTasksDirty(); renderWriteTasks();
-  }
-
-  function starAndMilestone(i) {
-    document.querySelectorAll('.star-popup').forEach(p => p.remove());
-    const task = tasksData[i]; if (!task) return;
-    addMilestone(task.list || 'Other', task.title);
-    setTimeout(() => {
-      const card = document.getElementById('milestonesCard');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }
+  function unstarTask(i){document.querySelectorAll('.star-popup').forEach(p=>p.remove());if(!tasksData[i])return;tasksData[i].starred=false;markTasksDirty();renderWriteTasks();}
 
   // ── Save tasks ────────────────────────────────────────────
   async function saveTasks() {
-    const btn = document.getElementById('tasksSaveBtn');
-    btn.textContent = 'Saving…';
-    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: reflSerialise(), milestones: msSerialise() };
+    const btn=document.getElementById('tasksSaveBtn'); btn.textContent='Saving…';
+    const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
     try {
-      if (existingPageId) { await api('updateEntry', { pageId: existingPageId, payload }); }
-      else { const r = await api('saveEntry', { payload }); existingPageId = r.id; }
-      tasksDirty = false; btn.style.display = 'none';
-      showStatus('tasksSaveStatus', '✓ Saved', 'ok'); autoClear('tasksSaveStatus', 3000);
-    } catch(e) { btn.textContent = 'Save'; showStatus('tasksSaveStatus', 'Error: ' + e.message, 'err'); }
+      if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
+      else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
+      tasksDirty=false;btn.style.display='none';
+      showStatus('tasksSaveStatus','✓ Saved','ok');autoClear('tasksSaveStatus',3000);
+    } catch(e){btn.textContent='Save';showStatus('tasksSaveStatus','Error: '+e.message,'err');}
   }
 
   // ── Save reflection ───────────────────────────────────────
   async function saveReflection() {
-    const btn = document.getElementById('reflectionSaveBtn');
-    btn.textContent = 'Saving…';
-    const payload = { date: getWriteDate(), tasksText: tasksAsText(), reflection: reflSerialise(), milestones: msSerialise() };
+    const btn=document.getElementById('reflectionSaveBtn'); btn.textContent='Saving…';
+    const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
     try {
-      if (existingPageId) { await api('updateEntry', { pageId: existingPageId, payload }); }
-      else { const r = await api('saveEntry', { payload }); existingPageId = r.id; }
-      reflectionDirty = false; btn.style.display = 'none';
-      showStatus('reflectionSaveStatus', '✓ Saved', 'ok'); autoClear('reflectionSaveStatus', 3000);
-    } catch(e) { btn.textContent = 'Save'; showStatus('reflectionSaveStatus', 'Error: ' + e.message, 'err'); }
-  }
-
-  // ── Reflection import (photo) ─────────────────────────────
-  async function handleReflectionPhoto(e) {
-    const file = e.target.files[0]; if(!file) return;
-    showStatus('reflectionImportStatus','<span class="spin"></span> Transcribing…','info');
-    try {
-      const text   = await api('ocrImage', { base64Data: await toBase64(file), mediaType: file.type||'image/jpeg' });
-      showStatus('reflectionImportStatus','<span class="spin"></span> Categorising…','info');
-      const blocks = await api('extractReflectionBlocks', { text, lists: REFL_LISTS });
-      showExtractedReflection(blocks);
-      document.getElementById('reflectionImportStatus').innerHTML='';
-    } catch(ex){ showStatus('reflectionImportStatus','Error: '+ex.message,'err'); }
-    e.target.value='';
-  }
-
-  // ── Reflection voice recording ────────────────────────────
-  function toggleReflectionRecording(){ reflRecording ? stopReflRecording() : startReflRecording(); }
-
-  function startReflRecording(){
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){showStatus('reflectionImportStatus','Voice not supported.','err');return;}
-    reflRecognition=new SR();reflRecognition.lang='en-GB';reflRecognition.continuous=true;reflRecognition.interimResults=true;
-    reflVoiceTranscript='';reflRecording=true;
-    document.getElementById('reflectionRecordBtn').textContent='⏹ Stop';
-    showStatus('reflectionImportStatus','🔴 Recording — tap Stop when done','info');
-    reflRecognition.onresult=e=>{let f='',i='';for(let j=0;j<e.results.length;j++){if(e.results[j].isFinal)f+=e.results[j][0].transcript+' ';else i+=e.results[j][0].transcript;}reflVoiceTranscript=f+i;};
-    reflRecognition.onerror=e=>{stopReflRecording();showStatus('reflectionImportStatus','Error: '+e.error,'err');};
-    reflRecognition.onend=()=>{if(reflRecording)stopReflRecording();};
-    reflRecognition.start();
-  }
-
-  async function stopReflRecording(){
-    reflRecording=false;if(reflRecognition){try{reflRecognition.stop();}catch(e){}}
-    document.getElementById('reflectionRecordBtn').textContent='🎤 Record';
-    if(reflVoiceTranscript.trim()){
-      showStatus('reflectionImportStatus','<span class="spin"></span> Categorising…','info');
-      try {
-        const blocks=await api('extractReflectionBlocks',{text:reflVoiceTranscript,lists:REFL_LISTS});
-        showExtractedReflection(blocks);
-        document.getElementById('reflectionImportStatus').innerHTML='';
-      } catch(e){showStatus('reflectionImportStatus','Error: '+e.message,'err');}
-    } else document.getElementById('reflectionImportStatus').innerHTML='';
-  }
-
-  // ── Milestones ────────────────────────────────────────────
-  let milestonesData  = []; // array of { list, text }
-  let milestonesDirty = false;
-
-  function msSerialise() {
-    const nonEmpty = milestonesData.filter(m => m.text && m.text.trim());
-    return nonEmpty.length ? JSON.stringify(nonEmpty) : '';
-  }
-
-  function msParse(raw) {
-    if (!raw) return [];
-    try { const p = JSON.parse(raw); if (Array.isArray(p)) return p; } catch(e) {}
-    return [];
-  }
-
-  function renderMilestones() {
-    const container = document.getElementById('milestonesDisplay');
-    if (!container) return;
-    let html = '';
-    REFL_LISTS.forEach(list => {
-      const items = milestonesData.filter(m => m.list === list);
-      // List label row always first
-      html += `<div class="ms-list-row">
-        <span class="ms-list-name">${esc(list)}</span>
-        <div class="refl-add-btn" onclick="addMilestone('${list}')">+ Add</div>
-      </div>`;
-      // Then any existing milestones for this list
-      items.forEach(m => {
-        const globalIdx = milestonesData.indexOf(m);
-        html += `<div class="ms-milestone-row" data-ms-idx="${globalIdx}">
-          <span class="ms-star">★</span>
-          <textarea class="ms-text-input" rows="2" placeholder="Describe the milestone…"
-            oninput="updateMilestone(${globalIdx}, this.value)">${esc(m.text||'')}</textarea>
-          <button class="ms-del-btn" onclick="deleteMilestone(${globalIdx})">✕</button>
-        </div>`;
-      });
-    });
-    container.innerHTML = html;
-  }
-
-  function addMilestone(list, text) {
-    milestonesData.push({ list, text: text || '' });
-    markMilestonesDirty(); renderMilestones();
-    // Focus the new textarea for this list specifically
-    setTimeout(() => {
-      const newIdx = milestonesData.length - 1;
-      const ta = document.querySelector(`.ms-milestone-row[data-ms-idx="${newIdx}"] .ms-text-input`);
-      if (ta) { ta.focus(); ta.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
-    }, 50);
-  }
-
-  function deleteMilestone(idx) {
-    milestonesData.splice(idx, 1);
-    markMilestonesDirty(); renderMilestones();
-  }
-
-  function updateMilestone(idx, value) {
-    if (milestonesData[idx]) { milestonesData[idx].text = value; markMilestonesDirty(); }
-  }
-
-  function markMilestonesDirty() {
-    milestonesDirty = true;
-    document.getElementById('milestonesSaveBtn').style.display = 'flex';
-  }
-
-  // Called from a starred task's → Milestone button
-  function starToMilestone(list, title) {
-    addMilestone(list, title);
-    // Scroll to milestones card
-    setTimeout(() => {
-      const card = document.getElementById('milestonesCard');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }
-
-  async function saveMilestones() {
-    const btn = document.getElementById('milestonesSaveBtn');
-    btn.textContent = 'Saving…';
-    const payload = {
-      date:       getWriteDate(),
-      tasksText:  tasksAsText(),
-      reflection: reflSerialise(),
-      milestones: msSerialise(),
-    };
-    try {
-      if (existingPageId) { await api('updateEntry', { pageId: existingPageId, payload }); }
-      else { const r = await api('saveEntry', { payload }); existingPageId = r.id; }
-      milestonesDirty = false; btn.style.display = 'none';
-      showStatus('milestonesSaveStatus', '✓ Saved', 'ok'); autoClear('milestonesSaveStatus', 3000);
-    } catch(e) { btn.textContent = 'Save'; showStatus('milestonesSaveStatus', 'Error: ' + e.message, 'err'); }
-  }
-
-  // ── Drag and drop ─────────────────────────────────────────
-  function bindDrag() {
-    const display = document.getElementById('tasksDisplay');
-    let dragIdx = null;
-    display.querySelectorAll('.j-task-row').forEach(row => {
-      row.setAttribute('draggable', 'true');
-      row.addEventListener('dragstart', () => { dragIdx = parseInt(row.dataset.idx); setTimeout(() => row.style.opacity='0.4',0); });
-      row.addEventListener('dragend',   () => { row.style.opacity=''; display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over')); dragIdx=null; });
-      row.addEventListener('dragover',  e => { e.preventDefault(); display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over')); row.classList.add('drag-over'); });
-      row.addEventListener('drop',      e => {
-        e.preventDefault();
-        const ti = parseInt(row.dataset.idx);
-        if (dragIdx===null||dragIdx===ti) return;
-        const item = tasksData.splice(dragIdx,1)[0];
-        tasksData.splice(dragIdx<ti?ti-1:ti,0,item);
-        markTasksDirty(); renderWriteTasks();
-      });
-      const handle = row.querySelector('.j-drag-handle');
-      if (!handle) return;
-      let startY=0;
-      handle.addEventListener('touchstart', e=>{e.preventDefault();dragIdx=parseInt(row.dataset.idx);startY=e.touches[0].clientY;row.style.opacity='0.4';},{passive:false});
-      handle.addEventListener('touchmove',  e=>{e.preventDefault();const y=e.touches[0].clientY;display.querySelectorAll('.j-task-row').forEach(r=>{const rect=r.getBoundingClientRect();if(y>=rect.top&&y<=rect.bottom&&parseInt(r.dataset.idx)!==dragIdx){display.querySelectorAll('.j-task-row').forEach(x=>x.classList.remove('drag-over'));r.classList.add('drag-over');}});},{passive:false});
-      handle.addEventListener('touchend',   e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
-    });
+      if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
+      else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
+      reflectionDirty=false;btn.style.display='none';
+      showStatus('reflectionSaveStatus','✓ Saved','ok');autoClear('reflectionSaveStatus',3000);
+    } catch(e){btn.textContent='Save';showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
   }
 
   // ── Screenshot extraction ─────────────────────────────────
-  function clearImport() {
-    document.getElementById('screenshotInput').value = '';
-    document.getElementById('tasksExtracted').style.display = 'none';
-    document.getElementById('tasksImportStatus').innerHTML  = '';
-    extractedTasks = [];
-  }
+  function clearImport(){document.getElementById('screenshotInput').value='';document.getElementById('tasksExtracted').style.display='none';document.getElementById('tasksImportStatus').innerHTML='';extractedTasks=[];}
 
   async function extractFromScreenshot() {
-    const input = document.getElementById('screenshotInput');
-    const files = Array.from(input.files || []);
-    if (!files.length) return;
-    extractedTasks = [];
-    document.getElementById('tasksExtracted').style.display = 'none';
+    const input=document.getElementById('screenshotInput');
+    const files=Array.from(input.files||[]); if(!files.length) return;
+    extractedTasks=[];document.getElementById('tasksExtracted').style.display='none';
     try {
-      for (let i = 0; i < files.length; i++) {
-        showStatus('tasksImportStatus', `<span class="spin"></span> Extracting from image ${i+1} of ${files.length}…`, 'info');
-        const b64 = await toBase64(files[i]);
-        const extracted = await api('extractTasksFromImage', { base64Data: b64, mediaType: files[i].type||'image/jpeg' });
-        extractedTasks = extractedTasks.concat(extracted||[]);
+      for(let i=0;i<files.length;i++){
+        showStatus('tasksImportStatus',`<span class="spin"></span> Extracting ${i+1} of ${files.length}…`,'info');
+        const b64=await toBase64(files[i]);
+        const ext=await api('extractTasksFromImage',{base64Data:b64,mediaType:files[i].type||'image/jpeg'});
+        extractedTasks=extractedTasks.concat(ext||[]);
       }
-      input.value = '';
-      if (!extractedTasks.length) { showStatus('tasksImportStatus','No completed tasks found.','err'); return; }
-      document.getElementById('extractedBox').value = extractedTasks.map(t=>(t.list&&t.list!=='—')?`[${t.list}] ${t.title}`:t.title).join('\n');
-      document.getElementById('tasksExtracted').style.display = 'block';
-      document.getElementById('tasksImportStatus').innerHTML = '';
-    } catch(e) { showStatus('tasksImportStatus','Error: '+e.message,'err'); }
+      input.value='';
+      if(!extractedTasks.length){showStatus('tasksImportStatus','No completed tasks found.','err');return;}
+      document.getElementById('extractedBox').value=extractedTasks.map(t=>LIST_OPTIONS.includes(t.list)?`[${t.list}] ${t.title}`:t.title).join('\n');
+      document.getElementById('tasksExtracted').style.display='block';
+      document.getElementById('tasksImportStatus').innerHTML='';
+    } catch(e){showStatus('tasksImportStatus','Error: '+e.message,'err');}
   }
 
-  function addExtractedTasks() {
-    const existing = new Set(tasksData.map(t=>t.title.toLowerCase()));
-    extractedTasks.forEach(t => {
-      if (!existing.has(t.title.trim().toLowerCase())) {
-        const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
-        tasksData.push({ title: t.title.trim(), list, starred: false });
+  function addExtractedTasks(){
+    const existing=new Set(tasksData.map(t=>t.title.toLowerCase()));
+    extractedTasks.forEach(t=>{
+      if(!existing.has(t.title.trim().toLowerCase())){
+        const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
+        tasksData.push({title:t.title.trim(),list,starred:false});
         existing.add(t.title.trim().toLowerCase());
       }
     });
-    markTasksDirty(); renderWriteTasks(); clearImport();
+    markTasksDirty();renderWriteTasks();clearImport();
   }
 
   // ── Task voice recording ──────────────────────────────────
-  function toggleTaskRecording() { taskRecording ? stopTaskRecording() : startTaskRecording(); }
-
-  function startTaskRecording() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { showStatus('tasksImportStatus','Voice not supported.','err'); return; }
-    taskRecognition = new SR(); taskRecognition.lang='en-GB'; taskRecognition.continuous=true; taskRecognition.interimResults=true;
-    taskVoiceTranscript=''; taskRecording=true;
+  function toggleTaskRecording(){taskRecording?stopTaskRecording():startTaskRecording();}
+  function startTaskRecording(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){showStatus('tasksImportStatus','Voice not supported.','err');return;}
+    taskRecognition=new SR();taskRecognition.lang='en-GB';taskRecognition.continuous=true;taskRecognition.interimResults=true;
+    taskVoiceTranscript='';taskRecording=true;
     document.getElementById('taskRecordBtn').textContent='⏹ Stop';
     showStatus('tasksImportStatus','🔴 Recording — tap Stop when done','info');
     taskRecognition.onresult=e=>{let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;taskVoiceTranscript=t;};
@@ -1312,196 +701,214 @@
     taskRecognition.onend=()=>{if(taskRecording)stopTaskRecording();};
     taskRecognition.start();
   }
-
-  function stopTaskRecording() {
-    taskRecording=false; if(taskRecognition){try{taskRecognition.stop();}catch(e){}}
+  function stopTaskRecording(){
+    taskRecording=false;if(taskRecognition){try{taskRecognition.stop();}catch(e){}}
     document.getElementById('taskRecordBtn').textContent='🎤 Record';
-    if(taskVoiceTranscript) { showStatus('tasksImportStatus','<span class="spin"></span> Analysing…','info'); extractFromVoice(); }
+    if(taskVoiceTranscript){showStatus('tasksImportStatus','<span class="spin"></span> Analysing…','info');extractFromVoice();}
     else document.getElementById('tasksImportStatus').innerHTML='';
   }
-
-  async function extractFromVoice() {
-    try {
-      const extracted = await api('extractTasksFromTranscript', { transcript: taskVoiceTranscript });
-      if (!extracted||!extracted.length){showStatus('tasksImportStatus','No tasks found.','err');return;}
-      extractedTasks=extracted;
-      document.getElementById('extractedBox').value=extracted.map(t=>(t.list&&t.list!=='—')?`[${t.list}] ${t.title}`:t.title).join('\n');
+  async function extractFromVoice(){
+    try{
+      const ext=await api('extractTasksFromTranscript',{transcript:taskVoiceTranscript});
+      if(!ext||!ext.length){showStatus('tasksImportStatus','No tasks found.','err');return;}
+      extractedTasks=ext;
+      document.getElementById('extractedBox').value=ext.map(t=>LIST_OPTIONS.includes(t.list)?`[${t.list}] ${t.title}`:t.title).join('\n');
       document.getElementById('tasksExtracted').style.display='block';
       document.getElementById('tasksImportStatus').innerHTML='';
-    } catch(e){showStatus('tasksImportStatus','Error: '+e.message,'err');}
+    }catch(e){showStatus('tasksImportStatus','Error: '+e.message,'err');}
+  }
+
+  // ── Reflection photo OCR ──────────────────────────────────
+  async function handleReflectionPhoto(e){
+    const file=e.target.files[0];if(!file)return;
+    showStatus('reflectionImportStatus','<span class="spin"></span> Transcribing…','info');
+    try{
+      const text=await api('ocrImage',{base64Data:await toBase64(file),mediaType:file.type||'image/jpeg'});
+      const box=document.getElementById('reflectionBox');
+      box.value=box.value?box.value+'\n\n'+text:text;
+      onReflectionChange();
+      showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',4000);
+    }catch(e){showStatus('reflectionImportStatus','Error: '+e.message,'err');}
+    e.target.value='';
+  }
+
+  // ── Reflection voice recording ────────────────────────────
+  function toggleReflectionRecording(){reflRecording?stopReflRecording():startReflRecording();}
+  function startReflRecording(){
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){showStatus('reflectionImportStatus','Voice not supported.','err');return;}
+    reflRecognition=new SR();reflRecognition.lang='en-GB';reflRecognition.continuous=true;reflRecognition.interimResults=true;
+    reflVoiceTranscript='';reflRecording=true;
+    document.getElementById('reflectionRecordBtn').textContent='⏹ Stop';
+    showStatus('reflectionImportStatus','🔴 Recording — tap Stop when done','info');
+    reflRecognition.onresult=e=>{let f='',im='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript+' ';else im+=e.results[i][0].transcript;}reflVoiceTranscript=f+im;};
+    reflRecognition.onerror=e=>{stopReflRecording();showStatus('reflectionImportStatus','Error: '+e.error,'err');};
+    reflRecognition.onend=()=>{if(reflRecording)stopReflRecording();};
+    reflRecognition.start();
+  }
+  async function stopReflRecording(){
+    reflRecording=false;if(reflRecognition){try{reflRecognition.stop();}catch(e){}}
+    document.getElementById('reflectionRecordBtn').textContent='🎤 Record';
+    if(reflVoiceTranscript.trim()){
+      const box=document.getElementById('reflectionBox');
+      box.value=box.value?box.value+'\n\n'+reflVoiceTranscript.trim():reflVoiceTranscript.trim();
+      onReflectionChange();
+      showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',3000);
+    }else document.getElementById('reflectionImportStatus').innerHTML='';
+  }
+
+  // ── Drag and drop ─────────────────────────────────────────
+  function bindDrag(){
+    const display=document.getElementById('tasksDisplay'); let dragIdx=null;
+    display.querySelectorAll('.j-task-row').forEach(row=>{
+      row.setAttribute('draggable','true');
+      row.addEventListener('dragstart',()=>{dragIdx=parseInt(row.dataset.idx);setTimeout(()=>row.style.opacity='0.4',0);});
+      row.addEventListener('dragend',()=>{row.style.opacity='';display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));dragIdx=null;});
+      row.addEventListener('dragover',e=>{e.preventDefault();display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
+      row.addEventListener('drop',e=>{e.preventDefault();const ti=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===ti)return;const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();});
+      const handle=row.querySelector('.j-drag-handle');if(!handle)return;
+      handle.addEventListener('touchstart',e=>{e.preventDefault();dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';},{passive:false});
+      handle.addEventListener('touchmove',e=>{e.preventDefault();const y=e.touches[0].clientY;display.querySelectorAll('.j-task-row').forEach(r=>{const rect=r.getBoundingClientRect();if(y>=rect.top&&y<=rect.bottom&&parseInt(r.dataset.idx)!==dragIdx){display.querySelectorAll('.j-task-row').forEach(x=>x.classList.remove('drag-over'));r.classList.add('drag-over');}});},{passive:false});
+      handle.addEventListener('touchend',e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
+    });
   }
 
   // ── READ SCREEN ───────────────────────────────────────────
-  async function loadReadView() {
+  async function loadReadView(){
     showStatus('bookStatus','<span class="spin"></span> Loading journal…','info');
-    bookEntries=[]; bookIndex=0; stepsInDir=0; lastDir=0;
-    try {
-      const today=new Date(), monthAgo=new Date(today);
-      monthAgo.setDate(today.getDate()-30);
+    bookEntries=[];bookIndex=0;stepsInDir=0;lastDir=0;
+    try{
+      const today=new Date(),monthAgo=new Date(today);monthAgo.setDate(today.getDate()-30);
       const entries=await api('getEntries',{startDate:isoDate(monthAgo),endDate:isoDate(today)});
       document.getElementById('bookStatus').innerHTML='';
-      bookEntries=entries.filter(e=>e.date);
-      bookIndex=0; renderBookPage(false);
-    } catch(e){showStatus('bookStatus','Error: '+e.message,'err');}
+      bookEntries=entries.filter(e=>e.date);bookIndex=0;renderBookPage(false);
+    }catch(e){showStatus('bookStatus','Error: '+e.message,'err');}
   }
 
-  async function loadMoreEntries(direction) {
-    if(bookLoadingMore||!bookEntries.length) return;
-    bookLoadingMore=true;
-    try {
-      if(direction===-1){
-        const oldest=bookEntries[bookEntries.length-1].date;
-        const end=new Date(oldest+'T12:00:00');end.setDate(end.getDate()-1);
-        const start=new Date(end);start.setDate(start.getDate()-30);
-        const more=await api('getEntries',{startDate:isoDate(start),endDate:isoDate(end)});
-        if(more&&more.length) bookEntries=bookEntries.concat(more.filter(e=>e.date));
-      } else {
-        const newest=bookEntries[0].date;
-        const start=new Date(newest+'T12:00:00');start.setDate(start.getDate()+1);
-        const more=await api('getEntries',{startDate:isoDate(start),endDate:isoDate(new Date())});
-        if(more&&more.length){bookEntries=more.filter(e=>e.date).concat(bookEntries);bookIndex+=more.length;}
-      }
-    } catch(e){}
-    bookLoadingMore=false; updateNavBtns();
+  async function loadMoreEntries(direction){
+    if(bookLoadingMore||!bookEntries.length)return;bookLoadingMore=true;
+    try{
+      if(direction===-1){const oldest=bookEntries[bookEntries.length-1].date;const end=new Date(oldest+'T12:00:00');end.setDate(end.getDate()-1);const start=new Date(end);start.setDate(start.getDate()-30);const more=await api('getEntries',{startDate:isoDate(start),endDate:isoDate(end)});if(more&&more.length)bookEntries=bookEntries.concat(more.filter(e=>e.date));}
+      else{const newest=bookEntries[0].date;const start=new Date(newest+'T12:00:00');start.setDate(start.getDate()+1);const more=await api('getEntries',{startDate:isoDate(start),endDate:isoDate(new Date())});if(more&&more.length){bookEntries=more.filter(e=>e.date).concat(bookEntries);bookIndex+=more.length;}}
+    }catch(e){}
+    bookLoadingMore=false;updateNavBtns();
   }
 
-  function renderBookPage(animate, direction) {
-    const content = document.getElementById('bookContent');
-    const entry   = bookEntries[bookIndex];
-    updateNavBtns();
-
-    if (entry) {
-      const d = new Date(entry.date+'T12:00:00');
-      document.getElementById('readDayLabel').textContent  = d.toLocaleDateString('en-GB',{weekday:'long'});
-      document.getElementById('readDateLabel').textContent = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-    } else {
-      document.getElementById('readDayLabel').textContent  = '';
-      document.getElementById('readDateLabel').textContent = '';
-    }
-
-    if (animate) {
-      content.style.transition='opacity 0.18s ease, transform 0.18s ease';
-      content.style.opacity='0';
-      content.style.transform=`translateX(${direction===1?'-30px':'30px'})`;
-    }
-
+  function renderBookPage(animate,direction){
+    const content=document.getElementById('bookContent');
+    const entry=bookEntries[bookIndex]; updateNavBtns();
+    if(entry){const d=new Date(entry.date+'T12:00:00');document.getElementById('readDayLabel').textContent=d.toLocaleDateString('en-GB',{weekday:'long'});document.getElementById('readDateLabel').textContent=d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});}
+    else{document.getElementById('readDayLabel').textContent='';document.getElementById('readDateLabel').textContent='';}
+    if(animate){content.style.transition='opacity 0.18s ease, transform 0.18s ease';content.style.opacity='0';content.style.transform=`translateX(${direction===1?'-30px':'30px'})`;}
     setTimeout(()=>{
-      content.innerHTML = entry ? buildPageHTML(entry) : '<div class="book-empty">No entry for this day.</div>';
-      const from = direction===1?'30px':'-30px';
-      content.style.transition='none'; content.style.opacity='0';
-      content.style.transform=animate?`translateX(${from})`:'translateX(0)';
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        content.style.transition='opacity 0.22s ease, transform 0.22s ease';
-        content.style.opacity='1'; content.style.transform='translateX(0)';
-      }));
-    }, animate?180:0);
+      content.innerHTML=entry?buildPageHTML(entry):'<div class="book-empty">No entry for this day.</div>';
+      const from=direction===1?'30px':'-30px';content.style.transition='none';content.style.opacity='0';content.style.transform=animate?`translateX(${from})`:'translateX(0)';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{content.style.transition='opacity 0.22s ease, transform 0.22s ease';content.style.opacity='1';content.style.transform='translateX(0)';}));
+    },animate?180:0);
   }
 
-  function updateNavBtns() {
-    const prev=document.getElementById('prevDayBtn'), next=document.getElementById('nextDayBtn');
+  function updateNavBtns(){
+    const prev=document.getElementById('prevDayBtn'),next=document.getElementById('nextDayBtn');
     if(prev){if(bookIndex>=bookEntries.length-1)prev.classList.add('disabled');else prev.classList.remove('disabled');}
     if(next){if(bookIndex<=0)next.classList.add('disabled');else next.classList.remove('disabled');}
   }
 
+  function buildPageHTML(entry){
+    const field=bookField, flist=bookFilterList; let html='';
+    const showTasks      = field === 'all' || field === 'starred_reflections';
+    const showReflection = field === 'all' || field === 'starred_reflections' || field === 'reflection';
 
-  function buildPageHTML(entry) {
-    const field = bookField;
-    const flist = bookFilterList;
-    let html = '';
-
-    const showTasks      = field === 'all' || field === 'tasks' || field === 'starred';
-    const showMilestones = field === 'all' || field === 'milestones_reflections';
-    const showReflection = field === 'all' || field === 'milestones_reflections' || field === 'reflection';
-
-    // Tasks
+    // Tasks (all tasks for Everything; starred only for Starred & reflections)
     if (showTasks && entry.tasksText) {
       let taskObjs = parseTasksText(entry.tasksText);
-      if (field === 'starred') taskObjs = taskObjs.filter(t => t.starred);
-      if (flist !== 'all') taskObjs = taskObjs.filter(t => (t.list||'Other') === flist);
-      if (taskObjs.length) {
-        const groups = groupByList(taskObjs);
-        const withH = groups.length > 1 || (groups.length === 1 && groups[0].list !== '—');
-        let inner = '';
-        groups.forEach(g => {
-          if (withH) inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
-          g.items.forEach(t => { const star = t.starred ? `<span class="j-read-star">★</span>` : ''; inner += `<div class="j-read-task">${star}${esc(t.title)}</div>`; });
+      if (field === 'starred_reflections') taskObjs = taskObjs.filter(t => t.starred);
+      if (flist !== 'all') taskObjs = taskObjs.filter(t => (LIST_OPTIONS.includes(t.list) ? t.list : 'Other') === flist);
+      if(taskObjs.length){
+        const groups=groupByList(taskObjs);
+        const withH=groups.length>1||(groups.length===1&&groups[0].list!=='Other');
+        let inner='';
+        groups.forEach(g=>{
+          if(withH)inner+=`<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
+          g.items.forEach(t=>{const star=t.starred?`<span class="j-read-star">★</span>`:'';inner+=`<div class="j-read-task">${star}${esc(t.title)}</div>`;});
         });
-        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
-      }
-    }
-
-    // Milestones
-    if (showMilestones && entry.milestones) {
-      let ms = msParse(entry.milestones);
-      if (flist !== 'all') ms = ms.filter(m => (m.list||'Other') === flist);
-      if (ms.length) {
-        const groups = {};
-        ms.forEach(m => { const l = m.list||'Other'; if (!groups[l]) groups[l]=[]; groups[l].push(m); });
-        const keys = REFL_LISTS.filter(l => groups[l]);
-        let mhtml = '';
-        keys.forEach(list => {
-          mhtml += `<div class="ms-read-block"><div class="ms-read-list">${esc(list)}</div>`;
-          groups[list].forEach(m => { mhtml += `<div class="ms-read-item"><span class="ms-read-star">★</span>${esc(m.text)}</div>`; });
-          mhtml += '</div>';
-        });
-        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Milestones</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${mhtml}</div></div>`;
+        html+=`<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
       }
     }
 
     // Reflection
-    if (showReflection && entry.reflection) {
-      let blocks = reflParse(entry.reflection);
-      if (flist !== 'all') blocks = blocks.filter(b => b.list === flist);
-      const nonEmpty = blocks.filter(b => REFL_FIELDS.some(f => b[f] && b[f].trim()));
-      if (nonEmpty.length) {
-        let rhtml = '';
-        nonEmpty.forEach(b => {
-          const fields = REFL_FIELDS.filter(f => b[f] && b[f].trim());
-          rhtml += `<div class="refl-read-block"><div class="refl-read-list">${esc(b.list)}</div>`;
-          fields.forEach(f => { rhtml += `<div class="refl-read-field"><div class="refl-read-label">${REFL_LABELS[f]}</div><div class="refl-read-text">${esc(b[f])}</div></div>`; });
-          rhtml += '</div>';
-        });
-        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body" style="padding-top:4px;">${rhtml}</div></div>`;
+    if(showReflection&&entry.reflection){
+      let reflText=entry.reflection, tagLabel='';
+      try{const p=JSON.parse(entry.reflection);if(p&&p.text!==undefined){reflText=p.text;tagLabel=p.tag||'';}}catch(e){}
+      // Apply focus filter to tagged reflections
+      if(flist!=='all'&&tagLabel&&tagLabel!==flist){reflText='';}
+      if(reflText.trim()){
+        const tagBadge=tagLabel?`<span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--card-accent);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 6px;margin-left:6px;">${esc(tagLabel)}</span>`:'';
+        html+=`<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection${tagBadge}</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body"><div class="j-reflection-text">${esc(reflText)}</div></div></div>`;
       }
     }
 
-    return html || '<div class="book-empty">No entry for this day.</div>';
+    return html||'<div class="book-empty">No entry for this day.</div>';
   }
 
-  function navigateDay(direction) {
-    // direction: -1 = go to older (higher index), +1 = go to newer (lower index)
-    const next = bookIndex + (direction === 1 ? -1 : 1);
-    if(next<0||next>=bookEntries.length) return;
-    bookIndex=next; renderBookPage(true, direction);
-    if(direction===lastDir) stepsInDir++; else{stepsInDir=1;lastDir=direction;}
+  function navigateDay(direction){
+    const next=bookIndex+(direction===1?-1:1);
+    if(next<0||next>=bookEntries.length)return;
+    bookIndex=next;renderBookPage(true,direction);
+    if(direction===lastDir)stepsInDir++;else{stepsInDir=1;lastDir=direction;}
     if(stepsInDir>=7){stepsInDir=0;loadMoreEntries(direction<0?-1:1);}
   }
 
-  function jumpToDate() {
-    const dateStr=document.getElementById('filterJumpDate').value;
-    if(!dateStr) return;
+  function jumpToDate(){
+    const dateStr=document.getElementById('filterJumpDate').value;if(!dateStr)return;
     const idx=bookEntries.findIndex(e=>e.date<=dateStr);
     bookIndex=idx>=0?idx:bookEntries.length-1;
     stepsInDir=0;lastDir=0;toggleFilterPanel();renderBookPage(false);
   }
 
-  function toggleFilterPanel(){
-    const p=document.getElementById('filterPanel');
-    p.style.display=p.style.display==='none'?'block':'none';
-  }
+  function toggleFilterPanel(){const p=document.getElementById('filterPanel');p.style.display=p.style.display==='none'?'block':'none';}
 
-  // ── Swipe gestures ────────────────────────────────────────
-  (function(){
-    let sx=0,sy=0;
+  // Swipe
+  (function(){let sx=0,sy=0;
     document.addEventListener('touchstart',e=>{if(!document.getElementById('readView').classList.contains('active'))return;sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
     document.addEventListener('touchend',e=>{if(!document.getElementById('readView').classList.contains('active'))return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<40||Math.abs(dy)>Math.abs(dx))return;navigateDay(dx<0?-1:1);},{passive:true});
   })();
 
-  // ── Helpers ───────────────────────────────────────────────
-  function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
-  function showStatus(id,msg,type){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="status ${type}" style="margin:8px 0;">${msg}</div>`;}
-  function autoClear(id,ms){setTimeout(()=>{const el=document.getElementById(id);if(el)el.innerHTML='';},ms);}
-  function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  // ── REVIEW SCREEN ─────────────────────────────────────────
+  function updateHomePills(){
+    const from=document.getElementById('homeDateFrom').value;
+    const to=document.getElementById('homeDateTo').value;
+    const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('homeFromPill').textContent=from?fmt(from):'—';
+    document.getElementById('homeToPill').textContent=to?fmt(to):'—';
+  }
+
+  function onHomeRangeChange(){updateHomePills();loadHomeStats();}
+
+  async function loadHomeStats(){
+    document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">Loading…</div>';
+    const from=document.getElementById('homeDateFrom').value;
+    const to=document.getElementById('homeDateTo').value;
+    if(!from||!to)return;
+    try{const entries=await api('getEntries',{startDate:from,endDate:to});renderHomeStats(entries);}
+    catch(e){document.getElementById('homeStatsBody').innerHTML=`<div class="empty-note" style="color:var(--red);">Error: ${e.message}</div>`;}
+  }
+
+  function renderHomeStats(entries){
+    const counts={};let total=0;
+    entries.forEach(entry=>{
+      if(!entry.tasksText)return;
+      parseTasksText(entry.tasksText).forEach(t=>{
+        const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
+        counts[list]=(counts[list]||0)+1;total++;
+      });
+    });
+    if(!total){document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">No tasks found in this date range.</div>';return;}
+    const keys=Object.keys(counts).sort((a,b)=>{const ai=LIST_ORDER.indexOf(a),bi=LIST_ORDER.indexOf(b);if(ai===-1&&bi===-1)return a.localeCompare(b);if(ai===-1)return 1;if(bi===-1)return -1;return ai-bi;});
+    const max=Math.max(...Object.values(counts));
+    let html=keys.map(k=>`<div class="h-stat-row"><span class="h-list-name">${esc(k)}</span><div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%"></div></div><span class="h-count">${counts[k].toLocaleString()}</span></div>`).join('');
+    html+=`<hr class="h-rule"><div class="h-total-row"><span class="h-total-label">Total</span><span class="h-total-count">${total.toLocaleString()}</span></div>`;
+    document.getElementById('homeStatsBody').innerHTML=html;
+  }
 </script>
 </body>
 </html>
