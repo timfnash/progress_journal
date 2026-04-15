@@ -246,7 +246,7 @@
       <div id="reflSectionsDisplay"></div>
       <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleReflectionPhoto(event)">
       <div class="j-add-strip">
-        <div class="j-strip-btn" onclick="document.getElementById('photoInput').click()">📷 Screenshot</div>
+        <div class="j-strip-btn" onclick="captureReflPhotoTarget();document.getElementById('photoInput').click()">📷 Screenshot</div>
         <div class="j-strip-btn" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</div>
       </div>
       <div id="reflectionImportStatus" style="padding:0 14px;"></div>
@@ -805,13 +805,28 @@
   }
 
   // ── Reflection photo OCR ──────────────────────────────────
+  let reflPhotoTarget = null;
+
+  function captureReflPhotoTarget() {
+    const active = document.activeElement;
+    reflPhotoTarget = (active && (active.id==='reflectionBox' || active.classList.contains('refl-section-ta')))
+      ? active
+      : document.getElementById('reflectionBox');
+  }
+
   async function handleReflectionPhoto(e){
-    const file=e.target.files[0];if(!file)return;
+    const file=e.target.files[0]; if(!file) return;
+    const box = reflPhotoTarget || document.getElementById('reflectionBox');
+    reflPhotoTarget = null;
     showStatus('reflectionImportStatus','<span class="spin"></span> Transcribing…','info');
     try{
       const text=await api('ocrImage',{base64Data:await toBase64(file),mediaType:file.type||'image/jpeg'});
-      const box=document.getElementById('reflectionBox');
       box.value=box.value?box.value+'\n\n'+text:text;
+      // If it was a section textarea, update the data model
+      if(box.classList && box.classList.contains('refl-section-ta')){
+        const allTas=document.querySelectorAll('.refl-section-ta');
+        allTas.forEach((ta,i)=>{if(ta===box&&reflSections[i])reflSections[i].text=box.value;});
+      }
       onReflectionChange();
       showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',4000);
     }catch(e){showStatus('reflectionImportStatus','Error: '+e.message,'err');}
@@ -819,14 +834,24 @@
   }
 
   // ── Reflection voice recording ────────────────────────────
+  let reflRecordTarget = null; // the textarea that was focused when Record was tapped
+
   function toggleReflectionRecording(){reflRecording?stopReflRecording():startReflRecording();}
   function startReflRecording(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){showStatus('reflectionImportStatus','Voice not supported.','err');return;}
+    // Capture whichever reflection textarea currently has focus, or fall back to general box
+    const active = document.activeElement;
+    reflRecordTarget = (active && (active.id==='reflectionBox' || active.classList.contains('refl-section-ta')))
+      ? active
+      : document.getElementById('reflectionBox');
     reflRecognition=new SR();reflRecognition.lang='en-GB';reflRecognition.continuous=true;reflRecognition.interimResults=true;
     reflVoiceTranscript='';reflRecording=true;
     document.getElementById('reflectionRecordBtn').textContent='⏹ Stop';
-    showStatus('reflectionImportStatus','🔴 Recording — tap Stop when done','info');
+    // Show which field is being targeted
+    const targetName = reflRecordTarget.id==='reflectionBox' ? 'general reflection' :
+      (reflRecordTarget.closest('.refl-section')?.querySelector('.refl-section-label')?.textContent || 'section');
+    showStatus('reflectionImportStatus',`🔴 Recording into ${targetName} — tap Stop when done`,'info');
     reflRecognition.onresult=e=>{let f='',im='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript+' ';else im+=e.results[i][0].transcript;}reflVoiceTranscript=f+im;};
     reflRecognition.onerror=e=>{stopReflRecording();showStatus('reflectionImportStatus','Error: '+e.error,'err');};
     reflRecognition.onend=()=>{if(reflRecording)stopReflRecording();};
@@ -836,11 +861,17 @@
     reflRecording=false;if(reflRecognition){try{reflRecognition.stop();}catch(e){}}
     document.getElementById('reflectionRecordBtn').textContent='🎤 Record';
     if(reflVoiceTranscript.trim()){
-      const box=document.getElementById('reflectionBox');
-      box.value=box.value?box.value+'\n\n'+reflVoiceTranscript.trim():reflVoiceTranscript.trim();
+      const box = reflRecordTarget || document.getElementById('reflectionBox');
+      box.value = box.value ? box.value+'\n\n'+reflVoiceTranscript.trim() : reflVoiceTranscript.trim();
+      // If it was a section textarea, update the data model too
+      if(box.classList && box.classList.contains('refl-section-ta')){
+        const allTas = document.querySelectorAll('.refl-section-ta');
+        allTas.forEach((ta, i) => { if(ta===box && reflSections[i]) reflSections[i].text = box.value; });
+      }
       onReflectionChange();
       showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',3000);
     }else document.getElementById('reflectionImportStatus').innerHTML='';
+    reflRecordTarget=null;
   }
 
   // ── Drag and drop ─────────────────────────────────────────
