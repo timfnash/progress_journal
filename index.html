@@ -102,16 +102,25 @@
     .j-read-star { color: #b07030; margin-right: 3px; font-size: 12px; }
 
     /* Reflection */
-    .j-textarea { width: 100%; min-height: 120px; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 15px; line-height: 1.65; padding: 12px 14px; resize: vertical; display: block; }
+
+    /* Reflection general textarea */
+    .j-textarea { width: 100%; min-height: 100px; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 15px; line-height: 1.65; padding: 12px 14px; resize: vertical; display: block; }
     .j-textarea:focus { outline: none; }
     .j-textarea::placeholder { color: var(--card-muted); }
-    .j-reflection-text { font-size: 15px; color: var(--card-text); line-height: 1.9; white-space: pre-line; }
-
-    /* Reflection list tag row */
-    .refl-tag-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--card-border); background: var(--card-bg2); }
-    .refl-tag-label { font-size: 10px; color: var(--card-muted); letter-spacing: 0.08em; text-transform: uppercase; flex-shrink: 0; }
-    .refl-tag-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 8px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; }
-    .refl-tag-btn.active { background: var(--accent); color: #6b4a10; border-color: rgba(160,110,30,0.5); font-weight: 600; }
+    /* Reflection list sections */
+    .refl-tag-add-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--card-border); background: var(--card-bg2); }
+    .refl-section { border-top: 1px solid var(--card-border); }
+    .refl-section-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px 0; }
+    .refl-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); }
+    .refl-section-del { background: none; border: none; font-size: 13px; color: #bbb; cursor: pointer; padding: 0; line-height: 1; }
+    .refl-section-ta { width: 100%; min-height: 70px; background: var(--card-bg3); border: none; border-top: 1px solid var(--card-border); color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 10px 14px; resize: none; display: block; margin-top: 6px; }
+    .refl-section-ta:focus { outline: none; }
+    .refl-section-ta::placeholder { color: var(--card-muted); }
+    /* Read view reflection */
+    .refl-read-general { font-size: 15px; color: var(--card-text); line-height: 1.9; padding: 10px 14px 8px; white-space: pre-line; }
+    .refl-read-section { border-top: 1px solid var(--card-border); padding: 10px 14px; }
+    .refl-read-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); margin-bottom: 5px; }
+    .refl-read-text { font-size: 15px; color: var(--card-text); line-height: 1.75; white-space: pre-line; }
 
     /* Add strip */
     .j-add-strip { border-top: 1px solid var(--card-border); padding: 8px 14px; display: flex; gap: 8px; background: var(--card-bg2); }
@@ -224,16 +233,8 @@
         <div class="j-save-btn" id="reflectionSaveBtn" style="display:none;" onclick="saveReflection()">Save</div>
       </div>
       <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today…" oninput="onReflectionChange()"></textarea>
-      <!-- List tag row -->
-      <div class="refl-tag-row">
-        <span class="refl-tag-label">Tag:</span>
-        <div class="refl-tag-btn" data-list="" onclick="setReflectionTag(this, '')">General</div>
-        <div class="refl-tag-btn" data-list="Basic" onclick="setReflectionTag(this, 'Basic')">Basic</div>
-        <div class="refl-tag-btn" data-list="Personal" onclick="setReflectionTag(this, 'Personal')">Personal</div>
-        <div class="refl-tag-btn" data-list="Work" onclick="setReflectionTag(this, 'Work')">Work</div>
-        <div class="refl-tag-btn" data-list="Zipf" onclick="setReflectionTag(this, 'Zipf')">Zipf</div>
-        <div class="refl-tag-btn" data-list="Other" onclick="setReflectionTag(this, 'Other')">Other</div>
-      </div>
+      <div class="refl-tag-add-row" id="reflTagAddRow"></div>
+      <div id="reflSectionsDisplay"></div>
       <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleReflectionPhoto(event)">
       <div class="j-add-strip">
         <div class="j-strip-btn" onclick="document.getElementById('photoInput').click()">📷 Screenshot</div>
@@ -346,7 +347,6 @@
   let extractedTasks   = [];
   let tasksDirty       = false;
   let reflectionDirty  = false;
-  let reflectionTag    = '';  // current tag for reflection
 
   // Book
   let bookEntries      = [];
@@ -426,12 +426,11 @@
 
   function showWriteScreen(date) {
     showView('writeView');
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; reflectionTag='';
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
-    document.getElementById('reflectionBox').value = '';
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
-    resetReflectionTags();
+    resetReflection();
     setWriteDate(date);
     loadWriteEntry(date);
   }
@@ -469,29 +468,25 @@
       if (entry) {
         existingPageId = entry.id;
         tasksData = parseTasksText(entry.tasksText);
-        document.getElementById('reflectionBox').value = entry.reflection || '';
-        // Restore tag if stored in reflection as JSON wrapper
-        try {
-          const parsed = JSON.parse(entry.reflection);
-          if (parsed && parsed.tag !== undefined) {
-            reflectionTag = parsed.tag || '';
-            document.getElementById('reflectionBox').value = parsed.text || '';
-            setReflectionTagUI(reflectionTag);
-          }
-        } catch(e) {}
-      } else { tasksData = []; }
+        const refl = reflectionParse(entry.reflection);
+        document.getElementById('reflectionBox').value = refl.general;
+        reflSections = refl.sections || [];
+      } else {
+        tasksData = [];
+        reflSections = [];
+      }
       renderWriteTasks();
+      renderReflSections();
     } catch(e) {
       document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note" style="color:var(--red);">Error loading.</div>';
     }
   }
 
   function changeWriteDate(dateStr) {
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; reflectionTag='';
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
-    document.getElementById('reflectionBox').value = '';
-    resetReflectionTags();
+    resetReflection();
     setWriteDate(dateStr);
     loadWriteEntry(dateStr);
   }
@@ -508,28 +503,72 @@
   }
 
   // ── Reflection tag ────────────────────────────────────────
-  function setReflectionTag(el, tag) {
-    reflectionTag = tag;
-    setReflectionTagUI(tag);
-    onReflectionChange();
-  }
-
-  function setReflectionTagUI(tag) {
-    document.querySelectorAll('.refl-tag-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.list === tag);
-    });
-  }
-
-  function resetReflectionTags() {
-    reflectionTag = '';
-    document.querySelectorAll('.refl-tag-btn').forEach(btn => btn.classList.remove('active'));
-  }
+  // ── Reflection sections ───────────────────────────────────
+  // reflSections: array of { list, text } — list-tagged additions to the general reflection
+  let reflSections = [];
 
   function reflectionSerialise() {
-    const text = document.getElementById('reflectionBox').value.trim();
-    if (!text) return '';
-    if (!reflectionTag) return text; // plain text, no tag = backward compatible
-    return JSON.stringify({ tag: reflectionTag, text });
+    const general = document.getElementById('reflectionBox').value.trim();
+    const sections = reflSections.filter(s => s.text && s.text.trim());
+    if (!sections.length) return general; // plain text — fully backward compatible
+    return JSON.stringify({ general, sections });
+  }
+
+  function reflectionParse(raw) {
+    if (!raw) return { general: '', sections: [] };
+    try {
+      const p = JSON.parse(raw);
+      if (p && typeof p === 'object' && 'general' in p) return { general: p.general || '', sections: p.sections || [] };
+      // Old single-tag format: { tag, text }
+      if (p && p.text !== undefined) return { general: p.text || '', sections: [] };
+    } catch(e) {}
+    return { general: raw, sections: [] }; // legacy plain text
+  }
+
+  function renderReflTagRow() {
+    const usedLists = new Set(reflSections.map(s => s.list));
+    const available = LIST_OPTIONS.filter(l => !usedLists.has(l));
+    const row = document.getElementById('reflTagAddRow');
+    row.innerHTML = available.map(l => `<div class="j-add-btn" onclick="addReflSection('${l}')">+ ${l}</div>`).join('');
+  }
+
+  function renderReflSections() {
+    const display = document.getElementById('reflSectionsDisplay');
+    display.innerHTML = reflSections.map((s, i) =>
+      `<div class="refl-section">
+        <div class="refl-section-header">
+          <span class="refl-section-label">${esc(s.list)}</span>
+          <button class="refl-section-del" onclick="removeReflSection(${i})">✕</button>
+        </div>
+        <textarea class="refl-section-ta" placeholder="${esc(s.list)} reflection…"
+          oninput="updateReflSection(${i}, this.value)">${esc(s.text||'')}</textarea>
+      </div>`
+    ).join('');
+    renderReflTagRow();
+  }
+
+  function addReflSection(list) {
+    reflSections.push({ list, text: '' });
+    onReflectionChange(); renderReflSections();
+    setTimeout(() => {
+      const tas = document.querySelectorAll('.refl-section-ta');
+      if (tas.length) { tas[tas.length-1].focus(); tas[tas.length-1].scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    }, 50);
+  }
+
+  function removeReflSection(i) {
+    reflSections.splice(i, 1);
+    onReflectionChange(); renderReflSections();
+  }
+
+  function updateReflSection(i, value) {
+    if (reflSections[i]) { reflSections[i].text = value; onReflectionChange(); }
+  }
+
+  function resetReflection() {
+    reflSections = [];
+    document.getElementById('reflectionBox').value = '';
+    renderReflSections();
   }
 
   function onReflectionChange() {
@@ -537,6 +576,18 @@
     document.getElementById('reflectionSaveBtn').style.display = 'flex';
   }
 
+  async function saveReflection() {
+    const btn=document.getElementById('reflectionSaveBtn'); btn.textContent='Saving…';
+    const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
+    try {
+      if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
+      else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
+      reflectionDirty=false;btn.style.display='none';
+      showStatus('reflectionSaveStatus','✓ Saved','ok');autoClear('reflectionSaveStatus',3000);
+    } catch(e){btn.textContent='Save';showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
+  }
+
+  // ── Screenshot extraction ─────────────────────────────────
   // ── Tasks ─────────────────────────────────────────────────
   function parseTasksText(raw) {
     if (!raw) return [];
@@ -642,17 +693,6 @@
   }
 
   // ── Save reflection ───────────────────────────────────────
-  async function saveReflection() {
-    const btn=document.getElementById('reflectionSaveBtn'); btn.textContent='Saving…';
-    const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
-    try {
-      if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
-      else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
-      reflectionDirty=false;btn.style.display='none';
-      showStatus('reflectionSaveStatus','✓ Saved','ok');autoClear('reflectionSaveStatus',3000);
-    } catch(e){btn.textContent='Save';showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
-  }
-
   // ── Screenshot extraction ─────────────────────────────────
   function clearImport(){document.getElementById('screenshotInput').value='';document.getElementById('tasksExtracted').style.display='none';document.getElementById('tasksImportStatus').innerHTML='';extractedTasks=[];}
 
@@ -836,18 +876,29 @@
     }
 
     // Reflection
-    if(showReflection&&entry.reflection){
-      let reflText=entry.reflection, tagLabel='';
-      try{const p=JSON.parse(entry.reflection);if(p&&p.text!==undefined){reflText=p.text;tagLabel=p.tag||'';}}catch(e){}
-      // Apply focus filter to tagged reflections
-      if(flist!=='all'&&tagLabel&&tagLabel!==flist){reflText='';}
-      if(reflText.trim()){
-        const tagBadge=tagLabel?`<span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--card-accent);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 6px;margin-left:6px;">${esc(tagLabel)}</span>`:'';
-        html+=`<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection${tagBadge}</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body"><div class="j-reflection-text">${esc(reflText)}</div></div></div>`;
+    if(showReflection && entry.reflection){
+      const refl = reflectionParse(entry.reflection);
+      // Apply focus filter: if flist set, only show if general exists or a section matches
+      let sections = refl.sections || [];
+      if(flist !== 'all') sections = sections.filter(s => s.list === flist);
+      const showGeneral = flist === 'all' && refl.general && refl.general.trim();
+      const filteredGeneral = flist === 'all' ? refl.general : '';
+      const hasContent = (filteredGeneral && filteredGeneral.trim()) || sections.some(s => s.text && s.text.trim());
+      if(hasContent){
+        let rhtml = '';
+        if(filteredGeneral && filteredGeneral.trim())
+          rhtml += `<div class="refl-read-general">${esc(filteredGeneral)}</div>`;
+        sections.filter(s => s.text && s.text.trim()).forEach(s => {
+          rhtml += `<div class="refl-read-section">
+            <div class="refl-read-label">${esc(s.list)}</div>
+            <div class="refl-read-text">${esc(s.text)}</div>
+          </div>`;
+        });
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div>${rhtml}</div>`;
       }
     }
 
-    return html||'<div class="book-empty">No entry for this day.</div>';
+    return html || '<div class="book-empty">No entry for this day.</div>';
   }
 
   function navigateDay(direction){
