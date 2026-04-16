@@ -104,7 +104,7 @@
     /* Reflection */
 
     /* Reflection general textarea */
-    .j-textarea { width: 100%; min-height: 100px; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 15px; line-height: 1.65; padding: 12px 14px; resize: vertical; display: block; }
+    .j-textarea { width: 100%; min-height: 38px; height: 38px; overflow-y: hidden; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 8px 14px; resize: none; display: block; }
     .j-textarea:focus { outline: none; }
     .j-textarea::placeholder { color: var(--card-muted); }
     /* Reflection list sections */
@@ -113,14 +113,15 @@
     .refl-section-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px 0; }
     .refl-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); }
     .refl-section-del { background: none; border: none; font-size: 13px; color: #bbb; cursor: pointer; padding: 0; line-height: 1; }
-    .refl-section-ta { width: 100%; min-height: 70px; background: var(--card-bg3); border: none; border-top: 1px solid var(--card-border); color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 10px 14px; resize: none; display: block; margin-top: 6px; }
+    .refl-section-ta { width: 100%; min-height: 38px; height: 38px; overflow-y: hidden; background: var(--card-bg3); border: none; border-top: 1px solid var(--card-border); color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 8px 14px; resize: none; display: block; margin-top: 6px; }
     .refl-section-ta:focus { outline: none; }
     .refl-section-ta::placeholder { color: var(--card-muted); }
     /* Read view reflection */
-    .refl-read-general { font-size: 15px; color: var(--card-text); line-height: 1.9; padding: 10px 14px 8px; white-space: pre-line; }
+    .j-icon-btn.spinning { animation: rot 0.65s linear infinite; }
+    .refl-read-general { font-size: 14px; color: var(--card-text); line-height: 1.9; padding: 10px 14px 8px; white-space: pre-line; }
     .refl-read-section { border-top: 1px solid var(--card-border); padding: 10px 14px; }
     .refl-read-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); margin-bottom: 5px; }
-    .refl-read-text { font-size: 15px; color: var(--card-text); line-height: 1.75; white-space: pre-line; }
+    .refl-read-text { font-size: 14px; color: var(--card-text); line-height: 1.75; white-space: pre-line; }
 
     /* Add strip */
     .j-add-strip { border-top: 1px solid var(--card-border); padding: 8px 14px; display: flex; gap: 8px; background: var(--card-bg2); }
@@ -241,7 +242,7 @@
         <span class="j-card-title">Reflection</span>
         <div class="j-save-btn" id="reflectionSaveBtn" style="display:none;" onclick="saveReflection()">Save</div>
       </div>
-      <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today…" oninput="onReflectionChange()"></textarea>
+      <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today…" oninput="autoExpand(this);onReflectionChange()"></textarea>
       <div class="refl-tag-add-row" id="reflTagAddRow"></div>
       <div id="reflSectionsDisplay"></div>
       <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleReflectionPhoto(event)">
@@ -498,6 +499,7 @@
         tasksData = parseTasksText(entry.tasksText);
         const refl = reflectionParse(entry.reflection);
         document.getElementById('reflectionBox').value = refl.general;
+        setTimeout(() => autoExpand(document.getElementById('reflectionBox')), 0);
         reflSections = refl.sections || [];
       } else {
         tasksData = [];
@@ -521,6 +523,8 @@
 
   async function refreshTasks() {
     const date = getWriteDate();
+    const btn = document.querySelector('.j-icon-btn[onclick="refreshTasks()"]');
+    if (btn) btn.classList.add('spinning');
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
     try {
       const entry = await api('getEntryForDate',{date});
@@ -528,6 +532,7 @@
       tasksDirty=false; document.getElementById('tasksSaveBtn').style.display='none';
       renderWriteTasks();
     } catch(e) { showStatus('tasksSaveStatus','Error: '+e.message,'err'); }
+    finally { if (btn) btn.classList.remove('spinning'); }
   }
 
   // ── Reflection tag ────────────────────────────────────────
@@ -582,10 +587,12 @@
           <button class="refl-section-del" onclick="removeReflSection(${i})">✕</button>
         </div>
         <textarea class="refl-section-ta" placeholder="${esc(s.list)} reflection…"
-          oninput="updateReflSection(${i}, this.value)">${esc(s.text||'')}</textarea>
+          oninput="autoExpand(this);updateReflSection(${i}, this.value)">${esc(s.text||'')}</textarea>
       </div>`
     ).join('');
     renderReflTagRow();
+    // Auto-expand any pre-filled textareas
+    setTimeout(() => document.querySelectorAll('.refl-section-ta, .j-textarea').forEach(autoExpand), 0);
   }
 
   function addReflSection(list) {
@@ -806,12 +813,36 @@
 
   // ── Reflection photo OCR ──────────────────────────────────
   let reflPhotoTarget = null;
+  let lastReflFocus   = null; // continuously updated as user moves between fields
+
+  // Track which reflection textarea the user last focused
+  document.addEventListener('focusin', e => {
+    if (e.target && (e.target.id === 'reflectionBox' || e.target.classList.contains('refl-section-ta'))) {
+      lastReflFocus = e.target;
+    }
+  });
+
+  function getReflTarget() {
+    return lastReflFocus || document.getElementById('reflectionBox');
+  }
 
   function captureReflPhotoTarget() {
-    const active = document.activeElement;
-    reflPhotoTarget = (active && (active.id==='reflectionBox' || active.classList.contains('refl-section-ta')))
-      ? active
-      : document.getElementById('reflectionBox');
+    reflPhotoTarget = lastReflFocus || document.getElementById('reflectionBox');
+  }
+
+  // Shared helper: sync a section textarea back to reflSections data model
+  function updateReflSectionModel(box) {
+    if (box.classList && box.classList.contains('refl-section-ta')) {
+      document.querySelectorAll('.refl-section-ta').forEach((ta, i) => {
+        if (ta === box && reflSections[i]) reflSections[i].text = box.value;
+      });
+    }
+  }
+
+  // Shared helper: auto-expand a textarea to fit its content
+  function autoExpand(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
   }
 
   async function handleReflectionPhoto(e){
@@ -822,33 +853,22 @@
     try{
       const text=await api('ocrImage',{base64Data:await toBase64(file),mediaType:file.type||'image/jpeg'});
       box.value=box.value?box.value+'\n\n'+text:text;
-      // If it was a section textarea, update the data model
-      if(box.classList && box.classList.contains('refl-section-ta')){
-        const allTas=document.querySelectorAll('.refl-section-ta');
-        allTas.forEach((ta,i)=>{if(ta===box&&reflSections[i])reflSections[i].text=box.value;});
-      }
+      updateReflSectionModel(box);
+      autoExpand(box);
       onReflectionChange();
       showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',4000);
     }catch(e){showStatus('reflectionImportStatus','Error: '+e.message,'err');}
     e.target.value='';
   }
 
-  // ── Reflection voice recording ────────────────────────────
-  let reflRecordTarget = null; // the textarea that was focused when Record was tapped
-
   function toggleReflectionRecording(){reflRecording?stopReflRecording():startReflRecording();}
   function startReflRecording(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){showStatus('reflectionImportStatus','Voice not supported.','err');return;}
-    // Capture whichever reflection textarea currently has focus, or fall back to general box
-    const active = document.activeElement;
-    reflRecordTarget = (active && (active.id==='reflectionBox' || active.classList.contains('refl-section-ta')))
-      ? active
-      : document.getElementById('reflectionBox');
+    reflRecordTarget = getReflTarget();
     reflRecognition=new SR();reflRecognition.lang='en-GB';reflRecognition.continuous=true;reflRecognition.interimResults=true;
     reflVoiceTranscript='';reflRecording=true;
     document.getElementById('reflectionRecordBtn').textContent='⏹ Stop';
-    // Show which field is being targeted
     const targetName = reflRecordTarget.id==='reflectionBox' ? 'general reflection' :
       (reflRecordTarget.closest('.refl-section')?.querySelector('.refl-section-label')?.textContent || 'section');
     showStatus('reflectionImportStatus',`🔴 Recording into ${targetName} — tap Stop when done`,'info');
@@ -863,11 +883,8 @@
     if(reflVoiceTranscript.trim()){
       const box = reflRecordTarget || document.getElementById('reflectionBox');
       box.value = box.value ? box.value+'\n\n'+reflVoiceTranscript.trim() : reflVoiceTranscript.trim();
-      // If it was a section textarea, update the data model too
-      if(box.classList && box.classList.contains('refl-section-ta')){
-        const allTas = document.querySelectorAll('.refl-section-ta');
-        allTas.forEach((ta, i) => { if(ta===box && reflSections[i]) reflSections[i].text = box.value; });
-      }
+      updateReflSectionModel(box);
+      autoExpand(box);
       onReflectionChange();
       showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',3000);
     }else document.getElementById('reflectionImportStatus').innerHTML='';
