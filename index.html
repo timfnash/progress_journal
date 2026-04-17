@@ -340,27 +340,14 @@
   <!-- Period selector -->
   <div style="padding:10px 14px 0;border-bottom:1px solid var(--border);padding-bottom:12px;">
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <div class="review-period-btn" id="period-week"    onclick="selectPeriod('week')">This week</div>
-      <div class="review-period-btn" id="period-month"   onclick="selectPeriod('month')">This month</div>
-      <div class="review-period-btn" id="period-quarter" onclick="selectPeriod('quarter')">This quarter</div>
-      <div class="review-period-btn" id="period-year"    onclick="selectPeriod('year')">This year</div>
-      <div class="review-period-btn" id="period-custom"  onclick="selectPeriod('custom')">Custom</div>
-    </div>
-    <!-- Custom date pickers — shown only when Custom selected -->
-    <div id="customDateRow" style="display:none;margin-top:10px;">
-      <div class="filter-panel-inner" style="background:transparent;padding:0;">
-        <div class="fp-row">
-          <label class="fp-label">From
-            <input type="date" id="homeDateFrom" onchange="onCustomDateChange()">
-          </label>
-          <label class="fp-label">To
-            <input type="date" id="homeDateTo" onchange="onCustomDateChange()">
-          </label>
-          <div class="j-nav-btn text" onclick="onHomeRangeChange()" style="height:auto;padding:8px 14px;font-size:13px;flex-shrink:0;">Go</div>
-        </div>
-      </div>
+      <div class="review-period-btn" id="period-week"    onclick="selectPeriod('week')">Week</div>
+      <div class="review-period-btn" id="period-month"   onclick="selectPeriod('month')">Month</div>
+      <div class="review-period-btn" id="period-quarter" onclick="selectPeriod('quarter')">Quarter</div>
+      <div class="review-period-btn" id="period-year"    onclick="selectPeriod('year')">Year</div>
     </div>
   </div>
+  <input type="date" id="homeDateFrom" style="position:absolute;left:-9999px;opacity:0;">
+  <input type="date" id="homeDateTo"   style="position:absolute;left:-9999px;opacity:0;">
 
   <div style="padding:14px 14px 60px;">
     <div class="j-card">
@@ -369,9 +356,24 @@
     </div>
     <div id="reviewDetailCard" style="display:none;">
       <div class="j-card">
-        <div class="j-card-header">
-          <span class="j-card-title" id="reviewDetailTitle"></span>
+        <!-- Period navigation header -->
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid var(--card-border);">
+          <div class="j-nav-btn" onclick="navigateReviewPeriod(-1)" style="background:var(--card-btn-bg);border-color:var(--card-btn-bd);color:var(--card-btn-color);">‹</div>
+          <div style="flex:1;text-align:center;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);" id="reviewDetailList"></div>
+            <div style="font-size:15px;font-weight:700;color:var(--card-text);" id="reviewDetailPeriodLabel"></div>
+          </div>
+          <div class="j-nav-btn" onclick="navigateReviewPeriod(1)" style="background:var(--card-btn-bg);border-color:var(--card-btn-bd);color:var(--card-btn-color);">›</div>
           <div class="j-btn" onclick="clearReviewDetail()">Clear</div>
+        </div>
+        <!-- Period notes -->
+        <div style="border-bottom:1px solid var(--card-border);">
+          <textarea class="j-textarea" id="reviewNotesBox" placeholder="Add your notes for this period…"
+            oninput="autoExpand(this);onReviewNotesChange()" style="border-radius:0;"></textarea>
+          <div style="padding:0 14px 8px;display:flex;align-items:center;justify-content:flex-end;gap:8px;">
+            <div class="j-save-btn" id="reviewNotesSaveBtn" style="display:none;" onclick="saveReviewNotes()">Save</div>
+            <div id="reviewNotesSaveStatus"></div>
+          </div>
         </div>
         <div class="j-card-body" id="reviewDetailBody"></div>
       </div>
@@ -1047,58 +1049,130 @@
   // ── REVIEW SCREEN ─────────────────────────────────────────
   function updateHomePills(){ /* no-op — kept for compatibility */ }
 
-  function getPeriodDates(period) {
+  // ── Review screen state ───────────────────────────────────
+  let reviewEntries    = [];
+  let reviewActiveList = null;
+  let reviewPeriodType = 'week';  // week | month | quarter | year
+  let reviewPeriodIdx  = 0;       // 0 = current, -1 = previous, etc.
+  let reviewNotesDirty = false;
+
+  // ── Period calculation ────────────────────────────────────
+  function getPeriodDates(type, offset) {
+    // offset: 0 = current, -1 = previous, +1 = next
     const today = new Date();
-    const todayStr = isoDate(today);
-    let from;
-    switch(period) {
+    let from, to;
+    switch(type) {
       case 'week': {
-        const d = new Date(today);
-        const day = d.getDay(); // 0=Sun,1=Mon...
-        const diff = day === 0 ? 6 : day - 1; // days since Monday
-        d.setDate(d.getDate() - diff);
-        from = isoDate(d);
+        const day  = today.getDay();
+        const diff = day === 0 ? 6 : day - 1;
+        const mon  = new Date(today); mon.setDate(today.getDate() - diff + offset * 7);
+        const sun  = new Date(mon);   sun.setDate(mon.getDate() + 6);
+        from = isoDate(mon);
+        to   = isoDate(sun > today && offset === 0 ? today : sun);
         break;
       }
-      case 'month':
-        from = isoDate(new Date(today.getFullYear(), today.getMonth(), 1));
+      case 'month': {
+        const y = today.getFullYear(), m = today.getMonth() + offset;
+        const first = new Date(y, m, 1);
+        const last  = new Date(y, m + 1, 0);
+        from = isoDate(first);
+        to   = isoDate(last > today && offset === 0 ? today : last);
         break;
+      }
       case 'quarter': {
-        const m = today.getMonth(); // 0-11
+        const m = today.getMonth();
         const qStart = m < 3 ? 0 : m < 6 ? 3 : m < 9 ? 6 : 9;
-        from = isoDate(new Date(today.getFullYear(), qStart, 1));
+        const qMon   = new Date(today.getFullYear(), qStart + offset * 3, 1);
+        const qEnd   = new Date(qMon.getFullYear(), qMon.getMonth() + 3, 0);
+        from = isoDate(qMon);
+        to   = isoDate(qEnd > today && offset === 0 ? today : qEnd);
         break;
       }
-      case 'year':
-        from = isoDate(new Date(today.getFullYear(), 0, 1));
+      case 'year': {
+        const y = today.getFullYear() + offset;
+        from = isoDate(new Date(y, 0, 1));
+        to   = isoDate(new Date(y, 11, 31) > today && offset === 0 ? today : new Date(y, 11, 31));
         break;
-      default:
-        return null; // custom — use current input values
+      }
     }
-    return { from, to: todayStr };
+    return { from, to };
   }
 
-  function selectPeriod(period) {
-    // Update button states
-    document.querySelectorAll('.review-period-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('period-' + period).classList.add('active');
-
-    const customRow = document.getElementById('customDateRow');
-    if (period === 'custom') {
-      customRow.style.display = 'block';
-      // Don't auto-load — wait for Go button
-    } else {
-      customRow.style.display = 'none';
-      const dates = getPeriodDates(period);
-      document.getElementById('homeDateFrom').value = dates.from;
-      document.getElementById('homeDateTo').value   = dates.to;
-      onHomeRangeChange();
+  function getPeriodLabel(type, offset) {
+    const today = new Date();
+    switch(type) {
+      case 'week': {
+        const day  = today.getDay();
+        const diff = day === 0 ? 6 : day - 1;
+        const mon  = new Date(today); mon.setDate(today.getDate() - diff + offset * 7);
+        // ISO week number
+        const jan4  = new Date(mon.getFullYear(), 0, 4);
+        const startOfWeek1 = new Date(jan4); startOfWeek1.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
+        const weekNum = Math.floor((mon - startOfWeek1) / (7 * 86400000)) + 1;
+        return `${mon.getFullYear()} (Week ${weekNum})`;
+      }
+      case 'month': {
+        const d = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+        return `${d.getFullYear()} (${d.toLocaleDateString('en-GB',{month:'long'})})`;
+      }
+      case 'quarter': {
+        const m = today.getMonth();
+        const qStart = m < 3 ? 0 : m < 6 ? 3 : m < 9 ? 6 : 9;
+        const qMon   = new Date(today.getFullYear(), qStart + offset * 3, 1);
+        const q      = Math.floor(qMon.getMonth() / 3) + 1;
+        return `${qMon.getFullYear()} (Quarter ${q})`;
+      }
+      case 'year': {
+        return `${today.getFullYear() + offset}`;
+      }
     }
   }
 
-  function onCustomDateChange() { /* just updates inputs — user taps Go to load */ }
+  function getPeriodKey(type, offset) {
+    // Unique key for storage: review:week:2026-W16 etc.
+    const today = new Date();
+    switch(type) {
+      case 'week': {
+        const day  = today.getDay();
+        const diff = day === 0 ? 6 : day - 1;
+        const mon  = new Date(today); mon.setDate(today.getDate() - diff + offset * 7);
+        const jan4  = new Date(mon.getFullYear(), 0, 4);
+        const startOfWeek1 = new Date(jan4); startOfWeek1.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
+        const weekNum = Math.floor((mon - startOfWeek1) / (7 * 86400000)) + 1;
+        return `review:week:${mon.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
+      }
+      case 'month': {
+        const d = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+        return `review:month:${isoDate(d).slice(0,7)}`;
+      }
+      case 'quarter': {
+        const m = today.getMonth();
+        const qStart = m < 3 ? 0 : m < 6 ? 3 : m < 9 ? 6 : 9;
+        const qMon   = new Date(today.getFullYear(), qStart + offset * 3, 1);
+        const q      = Math.floor(qMon.getMonth() / 3) + 1;
+        return `review:quarter:${qMon.getFullYear()}-Q${q}`;
+      }
+      case 'year': {
+        return `review:year:${today.getFullYear() + offset}`;
+      }
+    }
+  }
 
+  function updateHomePills(){ /* no-op */ }
+  function onCustomDateChange(){ /* no-op */ }
   function onHomeRangeChange(){ loadHomeStats(); clearReviewDetail(); }
+
+  function selectPeriod(type) {
+    reviewPeriodType = type;
+    reviewPeriodIdx  = 0;
+    document.querySelectorAll('.review-period-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('period-' + type).classList.add('active');
+    const dates = getPeriodDates(type, 0);
+    document.getElementById('homeDateFrom').value = dates.from;
+    document.getElementById('homeDateTo').value   = dates.to;
+    clearReviewDetail();
+    loadHomeStats();
+  }
 
   async function loadHomeStats(){
     document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">Loading…</div>';
@@ -1109,14 +1183,10 @@
     catch(e){document.getElementById('homeStatsBody').innerHTML=`<div class="empty-note" style="color:var(--red);">Error: ${e.message}</div>`;}
   }
 
-  let reviewEntries    = []; // cached entries for current date range
-  let reviewActiveList = null;
-
   function renderHomeStats(entries){
-    reviewEntries = entries; // cache for drill-down
+    reviewEntries = entries;
     reviewActiveList = null;
     document.getElementById('reviewDetailCard').style.display = 'none';
-
     const counts={};let total=0;
     entries.forEach(entry=>{
       if(!entry.tasksText)return;
@@ -1148,75 +1218,158 @@
     reviewActiveList = null;
   }
 
-  async function toggleReviewList(list) {
-    // Deactivate previous
-    if (reviewActiveList) {
+  function navigateReviewPeriod(dir) {
+    reviewPeriodIdx += dir;
+    const dates = getPeriodDates(reviewPeriodType, reviewPeriodIdx);
+    document.getElementById('homeDateFrom').value = dates.from;
+    document.getElementById('homeDateTo').value   = dates.to;
+    loadHomeStats().then(() => {
+      if (reviewActiveList) {
+        toggleReviewList(reviewActiveList, true);
+      }
+    });
+  }
+
+  async function toggleReviewList(list, forceReload) {
+    if (!forceReload && reviewActiveList === list) { clearReviewDetail(); return; }
+    if (reviewActiveList && reviewActiveList !== list) {
       const prev = document.getElementById('stat-row-' + reviewActiveList);
       if (prev) prev.classList.remove('active');
-      if (reviewActiveList === list) { clearReviewDetail(); return; }
     }
     reviewActiveList = list;
     const row = document.getElementById('stat-row-' + list);
     if (row) row.classList.add('active');
 
-    // Show card with spinner
-    document.getElementById('reviewDetailTitle').textContent = list;
+    // Update detail card header
+    document.getElementById('reviewDetailList').textContent        = list;
+    document.getElementById('reviewDetailPeriodLabel').textContent = getPeriodLabel(reviewPeriodType, reviewPeriodIdx);
     document.getElementById('reviewDetailBody').innerHTML = '<div class="empty-note"><span class="spin"></span> Loading…</div>';
     document.getElementById('reviewDetailCard').style.display = 'block';
-    document.getElementById('reviewDetailCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('reviewDetailCard').scrollIntoView({ behavior:'smooth', block:'start' });
 
-    // Build task list grouped by date (newest first)
+    // Load period notes
+    await loadReviewNotes(list);
+
+    // Build task list
     const byDate = {};
     reviewEntries.forEach(entry => {
       if (!entry.tasksText) return;
-      const tasks = parseTasksText(entry.tasksText).filter(t => (LIST_OPTIONS.includes(t.list) ? t.list : 'Other') === list);
-      if (tasks.length) byDate[entry.date] = tasks;
+      const tasks = parseTasksText(entry.tasksText).filter(t => (LIST_OPTIONS.includes(t.list)?t.list:'Other') === list);
+      if (tasks.length) byDate[entry.date] = { tasks, entryId: entry.id, tasksText: entry.tasksText };
     });
 
-    // Collect reflections for this list
+    // Collect reflections
     const reflTexts = [];
     reviewEntries.forEach(entry => {
       if (!entry.reflection) return;
       const refl = reflectionParse(entry.reflection);
       if (refl.general && refl.general.trim()) reflTexts.push(refl.general.trim());
-      (refl.sections || []).filter(s => s.list === list && s.text && s.text.trim()).forEach(s => reflTexts.push(s.text.trim()));
+      (refl.sections||[]).filter(s=>s.list===list&&s.text&&s.text.trim()).forEach(s=>reflTexts.push(s.text.trim()));
     });
 
-    // Render task list
-    const dates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
+    // Render task list with star toggles
+    const dates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
     let taskHtml = '';
     if (!dates.length) {
       taskHtml = '<div class="empty-note">No tasks found.</div>';
     } else {
       taskHtml = dates.map(date => {
-        const d = new Date(date + 'T12:00:00');
-        const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-        const items = byDate[date].map(t => {
-          const star = t.starred ? `<span class="review-task-star">★</span>` : '';
-          return `<div class="review-task-item">${star}${esc(t.title)}</div>`;
+        const d = new Date(date+'T12:00:00');
+        const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        const items = byDate[date].tasks.map((t, ti) => {
+          const starBtn = t.starred
+            ? `<span class="review-star-btn" style="color:#b07030;cursor:pointer;" onclick="toggleReviewStar('${date}',${ti},true)">★</span>`
+            : `<span class="review-star-btn" style="color:#c8b89a;cursor:pointer;" onclick="toggleReviewStar('${date}',${ti},false)">☆</span>`;
+          return `<div class="review-task-item" id="rtask-${date}-${ti}">${starBtn} ${esc(t.title)}</div>`;
         }).join('');
-        return `<div class="review-date-group">
-          <div class="review-date-label">${esc(dateStr)}</div>
-          ${items}
-        </div>`;
+        return `<div class="review-date-group"><div class="review-date-label">${esc(dateStr)}</div>${items}</div>`;
       }).join('');
     }
 
-    // Show task list immediately, then generate summary
+    // Show summary slot + tasks
     document.getElementById('reviewDetailBody').innerHTML =
       `<div id="reviewSummarySlot"><div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary…</div></div>` +
       taskHtml;
 
     // Generate AI summary
     try {
-      const allTaskTitles = dates.flatMap(date => byDate[date].map(t => (t.starred ? '★ ' : '') + t.title));
-      const summaryText = await generateListSummary(list, allTaskTitles, reflTexts);
+      const allTasks = dates.flatMap(d => byDate[d].tasks.map(t => (t.starred?'★ ':'')+t.title));
+      const summaryText = await generateListSummary(list, allTasks, reflTexts);
       document.getElementById('reviewSummarySlot').innerHTML =
         `<div class="review-summary">${esc(summaryText)}</div>`;
     } catch(e) {
       document.getElementById('reviewSummarySlot').innerHTML =
         `<div class="empty-note" style="color:var(--red);">Summary error: ${esc(e.message)}</div>`;
     }
+  }
+
+  async function toggleReviewStar(date, taskIdx, currentlyStarred) {
+    // Find the entry and toggle the star
+    const entry = reviewEntries.find(e => e.date === date);
+    if (!entry) return;
+    const tasks = parseTasksText(entry.tasksText);
+    // Find this task among tasks for the active list
+    const listTasks = tasks.filter(t=>(LIST_OPTIONS.includes(t.list)?t.list:'Other')===reviewActiveList);
+    if (!listTasks[taskIdx]) return;
+    const globalIdx = tasks.indexOf(listTasks[taskIdx]);
+    tasks[globalIdx].starred = !currentlyStarred;
+    // Rebuild tasksText
+    const newTasksText = tasks.map(t=>{
+      const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
+      const star=t.starred?'★ ':'';
+      return `• [${list}] ${star}${t.title}`;
+    }).join('\n');
+    entry.tasksText = newTasksText;
+    // Update star button immediately
+    const el = document.getElementById(`rtask-${date}-${taskIdx}`);
+    if (el) {
+      const newStar = !currentlyStarred;
+      el.innerHTML = (newStar
+        ? `<span class="review-star-btn" style="color:#b07030;cursor:pointer;" onclick="toggleReviewStar('${date}',${taskIdx},true)">★</span>`
+        : `<span class="review-star-btn" style="color:#c8b89a;cursor:pointer;" onclick="toggleReviewStar('${date}',${taskIdx},false)">☆</span>`)
+        + ' ' + esc(listTasks[taskIdx].title);
+    }
+    // Save to Notion
+    try {
+      await api('updateEntry', { pageId: entry.id, payload: { date: entry.date, tasksText: newTasksText, reflection: entry.reflection||'' } });
+    } catch(e) { showStatus('homeStatus','Star save error: '+e.message,'err'); }
+  }
+
+  // ── Review period notes ───────────────────────────────────
+  async function loadReviewNotes(list) {
+    const key = getPeriodKey(reviewPeriodType, reviewPeriodIdx) + ':' + list;
+    const box = document.getElementById('reviewNotesBox');
+    const btn = document.getElementById('reviewNotesSaveBtn');
+    box.value = ''; autoExpand(box);
+    reviewNotesDirty = false; btn.style.display='none';
+    try {
+      const entry = await api('getEntryForDate', { date: key });
+      if (entry && entry.reflection) { box.value = entry.reflection; autoExpand(box); }
+    } catch(e) { /* no entry yet — blank is fine */ }
+  }
+
+  function onReviewNotesChange() {
+    reviewNotesDirty = true;
+    document.getElementById('reviewNotesSaveBtn').style.display = 'flex';
+  }
+
+  async function saveReviewNotes() {
+    const key  = getPeriodKey(reviewPeriodType, reviewPeriodIdx) + ':' + reviewActiveList;
+    const text = document.getElementById('reviewNotesBox').value.trim();
+    const btn  = document.getElementById('reviewNotesSaveBtn');
+    btn.innerHTML = '<span class="spin"></span> Saving…';
+    try {
+      // Check if entry exists
+      const existing = await api('getEntryForDate', { date: key });
+      if (existing) {
+        await api('updateEntry', { pageId: existing.id, payload: { date: key, tasksText: '', reflection: text } });
+      } else {
+        await api('saveEntry', { payload: { date: key, tasksText: '', reflection: text } });
+      }
+      reviewNotesDirty = false; btn.style.display='none'; btn.textContent='Save';
+      showStatus('reviewNotesSaveStatus','✓ Saved','ok');
+      setTimeout(()=>document.getElementById('reviewNotesSaveStatus').innerHTML='',3000);
+    } catch(e) { btn.textContent='Save'; showStatus('reviewNotesSaveStatus','Error: '+e.message,'err'); }
   }
 
   async function generateListSummary(list, tasks, reflections) {
@@ -1226,6 +1379,7 @@
     const dateRange = `${fmt(from)} to ${fmt(to)}`;
     return await api('generateListSummary', { list, tasks, reflections, dateRange });
   }
+
 
 </script>
 </body>
