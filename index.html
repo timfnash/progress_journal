@@ -86,7 +86,8 @@
     .j-drag-handle { color: #c8b89a; font-size: 14px; cursor: grab; flex-shrink: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     .j-task-list-pill { font-size: 11px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 5px; padding: 2px 6px; flex-shrink: 0; }
     .j-task-list-pill select { background: transparent; border: none; color: var(--card-accent); font-family: 'Jost', sans-serif; font-size: 11px; padding: 0; cursor: pointer; -webkit-appearance: none; }
-    .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; }
+    .j-task-time { width: 72px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', monospace; padding: 2px 2px; flex-shrink: 0; color-scheme: light; -webkit-appearance: none; text-align: center; }
+    .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0; line-height: 1; }
     .j-del-btn  { background: none; border: none; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; color: #bbb; line-height: 1; }
@@ -742,22 +743,29 @@
 
   // ── Screenshot extraction ─────────────────────────────────
   // ── Tasks ─────────────────────────────────────────────────
+  function nowHHMM() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+
   function parseTasksText(raw) {
     if (!raw) return [];
     return raw.split('\n').map(l => {
       const line = l.replace(/^•\s*/,'').trim();
-      const m    = line.match(/^\[(.+?)\]\s+(★\s+)?(.+)$/);
-      if (m) return { list:m[1], starred:!!m[2], title:m[3] };
+      // Format: [List] [HH:MM] ★ Title  or  [List] ★ Title  or  [List] Title
+      const m = line.match(/^\[(.+?)\]\s+(?:\[(\d{2}:\d{2})\]\s+)?(★\s+)?(.+)$/);
+      if (m) return { list:m[1], time:m[2]||'', starred:!!m[3], title:m[4] };
       const starred = line.startsWith('★ ');
-      return { list:'Other', starred, title: starred ? line.slice(2) : line };
+      return { list:'Other', time:'', starred, title: starred ? line.slice(2) : line };
     }).filter(t => t.title);
   }
 
   function tasksAsText() {
     return tasksData.map(t => {
       const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+      const time = t.time ? `[${t.time}] ` : '';
       const star = t.starred ? '★ ' : '';
-      return `• [${list}] ${star}${t.title}`;
+      return `• [${list}] ${time}${star}${t.title}`;
     }).join('\n');
   }
 
@@ -768,6 +776,8 @@
       if (!groups[list]) groups[list]=[];
       groups[list].push({...t, idx:i});
     });
+    // Sort each group by time (no time = '00:00' so sorts to top)
+    Object.values(groups).forEach(g => g.sort((a,b) => (a.time||'00:00').localeCompare(b.time||'00:00')));
     const keys = Object.keys(groups).sort((a,b) => {
       const ai=LIST_ORDER.indexOf(a), bi=LIST_ORDER.indexOf(b);
       if(ai===-1&&bi===-1) return a.localeCompare(b);
@@ -778,15 +788,16 @@
   }
 
   function flushTaskInputs() {
-    // Sync title inputs back to tasksData using the row's data-idx
     document.querySelectorAll('.j-task-row').forEach(row => {
       const idx = parseInt(row.dataset.idx);
-      const inp = row.querySelector('.j-task-title');
-      if (inp && !isNaN(idx) && tasksData[idx] !== undefined) {
-        tasksData[idx].title = inp.value;
-      }
+      if (isNaN(idx) || tasksData[idx] === undefined) return;
+      const inp  = row.querySelector('.j-task-title');
+      const time = row.querySelector('.j-task-time');
+      if (inp)  tasksData[idx].title = inp.value;
+      if (time) tasksData[idx].time  = time.value;
     });
   }
+
 
   function renderWriteTasks() {
     const display = document.getElementById('tasksDisplay');
@@ -806,10 +817,11 @@
         group.items.forEach(item => {
           const opts = LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
           const starBtn = item.starred
-            ? `<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e" title="Starred">★</button>`
+            ? `<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e">★</button>`
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
           html += `<div class="j-task-row" data-idx="${item.idx}">
-            <span class="j-drag-handle">⠿</span>
+            <input class="j-task-time" type="time" value="${esc(item.time||'')}"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
             <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
             <input class="j-task-title" type="text" value="${esc(item.title)}"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;markTasksDirty()">
@@ -818,7 +830,6 @@
           </div>`;
         });
       }
-      // Freq panel for this list
       if (isOpen) {
         const items = freqCache[list] || [];
         const existingTitles = new Set(tasksData.map(t=>t.title.trim().toLowerCase()));
@@ -839,7 +850,6 @@
       }
     });
     display.innerHTML = html;
-    bindDrag();
   }
 
   function toggleFreqPanel(list) {
@@ -850,27 +860,23 @@
   function addFromFreq(list, title) {
     const existing = tasksData.map(t=>t.title.trim().toLowerCase());
     if (existing.includes(title.trim().toLowerCase())) return;
-    const lastIdx = tasksData.reduce((acc,t,i)=>((LIST_OPTIONS.includes(t.list)?t.list:'Other')===list?i:acc),-1);
-    const insertAt = lastIdx>=0 ? lastIdx+1 : tasksData.length;
-    tasksData.splice(insertAt, 0, { list, starred: false, title: title.trim() });
+    tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM() });
     markTasksDirty();
-    renderWriteTasks(); // keeps panel open
-    // Briefly highlight the added item
+    renderWriteTasks();
     setTimeout(()=>{
       const rows = document.querySelectorAll('.j-task-row');
-      for(const row of rows){ if(parseInt(row.dataset.idx)===insertAt){ row.style.background='rgba(200,169,110,0.15)'; setTimeout(()=>row.style.background='',800); break; } }
+      const last = rows[rows.length-1];
+      if (last) { last.style.background='rgba(200,169,110,0.15)'; setTimeout(()=>last.style.background='',800); }
     }, 50);
   }
 
   function addTaskToList(list) {
-    flushTaskInputs();
-    const lastIdx = tasksData.reduce((acc,t,i)=>((LIST_OPTIONS.includes(t.list)?t.list:'Other')===list?i:acc),-1);
-    const insertAt = lastIdx>=0 ? lastIdx+1 : tasksData.length;
-    tasksData.splice(insertAt,0,{list,starred:false,title:''});
-    renderWriteTasks(); // don't markTasksDirty — empty task isn't worth saving yet
+    tasksData.push({ list, starred: false, title: '', time: nowHHMM() });
+    renderWriteTasks();
     setTimeout(()=>{
-      const rows=document.querySelectorAll('.j-task-row');
-      for(const row of rows){ if(parseInt(row.dataset.idx)===insertAt){ const inp=row.querySelector('.j-task-title'); if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'nearest'});} break; } }
+      const rows = document.querySelectorAll('.j-task-row');
+      const last = rows[rows.length-1];
+      if (last) { const inp=last.querySelector('.j-task-title'); if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'nearest'});} }
     },50);
   }
 
@@ -930,11 +936,12 @@
   }
 
   function addExtractedTasks(){
+    const now = nowHHMM();
     const existing=new Set(tasksData.map(t=>t.title.toLowerCase()));
     extractedTasks.forEach(t=>{
       if(!existing.has(t.title.trim().toLowerCase())){
         const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
-        tasksData.push({title:t.title.trim(),list,starred:false});
+        tasksData.push({title:t.title.trim(),list,starred:false,time:now});
         existing.add(t.title.trim().toLowerCase());
       }
     });
@@ -1052,21 +1059,6 @@
     reflRecordTarget=null;
   }
 
-  // ── Drag and drop ─────────────────────────────────────────
-  function bindDrag(){
-    const display=document.getElementById('tasksDisplay'); let dragIdx=null;
-    display.querySelectorAll('.j-task-row').forEach(row=>{
-      row.setAttribute('draggable','true');
-      row.addEventListener('dragstart',()=>{dragIdx=parseInt(row.dataset.idx);setTimeout(()=>row.style.opacity='0.4',0);});
-      row.addEventListener('dragend',()=>{row.style.opacity='';display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));dragIdx=null;});
-      row.addEventListener('dragover',e=>{e.preventDefault();display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
-      row.addEventListener('drop',e=>{e.preventDefault();const ti=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===ti)return;const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();});
-      const handle=row.querySelector('.j-drag-handle');if(!handle)return;
-      handle.addEventListener('touchstart',e=>{e.preventDefault();dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';},{passive:false});
-      handle.addEventListener('touchmove',e=>{e.preventDefault();const y=e.touches[0].clientY;display.querySelectorAll('.j-task-row').forEach(r=>{const rect=r.getBoundingClientRect();if(y>=rect.top&&y<=rect.bottom&&parseInt(r.dataset.idx)!==dragIdx){display.querySelectorAll('.j-task-row').forEach(x=>x.classList.remove('drag-over'));r.classList.add('drag-over');}});},{passive:false});
-      handle.addEventListener('touchend',e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
-    });
-  }
 
   // ── READ SCREEN ───────────────────────────────────────────
   async function loadReadView(){
@@ -1108,35 +1100,50 @@
     if(next){if(bookIndex<=0)next.classList.add('disabled');else next.classList.remove('disabled');}
   }
 
+  let readTaskView = 'list'; // 'list' | 'time'
+
   function buildPageHTML(entry){
     const field=bookField, flist=bookFilterList; let html='';
     const showTasks      = field === 'all' || field === 'starred_reflections';
     const showReflection = field === 'all' || field === 'starred_reflections' || field === 'reflection';
 
-    // Tasks (all tasks for Everything; starred only for Starred & reflections)
     if (showTasks && entry.tasksText) {
       let taskObjs = parseTasksText(entry.tasksText);
       if (field === 'starred_reflections') taskObjs = taskObjs.filter(t => t.starred);
-      if (flist !== 'all') taskObjs = taskObjs.filter(t => (LIST_OPTIONS.includes(t.list) ? t.list : 'Other') === flist);
-      if(taskObjs.length){
-        const groups=groupByList(taskObjs);
-        const withH=groups.length>1||(groups.length===1&&groups[0].list!=='Other');
-        let inner='';
-        groups.forEach(g=>{
-          if(withH)inner+=`<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
-          g.items.forEach(t=>{const star=t.starred?`<span class="j-read-star">★</span>`:'';inner+=`<div class="j-read-task">${star}${esc(t.title)}</div>`;});
-        });
-        html+=`<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
+      if (flist !== 'all') taskObjs = taskObjs.filter(t => (LIST_OPTIONS.includes(t.list)?t.list:'Other') === flist);
+      if (taskObjs.length) {
+        const toggleBtn = `<div class="j-edit-btn" onclick="readTaskView=readTaskView==='list'?'time':'list';renderBookPage(false)" style="margin-right:4px;">${readTaskView==='list'?'⏱ By time':'≡ By list'}</div>`;
+        let inner = '';
+        if (readTaskView === 'time') {
+          // Flat chronological view
+          const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
+          sorted.forEach(t => {
+            const star = t.starred ? `<span class="j-read-star">★</span> ` : '';
+            const time = t.time ? `<span style="font-size:11px;color:var(--card-muted);margin-right:5px;">${esc(t.time)}</span>` : '';
+            const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
+            inner += `<div class="j-read-task">${time}${star}${pill}${esc(t.title)}</div>`;
+          });
+        } else {
+          // By list view
+          const groups = groupByList(taskObjs);
+          const withH = groups.length>1||(groups.length===1&&groups[0].list!=='Other');
+          groups.forEach(g => {
+            if(withH) inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">${g.items.length}</span></div>`;
+            g.items.forEach(t => {
+              const star = t.starred ? `<span class="j-read-star">★</span> ` : '';
+              const time = t.time ? `<span style="font-size:11px;color:var(--card-muted);margin-right:5px;">${esc(t.time)}</span>` : '';
+              inner += `<div class="j-read-task">${time}${star}${esc(t.title)}</div>`;
+            });
+          });
+        }
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span>${toggleBtn}<div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
       }
     }
 
-    // Reflection
     if(showReflection && entry.reflection){
       const refl = reflectionParse(entry.reflection);
-      // Apply focus filter: if flist set, only show if general exists or a section matches
       let sections = refl.sections || [];
       if(flist !== 'all') sections = sections.filter(s => s.list === flist);
-      const showGeneral = flist === 'all' && refl.general && refl.general.trim();
       const filteredGeneral = flist === 'all' ? refl.general : '';
       const hasContent = (filteredGeneral && filteredGeneral.trim()) || sections.some(s => s.text && s.text.trim());
       if(hasContent){
@@ -1144,10 +1151,7 @@
         if(filteredGeneral && filteredGeneral.trim())
           rhtml += `<div class="refl-read-general">${esc(filteredGeneral)}</div>`;
         sections.filter(s => s.text && s.text.trim()).forEach(s => {
-          rhtml += `<div class="refl-read-section">
-            <div class="refl-read-label">${esc(s.list)}</div>
-            <div class="refl-read-text">${esc(s.text)}</div>
-          </div>`;
+          rhtml += `<div class="refl-read-section"><div class="refl-read-label">${esc(s.list)}</div><div class="refl-read-text">${esc(s.text)}</div></div>`;
         });
         html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div>${rhtml}</div>`;
       }
