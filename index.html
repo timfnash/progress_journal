@@ -144,6 +144,10 @@
     .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 160px); }
     .book-content { padding: 16px 14px 60px; }
 
+    /* Review period buttons */
+    .review-period-btn { font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; user-select: none; white-space: nowrap; }
+    .review-period-btn.active { background: var(--accent-dim); border-color: rgba(200,169,110,0.45); color: var(--accent); font-weight: 600; }
+
     /* Review drill-down */
     .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; user-select: none; }
     .h-stat-row:last-of-type { border-bottom: none; }
@@ -333,16 +337,27 @@
     </div>
   </div>
 
-  <div class="filter-panel" style="border-bottom:1px solid var(--border);">
-    <div class="filter-panel-inner">
-      <div class="fp-row">
-        <label class="fp-label">From
-          <input type="date" id="homeDateFrom" onchange="updateHomePills()">
-        </label>
-        <label class="fp-label">To
-          <input type="date" id="homeDateTo" onchange="updateHomePills()">
-        </label>
-        <div class="j-nav-btn text" onclick="onHomeRangeChange()" style="height:auto;padding:8px 14px;font-size:13px;flex-shrink:0;">Go</div>
+  <!-- Period selector -->
+  <div style="padding:10px 14px 0;border-bottom:1px solid var(--border);padding-bottom:12px;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <div class="review-period-btn" id="period-week"    onclick="selectPeriod('week')">This week</div>
+      <div class="review-period-btn" id="period-month"   onclick="selectPeriod('month')">This month</div>
+      <div class="review-period-btn" id="period-quarter" onclick="selectPeriod('quarter')">This quarter</div>
+      <div class="review-period-btn" id="period-year"    onclick="selectPeriod('year')">This year</div>
+      <div class="review-period-btn" id="period-custom"  onclick="selectPeriod('custom')">Custom</div>
+    </div>
+    <!-- Custom date pickers — shown only when Custom selected -->
+    <div id="customDateRow" style="display:none;margin-top:10px;">
+      <div class="filter-panel-inner" style="background:transparent;padding:0;">
+        <div class="fp-row">
+          <label class="fp-label">From
+            <input type="date" id="homeDateFrom" onchange="onCustomDateChange()">
+          </label>
+          <label class="fp-label">To
+            <input type="date" id="homeDateTo" onchange="onCustomDateChange()">
+          </label>
+          <div class="j-nav-btn text" onclick="onHomeRangeChange()" style="height:auto;padding:8px 14px;font-size:13px;flex-shrink:0;">Go</div>
+        </div>
       </div>
     </div>
   </div>
@@ -443,10 +458,6 @@
   function initApp() {
     const todayStr = isoDate(new Date());
     document.getElementById('filterJumpDate').value = todayStr;
-    // Review defaults
-    const ninetyAgo = new Date(); ninetyAgo.setDate(ninetyAgo.getDate()-90);
-    document.getElementById('homeDateFrom').value = isoDate(ninetyAgo);
-    document.getElementById('homeDateTo').value   = todayStr;
     showWriteScreen(todayStr);
   }
 
@@ -480,7 +491,7 @@
 
   function goToReview() {
     showView('reviewView');
-    loadHomeStats();
+    selectPeriod('week');
   }
 
   function exitReview() {
@@ -1034,7 +1045,58 @@
   })();
 
   // ── REVIEW SCREEN ─────────────────────────────────────────
-  function updateHomePills(){ /* pills removed — date inputs are now direct */ }
+  function updateHomePills(){ /* no-op — kept for compatibility */ }
+
+  function getPeriodDates(period) {
+    const today = new Date();
+    const todayStr = isoDate(today);
+    let from;
+    switch(period) {
+      case 'week': {
+        const d = new Date(today);
+        const day = d.getDay(); // 0=Sun,1=Mon...
+        const diff = day === 0 ? 6 : day - 1; // days since Monday
+        d.setDate(d.getDate() - diff);
+        from = isoDate(d);
+        break;
+      }
+      case 'month':
+        from = isoDate(new Date(today.getFullYear(), today.getMonth(), 1));
+        break;
+      case 'quarter': {
+        const m = today.getMonth(); // 0-11
+        const qStart = m < 3 ? 0 : m < 6 ? 3 : m < 9 ? 6 : 9;
+        from = isoDate(new Date(today.getFullYear(), qStart, 1));
+        break;
+      }
+      case 'year':
+        from = isoDate(new Date(today.getFullYear(), 0, 1));
+        break;
+      default:
+        return null; // custom — use current input values
+    }
+    return { from, to: todayStr };
+  }
+
+  function selectPeriod(period) {
+    // Update button states
+    document.querySelectorAll('.review-period-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('period-' + period).classList.add('active');
+
+    const customRow = document.getElementById('customDateRow');
+    if (period === 'custom') {
+      customRow.style.display = 'block';
+      // Don't auto-load — wait for Go button
+    } else {
+      customRow.style.display = 'none';
+      const dates = getPeriodDates(period);
+      document.getElementById('homeDateFrom').value = dates.from;
+      document.getElementById('homeDateTo').value   = dates.to;
+      onHomeRangeChange();
+    }
+  }
+
+  function onCustomDateChange() { /* just updates inputs — user taps Go to load */ }
 
   function onHomeRangeChange(){ loadHomeStats(); clearReviewDetail(); }
 
