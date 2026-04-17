@@ -678,19 +678,19 @@
   }
 
   function flushTaskInputs() {
-    // Sync any in-progress title edits into tasksData before re-rendering
+    // Sync title inputs back to tasksData using the row's data-idx
     document.querySelectorAll('.j-task-row').forEach(row => {
       const idx = parseInt(row.dataset.idx);
       const inp = row.querySelector('.j-task-title');
-      if (inp && tasksData[idx] !== undefined) tasksData[idx].title = inp.value;
+      if (inp && !isNaN(idx) && tasksData[idx] !== undefined) {
+        tasksData[idx].title = inp.value;
+      }
     });
   }
 
   function renderWriteTasks() {
     const display = document.getElementById('tasksDisplay');
-    // Always show all list headings with + Add buttons
     const groups = groupByList(tasksData);
-    const existingLists = new Set(groups.map(g => g.list));
     let html = '';
     LIST_OPTIONS.forEach(list => {
       const group = groups.find(g => g.list === list);
@@ -705,7 +705,7 @@
             <span class="j-drag-handle">⠿</span>
             <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
             <input class="j-task-title" type="text" value="${esc(item.title)}"
-              oninput="tasksData[${item.idx}]&&(tasksData[${item.idx}].title=this.value);markTasksDirty()">
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;markTasksDirty()">
             ${starBtn}
             <button class="j-del-btn" onclick="deleteTask(${item.idx})">✕</button>
           </div>`;
@@ -730,10 +730,10 @@
 
   function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
   function updateTaskTitle(i,v){if(tasksData[i]){tasksData[i].title=v;markTasksDirty();}}
-  function updateTaskList(i,v){if(tasksData[i]){flushTaskInputs();tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
-  function deleteTask(i){flushTaskInputs();tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
+  function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
+  function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
 
-  function toggleStar(i){if(!tasksData[i])return;flushTaskInputs();tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
+  function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
 
   function promptStarAction(i) {
     document.querySelectorAll('.star-popup').forEach(p=>p.remove());
@@ -744,11 +744,11 @@
     setTimeout(()=>{ document.addEventListener('click',function cl(e){if(!popup.contains(e.target)){popup.remove();document.removeEventListener('click',cl);}}); },10);
   }
 
-  function unstarTask(i){document.querySelectorAll('.star-popup').forEach(p=>p.remove());if(!tasksData[i])return;flushTaskInputs();tasksData[i].starred=false;markTasksDirty();renderWriteTasks();}
+  function unstarTask(i){document.querySelectorAll('.star-popup').forEach(p=>p.remove());if(!tasksData[i])return;tasksData[i].starred=false;markTasksDirty();renderWriteTasks();}
 
   // ── Save tasks ────────────────────────────────────────────
   async function saveTasks() {
-    flushTaskInputs();
+    flushTaskInputs(); // final sync before save
     const btn=document.getElementById('tasksSaveBtn');
     btn.innerHTML='<span class="spin"></span> Saving…'; btn.style.display='flex';
     const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
@@ -914,11 +914,11 @@
       row.addEventListener('dragstart',()=>{dragIdx=parseInt(row.dataset.idx);setTimeout(()=>row.style.opacity='0.4',0);});
       row.addEventListener('dragend',()=>{row.style.opacity='';display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));dragIdx=null;});
       row.addEventListener('dragover',e=>{e.preventDefault();display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
-      row.addEventListener('drop',e=>{e.preventDefault();const ti=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===ti)return;flushTaskInputs();const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();});
+      row.addEventListener('drop',e=>{e.preventDefault();const ti=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===ti)return;const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();});
       const handle=row.querySelector('.j-drag-handle');if(!handle)return;
       handle.addEventListener('touchstart',e=>{e.preventDefault();dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';},{passive:false});
       handle.addEventListener('touchmove',e=>{e.preventDefault();const y=e.touches[0].clientY;display.querySelectorAll('.j-task-row').forEach(r=>{const rect=r.getBoundingClientRect();if(y>=rect.top&&y<=rect.bottom&&parseInt(r.dataset.idx)!==dragIdx){display.querySelectorAll('.j-task-row').forEach(x=>x.classList.remove('drag-over'));r.classList.add('drag-over');}});},{passive:false});
-      handle.addEventListener('touchend',e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);flushTaskInputs();const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
+      handle.addEventListener('touchend',e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
     });
   }
 
