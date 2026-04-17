@@ -144,7 +144,17 @@
     .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 160px); }
     .book-content { padding: 16px 14px 60px; }
 
-    /* Review period buttons */
+    /* Quick pick frequency panel */
+    .qp-freq-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
+    .qp-freq-btn.active { background: var(--accent); color: #6b4a10; border-color: rgba(160,110,30,0.5); font-weight: 600; }
+    .qp-panel { background: var(--card-bg2); border-top: 1px solid var(--card-border); }
+    .qp-header { font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); padding: 6px 14px 4px; }
+    .qp-item { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; }
+    .qp-item:last-child { border-bottom: none; }
+    .qp-item.already-added { opacity: 0.4; pointer-events: none; }
+    .qp-title { flex: 1; font-size: 13px; color: var(--card-text); }
+    .qp-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border-radius: 4px; padding: 1px 5px; border: 1px solid var(--card-border); flex-shrink: 0; }
+    .qp-add { font-size: 16px; color: var(--card-accent); flex-shrink: 0; line-height: 1; }
     .review-period-btn { font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; user-select: none; white-space: nowrap; }
     .review-period-btn.active { background: var(--accent-dim); border-color: rgba(200,169,110,0.45); color: var(--accent); font-weight: 600; }
 
@@ -466,6 +476,10 @@
   // ── Navigation ────────────────────────────────────────────
   function showView(id) { ['writeView','readView','reviewView'].forEach(v => document.getElementById(v).classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
+  let freqCache      = {}; // { list: [{title, count}] } — loaded once per write session
+  let freqCacheLoaded = false;
+  let openFreqList   = null; // which list's freq panel is currently open
+
   function showWriteScreen(date) {
     showView('writeView');
     tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false;
@@ -473,8 +487,44 @@
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
     resetReflection();
+    openFreqList = null;
     setWriteDate(date);
     loadWriteEntry(date);
+    // Load frequency cache in background if not already loaded
+    if (!freqCacheLoaded) loadFreqCache();
+  }
+
+  async function loadFreqCache() {
+    try {
+      // Load last 90 days of entries to build frequency counts
+      const to   = new Date();
+      const from = new Date(); from.setDate(from.getDate() - 90);
+      const entries = await api('getEntries', { startDate: isoDate(from), endDate: isoDate(to) });
+      const counts = {}; // { list: { title: count } }
+      entries.forEach(entry => {
+        if (!entry.tasksText) return;
+        parseTasksText(entry.tasksText).forEach(t => {
+          const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+          if (!counts[list]) counts[list] = {};
+          const key = t.title.trim().toLowerCase();
+          counts[list][key] = (counts[list][key] || 0) + 1;
+          // Store the display title from first occurrence
+          if (!counts[list][key + '__title']) counts[list][key + '__title'] = t.title.trim();
+        });
+      });
+      // Convert to sorted arrays
+      freqCache = {};
+      LIST_OPTIONS.forEach(list => {
+        if (!counts[list]) { freqCache[list] = []; return; }
+        const items = Object.keys(counts[list])
+          .filter(k => !k.endsWith('__title'))
+          .map(k => ({ title: counts[list][k + '__title'] || k, count: counts[list][k] }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 15);
+        freqCache[list] = items;
+      });
+      freqCacheLoaded = true;
+    } catch(e) { /* silent — freq is optional */ }
   }
 
   function exitWriteToRead() {
@@ -526,7 +576,7 @@
   }
 
   function changeWriteDate(dateStr) {
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false;
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; openFreqList=null;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     resetReflection();
@@ -707,7 +757,14 @@
     let html = '';
     LIST_OPTIONS.forEach(list => {
       const group = groups.find(g => g.list === list);
-      html += `<div class="j-list-label"><span>${esc(list)}</span><div class="j-add-btn" onclick="addTaskToList('${list}')">+ Add</div></div>`;
+      const isOpen = openFreqList === list;
+      html += `<div class="j-list-label">
+        <span>${esc(list)}</span>
+        <div style="display:flex;gap:4px;">
+          <div class="j-add-btn" onclick="addTaskToList('${list}')">+ Add</div>
+          <div class="qp-freq-btn${isOpen?' active':''}" onclick="toggleFreqPanel('${list}')">↓ Freq</div>
+        </div>
+      </div>`;
       if (group) {
         group.items.forEach(item => {
           const opts = LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
@@ -724,9 +781,48 @@
           </div>`;
         });
       }
+      // Freq panel for this list
+      if (isOpen) {
+        const items = freqCache[list] || [];
+        const existingTitles = new Set(tasksData.map(t=>t.title.trim().toLowerCase()));
+        html += `<div class="qp-panel"><div class="qp-header">Most completed — ${esc(list)}</div>`;
+        if (!items.length) {
+          html += `<div style="font-size:13px;color:var(--card-muted);padding:8px 14px;font-style:italic;">${freqCacheLoaded?'No history yet.':'Loading…'}</div>`;
+        } else {
+          items.forEach(item => {
+            const alreadyAdded = existingTitles.has(item.title.toLowerCase());
+            html += `<div class="qp-item${alreadyAdded?' already-added':''}" onclick="${alreadyAdded?'':` addFromFreq('${esc(list)}','${esc(item.title).replace(/'/g,"\\'")}') `}">
+              <span class="qp-title">${esc(item.title)}</span>
+              <span class="qp-count">×${item.count}</span>
+              <span class="qp-add">${alreadyAdded?'✓':'＋'}</span>
+            </div>`;
+          });
+        }
+        html += `</div>`;
+      }
     });
     display.innerHTML = html;
     bindDrag();
+  }
+
+  function toggleFreqPanel(list) {
+    openFreqList = openFreqList === list ? null : list;
+    renderWriteTasks();
+  }
+
+  function addFromFreq(list, title) {
+    const existing = tasksData.map(t=>t.title.trim().toLowerCase());
+    if (existing.includes(title.trim().toLowerCase())) return;
+    const lastIdx = tasksData.reduce((acc,t,i)=>((LIST_OPTIONS.includes(t.list)?t.list:'Other')===list?i:acc),-1);
+    const insertAt = lastIdx>=0 ? lastIdx+1 : tasksData.length;
+    tasksData.splice(insertAt, 0, { list, starred: false, title: title.trim() });
+    markTasksDirty();
+    renderWriteTasks(); // keeps panel open
+    // Briefly highlight the added item
+    setTimeout(()=>{
+      const rows = document.querySelectorAll('.j-task-row');
+      for(const row of rows){ if(parseInt(row.dataset.idx)===insertAt){ row.style.background='rgba(200,169,110,0.15)'; setTimeout(()=>row.style.background='',800); break; } }
+    }, 50);
   }
 
   function addTaskToList(list) {
