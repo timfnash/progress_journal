@@ -449,7 +449,43 @@
   }
 
   // ── Google Auth ───────────────────────────────────────────
+  const TOKEN_KEY = 'tj_credential';
+
+  function saveToken(credential) {
+    try {
+      // Decode JWT to get expiry
+      const payload = JSON.parse(atob(credential.split('.')[1]));
+      localStorage.setItem(TOKEN_KEY, JSON.stringify({ credential, exp: payload.exp }));
+    } catch(e) {}
+  }
+
+  function loadToken() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(TOKEN_KEY));
+      if (!stored) return null;
+      // Give a 5-minute buffer before expiry
+      if (Date.now() / 1000 > stored.exp - 300) { localStorage.removeItem(TOKEN_KEY); return null; }
+      return stored.credential;
+    } catch(e) { return null; }
+  }
+
   function initGoogleAuth() {
+    // Try stored token first
+    const stored = loadToken();
+    if (stored) {
+      idToken = stored;
+      document.getElementById('lockScreen').style.display = 'none';
+      initApp();
+      // Still initialise Google silently to refresh the token in background
+      google.accounts.id.initialize({
+        client_id:   GOOGLE_CLIENT_ID,
+        callback:    handleCredentialResponse,
+        auto_select: true,
+      });
+      google.accounts.id.prompt(); // silent — won't show UI if already authed
+      return;
+    }
+    // No stored token — show sign-in
     google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
     google.accounts.id.renderButton(document.getElementById('googleSignInBtn'), { theme:'outline', size:'large', text:'sign_in_with', shape:'pill' });
     google.accounts.id.prompt();
@@ -457,6 +493,7 @@
 
   function handleCredentialResponse(response) {
     idToken = response.credential;
+    saveToken(idToken);
     document.getElementById('lockScreen').style.display = 'none';
     initApp();
   }
