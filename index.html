@@ -630,12 +630,12 @@
     const btn=document.getElementById('reflectionSaveBtn');
     const date=getWriteDate();
     if(!date){showStatus('reflectionSaveStatus','No date set.','err');return;}
-    btn.textContent='Saving…'; btn.style.display='flex';
+    btn.innerHTML='<span class="spin"></span> Saving…'; btn.style.display='flex';
     const payload={date, tasksText:tasksAsText(), reflection:reflectionSerialise()};
     try {
       if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
       else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
-      reflectionDirty=false; btn.style.display='none';
+      reflectionDirty=false; btn.style.display='none'; btn.textContent='Save';
       showStatus('reflectionSaveStatus','✓ Saved','ok'); autoClear('reflectionSaveStatus',3000);
     } catch(e){btn.textContent='Save'; showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
   }
@@ -677,38 +677,51 @@
     return keys.map(k=>({list:k,items:groups[k]}));
   }
 
+  function flushTaskInputs() {
+    // Sync any in-progress title edits into tasksData before re-rendering
+    document.querySelectorAll('.j-task-row').forEach(row => {
+      const idx = parseInt(row.dataset.idx);
+      const inp = row.querySelector('.j-task-title');
+      if (inp && tasksData[idx] !== undefined) tasksData[idx].title = inp.value;
+    });
+  }
+
   function renderWriteTasks() {
     const display = document.getElementById('tasksDisplay');
-    if (!tasksData.length) { display.innerHTML='<div class="empty-note">No tasks yet — add one below.</div>'; return; }
+    // Always show all list headings with + Add buttons
     const groups = groupByList(tasksData);
-    const withH  = groups.length>1||(groups.length===1&&groups[0].list!=='Other');
-    let html='';
-    groups.forEach(g => {
-      if (withH) html+=`<div class="j-list-label"><span>${esc(g.list)}</span><div class="j-add-btn" onclick="addTaskToList('${g.list}')">+ Add</div></div>`;
-      g.items.forEach(item => {
-        const opts=LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
-        const starBtn=item.starred
-          ?`<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e" title="Starred">★</button>`
-          :`<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
-        html+=`<div class="j-task-row" data-idx="${item.idx}">
-          <span class="j-drag-handle">⠿</span>
-          <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
-          <input class="j-task-title" type="text" value="${esc(item.title)}" onchange="updateTaskTitle(${item.idx},this.value)" oninput="markTasksDirty()">
-          ${starBtn}
-          <button class="j-del-btn" onclick="deleteTask(${item.idx})">✕</button>
-        </div>`;
-      });
+    const existingLists = new Set(groups.map(g => g.list));
+    let html = '';
+    LIST_OPTIONS.forEach(list => {
+      const group = groups.find(g => g.list === list);
+      html += `<div class="j-list-label"><span>${esc(list)}</span><div class="j-add-btn" onclick="addTaskToList('${list}')">+ Add</div></div>`;
+      if (group) {
+        group.items.forEach(item => {
+          const opts = LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
+          const starBtn = item.starred
+            ? `<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e" title="Starred">★</button>`
+            : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
+          html += `<div class="j-task-row" data-idx="${item.idx}">
+            <span class="j-drag-handle">⠿</span>
+            <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
+            <input class="j-task-title" type="text" value="${esc(item.title)}"
+              oninput="tasksData[${item.idx}]&&(tasksData[${item.idx}].title=this.value);markTasksDirty()">
+            ${starBtn}
+            <button class="j-del-btn" onclick="deleteTask(${item.idx})">✕</button>
+          </div>`;
+        });
+      }
     });
-    if (!withH) html+=`<div class="j-add-btn" style="margin-top:8px;display:inline-block;" onclick="addTaskToList('Other')">+ Add task</div>`;
-    display.innerHTML=html;
+    display.innerHTML = html;
     bindDrag();
   }
 
   function addTaskToList(list) {
+    flushTaskInputs();
     const lastIdx = tasksData.reduce((acc,t,i)=>((LIST_OPTIONS.includes(t.list)?t.list:'Other')===list?i:acc),-1);
     const insertAt = lastIdx>=0 ? lastIdx+1 : tasksData.length;
     tasksData.splice(insertAt,0,{list,starred:false,title:''});
-    renderWriteTasks(); markTasksDirty();
+    renderWriteTasks(); // don't markTasksDirty — empty task isn't worth saving yet
     setTimeout(()=>{
       const rows=document.querySelectorAll('.j-task-row');
       for(const row of rows){ if(parseInt(row.dataset.idx)===insertAt){ const inp=row.querySelector('.j-task-title'); if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'nearest'});} break; } }
@@ -716,11 +729,11 @@
   }
 
   function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
-  function updateTaskTitle(i,v){if(tasksData[i]){tasksData[i].title=v.trim();markTasksDirty();}}
-  function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
-  function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
+  function updateTaskTitle(i,v){if(tasksData[i]){tasksData[i].title=v;markTasksDirty();}}
+  function updateTaskList(i,v){if(tasksData[i]){flushTaskInputs();tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
+  function deleteTask(i){flushTaskInputs();tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
 
-  function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
+  function toggleStar(i){if(!tasksData[i])return;flushTaskInputs();tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
 
   function promptStarAction(i) {
     document.querySelectorAll('.star-popup').forEach(p=>p.remove());
@@ -731,16 +744,18 @@
     setTimeout(()=>{ document.addEventListener('click',function cl(e){if(!popup.contains(e.target)){popup.remove();document.removeEventListener('click',cl);}}); },10);
   }
 
-  function unstarTask(i){document.querySelectorAll('.star-popup').forEach(p=>p.remove());if(!tasksData[i])return;tasksData[i].starred=false;markTasksDirty();renderWriteTasks();}
+  function unstarTask(i){document.querySelectorAll('.star-popup').forEach(p=>p.remove());if(!tasksData[i])return;flushTaskInputs();tasksData[i].starred=false;markTasksDirty();renderWriteTasks();}
 
   // ── Save tasks ────────────────────────────────────────────
   async function saveTasks() {
-    const btn=document.getElementById('tasksSaveBtn'); btn.textContent='Saving…';
+    flushTaskInputs();
+    const btn=document.getElementById('tasksSaveBtn');
+    btn.innerHTML='<span class="spin"></span> Saving…'; btn.style.display='flex';
     const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
     try {
       if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
       else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
-      tasksDirty=false;btn.style.display='none';
+      tasksDirty=false; btn.style.display='none'; btn.textContent='Save';
       showStatus('tasksSaveStatus','✓ Saved','ok');autoClear('tasksSaveStatus',3000);
     } catch(e){btn.textContent='Save';showStatus('tasksSaveStatus','Error: '+e.message,'err');}
   }
@@ -899,11 +914,11 @@
       row.addEventListener('dragstart',()=>{dragIdx=parseInt(row.dataset.idx);setTimeout(()=>row.style.opacity='0.4',0);});
       row.addEventListener('dragend',()=>{row.style.opacity='';display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));dragIdx=null;});
       row.addEventListener('dragover',e=>{e.preventDefault();display.querySelectorAll('.j-task-row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over');});
-      row.addEventListener('drop',e=>{e.preventDefault();const ti=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===ti)return;const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();});
+      row.addEventListener('drop',e=>{e.preventDefault();const ti=parseInt(row.dataset.idx);if(dragIdx===null||dragIdx===ti)return;flushTaskInputs();const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();});
       const handle=row.querySelector('.j-drag-handle');if(!handle)return;
       handle.addEventListener('touchstart',e=>{e.preventDefault();dragIdx=parseInt(row.dataset.idx);row.style.opacity='0.4';},{passive:false});
       handle.addEventListener('touchmove',e=>{e.preventDefault();const y=e.touches[0].clientY;display.querySelectorAll('.j-task-row').forEach(r=>{const rect=r.getBoundingClientRect();if(y>=rect.top&&y<=rect.bottom&&parseInt(r.dataset.idx)!==dragIdx){display.querySelectorAll('.j-task-row').forEach(x=>x.classList.remove('drag-over'));r.classList.add('drag-over');}});},{passive:false});
-      handle.addEventListener('touchend',e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
+      handle.addEventListener('touchend',e=>{e.preventDefault();row.style.opacity='';let tr=null;display.querySelectorAll('.j-task-row').forEach(r=>{if(r.classList.contains('drag-over'))tr=r;r.classList.remove('drag-over');});if(tr&&dragIdx!==null){const ti=parseInt(tr.dataset.idx);flushTaskInputs();const item=tasksData.splice(dragIdx,1)[0];tasksData.splice(dragIdx<ti?ti-1:ti,0,item);markTasksDirty();renderWriteTasks();}dragIdx=null;},{passive:false});
     });
   }
 
