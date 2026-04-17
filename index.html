@@ -80,27 +80,28 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
+    .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-row.drag-over { border-top: 2px solid var(--card-accent); }
-    .j-drag-handle { color: #c8b89a; font-size: 14px; cursor: grab; flex-shrink: 0; user-select: none; -webkit-user-select: none; touch-action: none; }
     .j-task-list-pill { font-size: 11px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 5px; padding: 2px 6px; flex-shrink: 0; }
     .j-task-list-pill select { background: transparent; border: none; color: var(--card-accent); font-family: 'Jost', sans-serif; font-size: 11px; padding: 0; cursor: pointer; -webkit-appearance: none; }
-    .j-task-time { width: 72px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', monospace; padding: 2px 2px; flex-shrink: 0; color-scheme: light; -webkit-appearance: none; text-align: center; }
+    .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; }
+    .j-task-time::-webkit-calendar-picker-indicator { display: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
+    .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; }
     .j-task-title:focus { outline: none; }
-    .j-star-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0; line-height: 1; }
-    .j-del-btn  { background: none; border: none; font-size: 14px; cursor: pointer; flex-shrink: 0; padding: 0; color: #bbb; line-height: 1; }
+    .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
+    .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
 
     /* Star action popup */
     .star-popup { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px; display: flex; gap: 4px; z-index: 10; }
     .star-popup-btn { font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none; }
 
-    /* Read task rows */
-    .j-read-task { font-size: 15px; color: var(--card-text); line-height: 1.6; padding: 5px 0 5px 20px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    /* Read task rows — star replaces bullet */
+    .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
     .j-read-task:last-child { border-bottom: none; }
-    .j-read-task::before { content: '•'; position: absolute; left: 5px; color: var(--card-muted); }
-    .j-read-star { color: #b07030; margin-right: 3px; font-size: 12px; }
+    .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
+    .j-read-task.starred::before { content: '★'; color: #b07030; }
+    .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; }
 
     /* Reflection */
 
@@ -349,8 +350,8 @@
   </div>
 
   <!-- Period selector -->
-  <div style="padding:10px 14px 0;border-bottom:1px solid var(--border);padding-bottom:12px;">
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+  <div style="padding:10px 14px 12px;border-bottom:1px solid var(--border);">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
       <div class="review-period-btn" id="period-week"    onclick="selectPeriod('week')">Week</div>
       <div class="review-period-btn" id="period-month"   onclick="selectPeriod('month')">Month</div>
       <div class="review-period-btn" id="period-quarter" onclick="selectPeriod('quarter')">Quarter</div>
@@ -379,12 +380,15 @@
         </div>
         <!-- Period notes -->
         <div style="border-bottom:1px solid var(--card-border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;">
+            <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--card-muted);">Notes</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="reviewNotesSaveStatus" style="font-size:12px;"></div>
+              <div class="j-save-btn" id="reviewNotesSaveBtn" style="display:none;" onclick="saveReviewNotes()">Save</div>
+            </div>
+          </div>
           <textarea class="j-textarea" id="reviewNotesBox" placeholder="Add your notes for this period…"
             oninput="autoExpand(this);onReviewNotesChange()" style="border-radius:0;"></textarea>
-          <div style="padding:0 14px 8px;display:flex;align-items:center;justify-content:flex-end;gap:8px;">
-            <div class="j-save-btn" id="reviewNotesSaveBtn" style="display:none;" onclick="saveReviewNotes()">Save</div>
-            <div id="reviewNotesSaveStatus"></div>
-          </div>
         </div>
         <div class="j-card-body" id="reviewDetailBody"></div>
       </div>
@@ -813,23 +817,7 @@
           <div class="qp-freq-btn${isOpen?' active':''}" onclick="toggleFreqPanel('${list}')">↓ Freq</div>
         </div>
       </div>`;
-      if (group) {
-        group.items.forEach(item => {
-          const opts = LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
-          const starBtn = item.starred
-            ? `<button class="j-star-btn" onclick="promptStarAction(${item.idx})" style="color:#c8a96e">★</button>`
-            : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
-          html += `<div class="j-task-row" data-idx="${item.idx}">
-            <input class="j-task-time" type="time" value="${esc(item.time||'')}"
-              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
-            <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
-            <input class="j-task-title" type="text" value="${esc(item.title)}"
-              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;markTasksDirty()">
-            ${starBtn}
-            <button class="j-del-btn" onclick="deleteTask(${item.idx})">✕</button>
-          </div>`;
-        });
-      }
+      // Freq panel appears RIGHT after heading, before tasks
       if (isOpen) {
         const items = freqCache[list] || [];
         const existingTitles = new Set(tasksData.map(t=>t.title.trim().toLowerCase()));
@@ -847,6 +835,23 @@
           });
         }
         html += `</div>`;
+      }
+      if (group) {
+        group.items.forEach(item => {
+          const opts = LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
+          const starBtn = item.starred
+            ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">★</button>`
+            : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
+          html += `<div class="j-task-row" data-idx="${item.idx}">
+            <input class="j-task-time" type="time" value="${esc(item.time||'')}"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
+            <div class="j-task-list-pill"><select onchange="updateTaskList(${item.idx},this.value)">${opts}</select></div>
+            <input class="j-task-title" type="text" value="${esc(item.title)}"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;markTasksDirty()">
+            ${starBtn}
+            <button class="j-del-btn" onclick="deleteTask(${item.idx})">✕</button>
+          </div>`;
+        });
       }
     });
     display.innerHTML = html;
@@ -1102,6 +1107,15 @@
 
   let readTaskView = 'list'; // 'list' | 'time'
 
+  function readTaskRow(t, entryId, entryDate) {
+    // Returns HTML for a single task row with tappable star-bullet
+    const starClass = t.starred ? 'starred' : '';
+    const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
+    const safeDate = esc(entryDate);
+    const safeParsed = esc(JSON.stringify({list:t.list,time:t.time||'',starred:t.starred,title:t.title}));
+    return `<div class="j-read-task ${starClass}" onclick="toggleReadStar(this,'${safeDate}')">${time}${esc(t.title)}</div>`;
+  }
+
   function buildPageHTML(entry){
     const field=bookField, flist=bookFilterList; let html='';
     const showTasks      = field === 'all' || field === 'starred_reflections';
@@ -1115,24 +1129,20 @@
         const toggleBtn = `<div class="j-edit-btn" onclick="readTaskView=readTaskView==='list'?'time':'list';renderBookPage(false)" style="margin-right:4px;">${readTaskView==='list'?'⏱ By time':'≡ By list'}</div>`;
         let inner = '';
         if (readTaskView === 'time') {
-          // Flat chronological view
           const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
-          sorted.forEach(t => {
-            const star = t.starred ? `<span class="j-read-star">★</span> ` : '';
-            const time = t.time ? `<span style="font-size:11px;color:var(--card-muted);margin-right:5px;">${esc(t.time)}</span>` : '';
+          sorted.forEach((t,i) => {
             const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
-            inner += `<div class="j-read-task">${time}${star}${pill}${esc(t.title)}</div>`;
+            const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
+            inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${pill}${esc(t.title)}</div>`;
           });
         } else {
-          // By list view
           const groups = groupByList(taskObjs);
           const withH = groups.length>1||(groups.length===1&&groups[0].list!=='Other');
           groups.forEach(g => {
             if(withH) inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">${g.items.length}</span></div>`;
             g.items.forEach(t => {
-              const star = t.starred ? `<span class="j-read-star">★</span> ` : '';
-              const time = t.time ? `<span style="font-size:11px;color:var(--card-muted);margin-right:5px;">${esc(t.time)}</span>` : '';
-              inner += `<div class="j-read-task">${time}${star}${esc(t.title)}</div>`;
+              const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
+              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${esc(t.title)}</div>`;
             });
           });
         }
@@ -1158,6 +1168,25 @@
     }
 
     return html || '<div class="book-empty">No entry for this day.</div>';
+  }
+
+  async function toggleReadStar(el, date) {
+    // Find entry and toggle star for the task matching this element's text
+    const entry = bookEntries.find(e => e.date === date);
+    if (!entry) return;
+    const tasks = parseTasksText(entry.tasksText);
+    // Match by title text content (strip time and pill text)
+    const titleText = el.textContent.replace(/^\d{2}:\d{2}\s*/,'').replace(/^\w+\s*/,'').trim();
+    const match = tasks.find(t => t.title === titleText || el.textContent.includes(t.title));
+    if (!match) return;
+    match.starred = !match.starred;
+    // Update the element immediately
+    el.classList.toggle('starred', match.starred);
+    // Rebuild and save
+    entry.tasksText = tasks.map(t=>`• [${LIST_OPTIONS.includes(t.list)?t.list:'Other'}] ${t.time?`[${t.time}] `:''}${t.starred?'★ ':''}${t.title}`).join('\n');
+    try {
+      await api('updateEntry',{pageId:entry.id,payload:{date:entry.date,tasksText:entry.tasksText,reflection:entry.reflection||''}});
+    } catch(e) { el.classList.toggle('starred', !match.starred); /* revert on error */ }
   }
 
   function navigateDay(direction){
@@ -1414,10 +1443,9 @@
         const d = new Date(date+'T12:00:00');
         const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
         const items = byDate[date].tasks.map((t, ti) => {
-          const starBtn = t.starred
-            ? `<span class="review-star-btn" style="color:#b07030;cursor:pointer;" onclick="toggleReviewStar('${date}',${ti},true)">★</span>`
-            : `<span class="review-star-btn" style="color:#c8b89a;cursor:pointer;" onclick="toggleReviewStar('${date}',${ti},false)">☆</span>`;
-          return `<div class="review-task-item" id="rtask-${date}-${ti}">${starBtn} ${esc(t.title)}</div>`;
+          const starClass = t.starred ? 'starred' : '';
+          const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
+          return `<div class="review-task-item j-read-task ${starClass}" id="rtask-${date}-${ti}" onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}${esc(t.title)}</div>`;
         }).join('');
         return `<div class="review-date-group"><div class="review-date-label">${esc(dateStr)}</div>${items}</div>`;
       }).join('');
@@ -1441,35 +1469,27 @@
   }
 
   async function toggleReviewStar(date, taskIdx, currentlyStarred) {
-    // Find the entry and toggle the star
     const entry = reviewEntries.find(e => e.date === date);
     if (!entry) return;
     const tasks = parseTasksText(entry.tasksText);
-    // Find this task among tasks for the active list
     const listTasks = tasks.filter(t=>(LIST_OPTIONS.includes(t.list)?t.list:'Other')===reviewActiveList);
     if (!listTasks[taskIdx]) return;
     const globalIdx = tasks.indexOf(listTasks[taskIdx]);
     tasks[globalIdx].starred = !currentlyStarred;
-    // Rebuild tasksText
-    const newTasksText = tasks.map(t=>{
-      const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
-      const star=t.starred?'★ ':'';
-      return `• [${list}] ${star}${t.title}`;
-    }).join('\n');
-    entry.tasksText = newTasksText;
-    // Update star button immediately
+    entry.tasksText = tasks.map(t=>`• [${LIST_OPTIONS.includes(t.list)?t.list:'Other'}] ${t.time?`[${t.time}] `:''}${t.starred?'★ ':''}${t.title}`).join('\n');
+    // Update UI immediately
     const el = document.getElementById(`rtask-${date}-${taskIdx}`);
     if (el) {
-      const newStar = !currentlyStarred;
-      el.innerHTML = (newStar
-        ? `<span class="review-star-btn" style="color:#b07030;cursor:pointer;" onclick="toggleReviewStar('${date}',${taskIdx},true)">★</span>`
-        : `<span class="review-star-btn" style="color:#c8b89a;cursor:pointer;" onclick="toggleReviewStar('${date}',${taskIdx},false)">☆</span>`)
-        + ' ' + esc(listTasks[taskIdx].title);
+      el.classList.toggle('starred', !currentlyStarred);
+      el.setAttribute('onclick', `toggleReviewStar('${date}',${taskIdx},${!currentlyStarred})`);
     }
-    // Save to Notion
     try {
-      await api('updateEntry', { pageId: entry.id, payload: { date: entry.date, tasksText: newTasksText, reflection: entry.reflection||'' } });
-    } catch(e) { showStatus('homeStatus','Star save error: '+e.message,'err'); }
+      await api('updateEntry',{pageId:entry.id,payload:{date:entry.date,tasksText:entry.tasksText,reflection:entry.reflection||''}});
+    } catch(e) {
+      // Revert
+      tasks[globalIdx].starred = currentlyStarred;
+      if (el) { el.classList.toggle('starred', currentlyStarred); el.setAttribute('onclick', `toggleReviewStar('${date}',${taskIdx},${currentlyStarred})`); }
+    }
   }
 
   // ── Review period notes ───────────────────────────────────
