@@ -89,6 +89,23 @@
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; margin-top: 3px; }
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; margin-top: 3px; }
 
+    /* ── Write timeline view ── */
+    .j-timeline-wrap { position: relative; padding: 4px 8px 8px; }
+    .j-timeline { position: relative; margin-left: 42px; min-height: 100px; }
+    .j-tl-hour-label { position: absolute; left: -42px; width: 36px; text-align: right; font-size: 10px; color: var(--card-muted); font-family: 'Jost', sans-serif; letter-spacing: 0.04em; transform: translateY(-6px); }
+    .j-tl-rule-5   { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.04); pointer-events: none; }
+    .j-tl-rule-15  { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.09); pointer-events: none; }
+    .j-tl-rule-hour{ position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.22); pointer-events: none; }
+    .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
+    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 5px; padding: 3px 6px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.3; overflow: hidden; cursor: grab; user-select: none; touch-action: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04); z-index: 2; }
+    .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
+    .j-tl-pill .tl-pill-time { font-size: 10px; color: var(--card-muted); display: block; margin-bottom: 1px; }
+    .j-tl-pill .tl-pill-list { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--card-accent); display: inline-block; margin-right: 4px; }
+    .j-tl-pill .tl-pill-title { font-size: 12px; }
+    .j-tl-pill.dragging { opacity: 0.75; cursor: grabbing; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+    .j-tl-empty { text-align: center; color: var(--card-muted); font-style: italic; padding: 30px 0; font-size: 14px; }
+    .j-tl-hint { text-align: center; color: var(--card-muted); font-size: 11px; font-style: italic; padding: 4px 0 8px; }
+
     /* Star action popup */
     .star-popup { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px; display: flex; gap: 4px; z-index: 10; }
     .star-popup-btn { font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none; }
@@ -219,6 +236,7 @@
     <div class="j-card">
       <div class="j-card-header">
         <span class="j-card-title">Completed tasks</span>
+        <div class="j-edit-btn" id="writeTaskViewToggle" onclick="toggleWriteTaskView()" style="margin-right:4px;">&#9201; By time</div>
         <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
         <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
       </div>
@@ -799,7 +817,24 @@
     });
   }
 
+  // Write task view mode: 'list' (default) or 'time' (timeline, drag-to-reorder by time)
+  let writeTaskView = 'list';
+
+  function toggleWriteTaskView() {
+    // Flush any pending input edits from the list view before switching
+    flushTaskInputs();
+    writeTaskView = writeTaskView === 'list' ? 'time' : 'list';
+    const toggle = document.getElementById('writeTaskViewToggle');
+    if (toggle) toggle.innerHTML = writeTaskView === 'list' ? '\u23f1 By time' : '\u2261 By list';
+    renderWriteTasks();
+  }
+
   function renderWriteTasks() {
+    if (writeTaskView === 'time') { renderWriteTasksTime(); return; }
+    renderWriteTasksList();
+  }
+
+  function renderWriteTasksList() {
     const display = document.getElementById('tasksDisplay');
     const groups = groupByList(tasksData);
     let html = '';
@@ -856,6 +891,187 @@
     display.innerHTML = html;
     // Auto-expand task title textareas so pre-existing long titles show in full
     setTimeout(() => display.querySelectorAll('.j-task-title').forEach(autoExpand), 0);
+  }
+
+  // ── Timeline view ─────────────────────────────────────────
+  // 24 hours, 5-minute slots. Pixel scale chosen for mobile readability:
+  // 5 min = 6px → 1 hour = 72px → full day = 1728px scrollable.
+  const TL_PX_PER_MIN = 1.2;
+  const TL_MIN_PER_DAY = 24 * 60;
+
+  function timeToMin(t) {
+    if (!t) return 0;
+    const [h,m] = t.split(':').map(Number);
+    return (h||0)*60 + (m||0);
+  }
+  function minToTime(min) {
+    min = Math.max(0, Math.min(TL_MIN_PER_DAY - 1, min));
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  }
+  function snapTo5(min) { return Math.round(min / 5) * 5; }
+
+  function renderWriteTasksTime() {
+    const display = document.getElementById('tasksDisplay');
+    display.innerHTML = '';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'j-timeline-wrap';
+
+    const hint = document.createElement('div');
+    hint.className = 'j-tl-hint';
+    hint.textContent = 'Drag a task to a new time slot \u2014 snaps to 5 min';
+    wrap.appendChild(hint);
+
+    const tl = document.createElement('div');
+    tl.className = 'j-timeline';
+    tl.id = 'writeTimeline';
+    tl.style.height = (TL_MIN_PER_DAY * TL_PX_PER_MIN) + 'px';
+
+    // Rules: 5-min minor, 15-min mid, 60-min heavy + hour label
+    for (let m = 0; m <= TL_MIN_PER_DAY; m += 5) {
+      const rule = document.createElement('div');
+      if (m % 60 === 0) {
+        rule.className = 'j-tl-rule-hour';
+        const label = document.createElement('div');
+        label.className = 'j-tl-hour-label';
+        label.textContent = minToTime(m % TL_MIN_PER_DAY);
+        label.style.top = (m * TL_PX_PER_MIN) + 'px';
+        tl.appendChild(label);
+      } else if (m % 15 === 0) {
+        rule.className = 'j-tl-rule-15';
+      } else {
+        rule.className = 'j-tl-rule-5';
+      }
+      rule.style.top = (m * TL_PX_PER_MIN) + 'px';
+      tl.appendChild(rule);
+    }
+
+    // Drop hint (shown while dragging)
+    const dropHint = document.createElement('div');
+    dropHint.className = 'j-tl-drop-hint';
+    dropHint.id = 'tlDropHint';
+    dropHint.style.height = (5 * TL_PX_PER_MIN) + 'px';
+    tl.appendChild(dropHint);
+
+    // Group pills by 5-min slot for side-by-side column stacking
+    const slotGroups = new Map();
+    tasksData.forEach((t, idx) => {
+      const min = snapTo5(timeToMin(t.time || '00:00'));
+      if (!slotGroups.has(min)) slotGroups.set(min, []);
+      slotGroups.get(min).push({ task: t, idx });
+    });
+
+    if (!tasksData.length) {
+      const empty = document.createElement('div');
+      empty.className = 'j-tl-empty';
+      empty.textContent = 'No tasks yet. Add some in list view first.';
+      wrap.appendChild(empty);
+      display.appendChild(wrap);
+      return;
+    }
+
+    // Render pills — side-by-side columns for overlapping times
+    const PILL_HEIGHT_MIN = 15; // each pill occupies ~15 min of vertical space
+    const pillHeightPx = PILL_HEIGHT_MIN * TL_PX_PER_MIN;
+
+    slotGroups.forEach((items, min) => {
+      const cols = items.length;
+      items.forEach((it, col) => {
+        const pill = document.createElement('div');
+        pill.className = 'j-tl-pill' + (it.task.starred ? ' starred' : '');
+        pill.dataset.idx = it.idx;
+        pill.style.top = (min * TL_PX_PER_MIN) + 'px';
+        pill.style.height = pillHeightPx + 'px';
+        // Columns: each takes 1/cols width with small gap
+        const gap = 2;
+        const pct = 100 / cols;
+        pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
+        pill.style.width = `calc(${pct}% - ${gap}px)`;
+        const listTag = LIST_OPTIONS.includes(it.task.list) ? it.task.list : 'Other';
+        pill.innerHTML =
+          `<span class="tl-pill-time">${esc(it.task.time || '--:--')}</span>` +
+          `<span class="tl-pill-list">${esc(listTag)}</span>` +
+          `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
+        tl.appendChild(pill);
+        attachPillDrag(pill, tl, dropHint);
+      });
+    });
+
+    wrap.appendChild(tl);
+    display.appendChild(wrap);
+
+    // Auto-scroll to earliest task (or 07:00 if none) so the user isn't looking at 00:00 on mobile
+    setTimeout(() => {
+      const earliest = tasksData
+        .map(t => snapTo5(timeToMin(t.time || '00:00')))
+        .sort((a,b) => a - b)[0] ?? (7 * 60);
+      const scrollTarget = Math.max(0, (earliest - 30) * TL_PX_PER_MIN);
+      // Scroll the page to bring the timeline into view near the earliest task
+      const tlRect = tl.getBoundingClientRect();
+      const y = window.scrollY + tlRect.top + scrollTarget - 100;
+      window.scrollTo({ top: y, behavior: 'auto' });
+    }, 10);
+  }
+
+  // Pointer-based drag: works for mouse and touch
+  function attachPillDrag(pill, timeline, dropHint) {
+    let dragging = false;
+    let startY = 0, startTop = 0;
+    let pointerId = null;
+
+    function onDown(e) {
+      pointerId = e.pointerId;
+      pill.setPointerCapture(pointerId);
+      dragging = true;
+      pill.classList.add('dragging');
+      startY = e.clientY;
+      startTop = parseFloat(pill.style.top) || 0;
+      dropHint.style.display = 'block';
+      updateDropHint(startTop);
+      e.preventDefault();
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      const newTop = Math.max(0, Math.min((TL_MIN_PER_DAY - 5) * TL_PX_PER_MIN, startTop + dy));
+      pill.style.top = newTop + 'px';
+      updateDropHint(newTop);
+    }
+
+    function updateDropHint(topPx) {
+      const min = snapTo5(topPx / TL_PX_PER_MIN);
+      dropHint.style.top = (min * TL_PX_PER_MIN) + 'px';
+    }
+
+    function onUp(e) {
+      if (!dragging) return;
+      dragging = false;
+      pill.classList.remove('dragging');
+      dropHint.style.display = 'none';
+      try { pill.releasePointerCapture(pointerId); } catch(err) {}
+
+      const topPx = parseFloat(pill.style.top) || 0;
+      const snappedMin = snapTo5(topPx / TL_PX_PER_MIN);
+      const newTime = minToTime(snappedMin);
+
+      const idx = parseInt(pill.dataset.idx);
+      if (!isNaN(idx) && tasksData[idx]) {
+        if (tasksData[idx].time !== newTime) {
+          tasksData[idx].time = newTime;
+          markTasksDirty();
+        }
+      }
+      // Re-render so columns re-compute after the drop
+      renderWriteTasksTime();
+    }
+
+    pill.addEventListener('pointerdown', onDown);
+    pill.addEventListener('pointermove', onMove);
+    pill.addEventListener('pointerup', onUp);
+    pill.addEventListener('pointercancel', onUp);
   }
 
   function toggleTaskMenu(btn, idx) {
