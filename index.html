@@ -79,15 +79,15 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
+    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; }
+    .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; margin-top: 2px; }
     .j-task-time::-webkit-calendar-picker-indicator { display: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
-    .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; }
+    .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
-    .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
-    .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
+    .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; margin-top: 3px; }
+    .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; margin-top: 3px; }
 
     /* Star action popup */
     .star-popup { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px; display: flex; gap: 4px; z-index: 10; }
@@ -139,7 +139,7 @@
     .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 160px); }
     .book-content { padding: 16px 14px 60px; }
 
-    .j-more-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; color: var(--card-muted); line-height: 1; letter-spacing: 1px; }
+    .j-more-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; color: var(--card-muted); line-height: 1; letter-spacing: 1px; margin-top: 3px; }
     .j-task-menu { position: absolute; right: 0; top: 100%; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; z-index: 20; display: flex; flex-direction: column; gap: 6px; min-width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .j-task-menu-select { font-size: 13px; padding: 5px 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; color: var(--card-accent); font-family: 'Jost', sans-serif; width: 100%; -webkit-appearance: none; }
     .j-task-menu-del { font-size: 13px; padding: 5px 8px; background: var(--red-dim); border: 1px solid var(--red); border-radius: 6px; color: var(--red); font-family: 'Jost', sans-serif; cursor: pointer; text-align: left; }
@@ -798,8 +798,9 @@
           html += `<div class="j-task-row" data-idx="${item.idx}">
             <input class="j-task-time" type="time" value="${esc(item.time||'')}"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
-            <input class="j-task-title" type="text" value="${esc(item.title)}"
-              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;markTasksDirty()">
+            <textarea class="j-task-title" rows="1"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
             ${starBtn}
             <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
@@ -811,6 +812,8 @@
       }
     });
     display.innerHTML = html;
+    // Auto-expand task title textareas so pre-existing long titles show in full
+    setTimeout(() => display.querySelectorAll('.j-task-title').forEach(autoExpand), 0);
   }
 
   function toggleTaskMenu(btn, idx) {
