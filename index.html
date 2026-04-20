@@ -49,7 +49,7 @@
     .j-nav-row { display: flex; align-items: center; gap: 8px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
     .j-nav-btn { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 8px; cursor: pointer; color: var(--accent); font-size: 20px; line-height: 1; user-select: none; }
     .j-nav-btn.text { width: auto; padding: 0 12px; font-size: 12px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
-    .j-nav-btn.disabled { opacity: 0.3; cursor: default; }
+    .j-nav-btn.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
     .j-date-block { flex: 1; text-align: center; }
     .j-day-label  { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
     .j-date-label { font-size: 17px; font-weight: 700; color: var(--accent); white-space: nowrap; }
@@ -59,7 +59,6 @@
     .j-filter-line:nth-child(1) { width: 14px; }
     .j-filter-line:nth-child(2) { width: 9px; }
     .j-filter-line:nth-child(3) { width: 5px; }
-    .j-editing-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
     /* ── Views ── */
     .view { display: none; padding: 14px 14px 60px; }
@@ -82,8 +81,6 @@
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
     .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-list-pill { font-size: 11px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 5px; padding: 2px 6px; flex-shrink: 0; }
-    .j-task-list-pill select { background: transparent; border: none; color: var(--card-accent); font-family: 'Jost', sans-serif; font-size: 11px; padding: 0; cursor: pointer; -webkit-appearance: none; }
     .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; }
     .j-task-time::-webkit-calendar-picker-indicator { display: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
@@ -96,7 +93,7 @@
     .star-popup { position: absolute; right: 40px; top: 50%; transform: translateY(-50%); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 4px; display: flex; gap: 4px; z-index: 10; }
     .star-popup-btn { font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none; }
 
-    /* Read task rows — star replaces bullet */
+    /* Read + Review task rows — hollow star bullet, filled when starred */
     .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
@@ -104,12 +101,9 @@
     .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; }
 
     /* Reflection */
-
-    /* Reflection general textarea */
     .j-textarea { width: 100%; min-height: 38px; height: 38px; overflow-y: hidden; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 8px 14px; resize: none; display: block; }
     .j-textarea:focus { outline: none; }
     .j-textarea::placeholder { color: var(--card-muted); }
-    /* Reflection list sections */
     .refl-tag-add-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--card-border); background: var(--card-bg2); }
     .refl-section { border-top: 1px solid var(--card-border); }
     .refl-section-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px 0; }
@@ -118,7 +112,6 @@
     .refl-section-ta { width: 100%; min-height: 38px; height: 38px; overflow-y: hidden; background: var(--card-bg3); border: none; border-top: 1px solid var(--card-border); color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 8px 14px; resize: none; display: block; margin-top: 6px; }
     .refl-section-ta:focus { outline: none; }
     .refl-section-ta::placeholder { color: var(--card-muted); }
-    /* Read view reflection */
     .j-icon-btn.spinning { animation: rot 0.65s linear infinite; }
     .refl-read-general { font-size: 14px; color: var(--card-text); line-height: 1.9; padding: 10px 14px 8px; white-space: pre-line; }
     .refl-read-section { border-top: 1px solid var(--card-border); padding: 10px 14px; }
@@ -163,22 +156,13 @@
     .review-period-btn { font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; user-select: none; white-space: nowrap; }
     .review-period-btn.active { background: var(--accent-dim); border-color: rgba(200,169,110,0.45); color: var(--accent); font-weight: 600; }
 
-    /* Review drill-down */
+    /* Review screen */
     .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; user-select: none; }
     .h-stat-row:last-of-type { border-bottom: none; }
     .h-stat-row.active .h-list-name { color: var(--accent); }
-    .review-detail { margin-top: 14px; }
-    .review-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .review-detail-title { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
     .review-summary { font-size: 15px; color: var(--card-text); line-height: 1.8; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; font-style: italic; }
-    .review-date-group { margin-bottom: 12px; }
-    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 6px 0 4px; border-bottom: 1px solid var(--card-border); margin-bottom: 4px; }
-    .review-task-item { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 4px 0 4px 18px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.04); }
-    .review-task-item:last-child { border-bottom: none; }
-    .review-task-item::before { content: '•'; position: absolute; left: 4px; color: var(--card-muted); }
-    .review-task-star { color: #b07030; margin-right: 3px; font-size: 12px; } background: var(--accent-dim); border: 1px solid rgba(200,169,110,0.45); border-radius: 6px; padding: 5px 10px; cursor: pointer; user-select: none; font-size: 14px; font-weight: 600; color: var(--accent); display: inline-block; }
-    .h-range-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-    .h-range-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .review-date-group { margin-bottom: 4px; }
+    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 14px 4px; display: flex; justify-content: space-between; align-items: center; }
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
@@ -219,12 +203,12 @@
       <span>Tim's Journal</span>
     </div>
     <div class="j-nav-row">
-      <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),-1))">‹</div>
+      <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),-1))">&#8249;</div>
       <div class="j-date-block">
-        <div class="j-day-label" id="writeDayLabel">✏ Editing</div>
+        <div class="j-day-label" id="writeDayLabel">&#9999; Editing</div>
         <div class="j-date-label" id="writeDateLabel" data-date=""></div>
       </div>
-      <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),1))">›</div>
+      <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),1))">&#8250;</div>
       <div class="j-nav-btn text" onclick="exitWriteToRead()">Exit</div>
     </div>
   </div>
@@ -236,17 +220,17 @@
       <div class="j-card-header">
         <span class="j-card-title">Completed tasks</span>
         <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
-        <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">↻</div>
+        <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
       </div>
-      <div class="j-card-body" id="tasksDisplay"><div class="empty-note">Loading…</div></div>
+      <div class="j-card-body" id="tasksDisplay"><div class="empty-note">Loading&hellip;</div></div>
       <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
       <div class="j-add-strip">
-        <div class="j-strip-btn" onclick="document.getElementById('screenshotInput').click()">📷 Screenshot</div>
-        <div class="j-strip-btn" id="taskRecordBtn" onclick="toggleTaskRecording()">🎤 Record</div>
+        <div class="j-strip-btn" onclick="document.getElementById('screenshotInput').click()">&#128247; Screenshot</div>
+        <div class="j-strip-btn" id="taskRecordBtn" onclick="toggleTaskRecording()">&#127908; Record</div>
       </div>
       <div id="tasksImportStatus" style="padding:0 14px;"></div>
       <div class="j-extracted" id="tasksExtracted">
-        <textarea id="extractedBox" placeholder="Extracted tasks will appear here…"></textarea>
+        <textarea id="extractedBox" placeholder="Extracted tasks will appear here&hellip;"></textarea>
         <div class="j-extracted-actions">
           <div class="j-btn" onclick="addExtractedTasks()">Add to tasks</div>
           <div class="j-btn" onclick="clearImport()">Clear</div>
@@ -261,13 +245,13 @@
         <span class="j-card-title">Reflection</span>
         <div class="j-save-btn" id="reflectionSaveBtn" style="display:none;" onclick="saveReflection()">Save</div>
       </div>
-      <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today…" oninput="autoExpand(this);onReflectionChange()"></textarea>
+      <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today&hellip;" oninput="autoExpand(this);onReflectionChange()"></textarea>
       <div class="refl-tag-add-row" id="reflTagAddRow"></div>
       <div id="reflSectionsDisplay"></div>
       <input type="file" id="photoInput" accept="image/*" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" onchange="handleReflectionPhoto(event)">
       <div class="j-add-strip">
-        <div class="j-strip-btn" onclick="captureReflPhotoTarget();document.getElementById('photoInput').click()">📷 Screenshot</div>
-        <div class="j-strip-btn" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">🎤 Record</div>
+        <div class="j-strip-btn" onclick="captureReflPhotoTarget();document.getElementById('photoInput').click()">&#128247; Screenshot</div>
+        <div class="j-strip-btn" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">&#127908; Record</div>
       </div>
       <div id="reflectionImportStatus" style="padding:0 14px;"></div>
       <div id="reflectionSaveStatus" style="padding:0 14px;"></div>
@@ -284,12 +268,12 @@
       <div class="j-nav-btn text" style="font-size:11px;" onclick="goToReview()">Review</div>
     </div>
     <div class="j-nav-row">
-      <div class="j-nav-btn" id="prevDayBtn" onclick="navigateDay(-1)">‹</div>
+      <div class="j-nav-btn" id="prevDayBtn" onclick="navigateDay(-1)">&#8249;</div>
       <div class="j-date-block">
         <div class="j-day-label"  id="readDayLabel"></div>
         <div class="j-date-label" id="readDateLabel"></div>
       </div>
-      <div class="j-nav-btn" id="nextDayBtn" onclick="navigateDay(1)">›</div>
+      <div class="j-nav-btn" id="nextDayBtn" onclick="navigateDay(1)">&#8250;</div>
       <div class="j-filter-btn" onclick="toggleFilterPanel()">
         <div class="j-filter-lines">
           <div class="j-filter-line"></div>
@@ -345,14 +329,18 @@
       <span>Tim's Journal</span>
       <div class="j-nav-btn text" style="font-size:11px;" onclick="exitReview()">Exit</div>
     </div>
-    <div class="j-nav-row" style="justify-content:center;">
-      <div class="j-date-block" style="text-align:center;flex:unset;">
-        <div class="j-date-label">Review</div>
+    <!-- Period nav: prev | [Review / heading] | next — matches Write/Read screen pattern -->
+    <div class="j-nav-row">
+      <div class="j-nav-btn" id="reviewPrevBtn" onclick="navigateReviewPeriod(-1)">&#8249;</div>
+      <div class="j-date-block">
+        <div class="j-day-label">Review</div>
+        <div class="j-date-label" id="reviewPeriodHeading">&mdash;</div>
       </div>
+      <div class="j-nav-btn" id="reviewNextBtn" onclick="navigateReviewPeriod(1)">&#8250;</div>
     </div>
   </div>
 
-  <!-- Period selector -->
+  <!-- Period type selector -->
   <div style="padding:10px 14px 12px;border-bottom:1px solid var(--border);">
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
       <div class="review-period-btn" id="period-week"    onclick="selectPeriod('week')">Week</div>
@@ -365,26 +353,16 @@
   <input type="date" id="homeDateTo"   style="position:absolute;left:-9999px;opacity:0;">
 
   <div style="padding:14px 14px 60px;">
-    <!-- Period label — always visible above the stats card -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="font-size:17px;font-weight:700;color:var(--accent);" id="reviewPeriodHeading">—</div>
-      <div style="display:flex;gap:6px;">
-        <div class="j-nav-btn" onclick="navigateReviewPeriod(-1)" style="width:28px;height:28px;font-size:16px;">‹</div>
-        <div class="j-nav-btn" onclick="navigateReviewPeriod(1)"  style="width:28px;height:28px;font-size:16px;">›</div>
-      </div>
-    </div>
     <div class="j-card">
       <div class="j-card-header"><span class="j-card-title">Completed tasks</span></div>
-      <div class="j-card-body" id="homeStatsBody"><div class="empty-note">Loading…</div></div>
+      <div class="j-card-body" id="homeStatsBody"><div class="empty-note">Loading&hellip;</div></div>
     </div>
     <div id="reviewDetailCard" style="display:none;">
       <div class="j-card">
-        <!-- Drill-down header: list name + Clear -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--card-border);">
           <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);" id="reviewDetailList"></div>
           <div class="j-btn" onclick="clearReviewDetail()">Clear</div>
         </div>
-        <!-- Period notes -->
         <div style="border-bottom:1px solid var(--card-border);">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;">
             <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--card-muted);">Notes</span>
@@ -393,7 +371,7 @@
               <div class="j-save-btn" id="reviewNotesSaveBtn" style="display:none;" onclick="saveReviewNotes()">Save</div>
             </div>
           </div>
-          <textarea class="j-textarea" id="reviewNotesBox" placeholder="Add your notes for this period…"
+          <textarea class="j-textarea" id="reviewNotesBox" placeholder="Add your notes for this period&hellip;"
             oninput="autoExpand(this);onReviewNotesChange()" style="border-radius:0;"></textarea>
         </div>
         <div class="j-card-body" id="reviewDetailBody"></div>
@@ -407,6 +385,12 @@
   // ── Config ────────────────────────────────────────────────
   const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
   const GOOGLE_CLIENT_ID = '334749757917-t606nr5dfec4h2va1dah61nu9rm5rbk9.apps.googleusercontent.com';
+
+  // ── EARLIEST ENTRY DATE ───────────────────────────────────
+  // TODO (multi-user): Replace this hardcoded date with a dynamic lookup of
+  // the oldest entry in the database (e.g. fetched from the backend on first
+  // load, or set per-user in an onboarding/settings screen).
+  const EARLIEST_ENTRY_DATE = '2026-04-01';
 
   // ── State ─────────────────────────────────────────────────
   let idToken          = null;
@@ -446,14 +430,14 @@
     const d = new Date(dateStr+'T12:00:00');
     document.getElementById('writeDateLabel').dataset.date = dateStr;
     document.getElementById('writeDateLabel').textContent  = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-    document.getElementById('writeDayLabel').textContent   = '✏ Editing';
+    document.getElementById('writeDayLabel').textContent   = '\u270f Editing';
   }
 
   // ── API ───────────────────────────────────────────────────
   async function api(action, params) {
     const res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
     const text = await res.text();
-    if (text.trim().startsWith('<')) throw new Error('Apps Script error — check deployment.');
+    if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
     const data = JSON.parse(text);
     if (!data.success) throw new Error(data.error);
     return data.data;
@@ -464,7 +448,6 @@
 
   function saveToken(credential) {
     try {
-      // Decode JWT to get expiry
       const payload = JSON.parse(atob(credential.split('.')[1]));
       localStorage.setItem(TOKEN_KEY, JSON.stringify({ credential, exp: payload.exp }));
     } catch(e) {}
@@ -474,29 +457,21 @@
     try {
       const stored = JSON.parse(localStorage.getItem(TOKEN_KEY));
       if (!stored) return null;
-      // Give a 5-minute buffer before expiry
       if (Date.now() / 1000 > stored.exp - 300) { localStorage.removeItem(TOKEN_KEY); return null; }
       return stored.credential;
     } catch(e) { return null; }
   }
 
   function initGoogleAuth() {
-    // Try stored token first
     const stored = loadToken();
     if (stored) {
       idToken = stored;
       document.getElementById('lockScreen').style.display = 'none';
       initApp();
-      // Still initialise Google silently to refresh the token in background
-      google.accounts.id.initialize({
-        client_id:   GOOGLE_CLIENT_ID,
-        callback:    handleCredentialResponse,
-        auto_select: true,
-      });
-      google.accounts.id.prompt(); // silent — won't show UI if already authed
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
+      google.accounts.id.prompt();
       return;
     }
-    // No stored token — show sign-in
     google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
     google.accounts.id.renderButton(document.getElementById('googleSignInBtn'), { theme:'outline', size:'large', text:'sign_in_with', shape:'pill' });
     google.accounts.id.prompt();
@@ -514,7 +489,7 @@
     document.getElementById('screenshotInput').addEventListener('change', function() { if(this.files&&this.files.length) extractFromScreenshot(); });
   });
 
-  // ── Init — launch on Write screen for today ───────────────
+  // ── Init ──────────────────────────────────────────────────
   function initApp() {
     const todayStr = isoDate(new Date());
     document.getElementById('filterJumpDate').value = todayStr;
@@ -524,31 +499,29 @@
   // ── Navigation ────────────────────────────────────────────
   function showView(id) { ['writeView','readView','reviewView'].forEach(v => document.getElementById(v).classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
-  let freqCache      = {}; // { list: [{title, count}] } — loaded once per write session
+  let freqCache       = {};
   let freqCacheLoaded = false;
-  let openFreqList   = null; // which list's freq panel is currently open
+  let openFreqList    = null;
 
   function showWriteScreen(date) {
     showView('writeView');
     tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
-    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
+    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading\u2026</div>';
     resetReflection();
     openFreqList = null;
     setWriteDate(date);
     loadWriteEntry(date);
-    // Load frequency cache in background if not already loaded
     if (!freqCacheLoaded) loadFreqCache();
   }
 
   async function loadFreqCache() {
     try {
-      // Load last 90 days of entries to build frequency counts
       const to   = new Date();
       const from = new Date(); from.setDate(from.getDate() - 90);
       const entries = await api('getEntries', { startDate: isoDate(from), endDate: isoDate(to) });
-      const counts = {}; // { list: { title: count } }
+      const counts = {};
       entries.forEach(entry => {
         if (!entry.tasksText) return;
         parseTasksText(entry.tasksText).forEach(t => {
@@ -556,11 +529,9 @@
           if (!counts[list]) counts[list] = {};
           const key = t.title.trim().toLowerCase();
           counts[list][key] = (counts[list][key] || 0) + 1;
-          // Store the display title from first occurrence
           if (!counts[list][key + '__title']) counts[list][key + '__title'] = t.title.trim();
         });
       });
-      // Convert to sorted arrays
       freqCache = {};
       LIST_OPTIONS.forEach(list => {
         if (!counts[list]) { freqCache[list] = []; return; }
@@ -572,7 +543,7 @@
         freqCache[list] = items;
       });
       freqCacheLoaded = true;
-    } catch(e) { /* silent — freq is optional */ }
+    } catch(e) { /* silent */ }
   }
 
   function exitWriteToRead() {
@@ -589,10 +560,7 @@
     } else { loadReadView(); }
   }
 
-  function goToReview() {
-    showView('reviewView');
-    selectPeriod('week');
-  }
+  function goToReview() { showView('reviewView'); selectPeriod('week'); }
 
   function exitReview() {
     showView('readView');
@@ -602,7 +570,7 @@
 
   // ── Write screen ──────────────────────────────────────────
   async function loadWriteEntry(date) {
-    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
+    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading\u2026</div>';
     try {
       const entry = await api('getEntryForDate', {date});
       if (entry) {
@@ -613,8 +581,7 @@
         setTimeout(() => autoExpand(document.getElementById('reflectionBox')), 0);
         reflSections = refl.sections || [];
       } else {
-        tasksData = [];
-        reflSections = [];
+        tasksData = []; reflSections = [];
       }
       renderWriteTasks();
       renderReflSections();
@@ -636,7 +603,7 @@
     const date = getWriteDate();
     const btn = document.querySelector('.j-icon-btn[onclick="refreshTasks()"]');
     if (btn) btn.classList.add('spinning');
-    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading…</div>';
+    document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading\u2026</div>';
     try {
       const entry = await api('getEntryForDate',{date});
       if (entry) { tasksData=parseTasksText(entry.tasksText); existingPageId=entry.id; } else tasksData=[];
@@ -646,15 +613,13 @@
     finally { if (btn) btn.classList.remove('spinning'); }
   }
 
-  // ── Reflection tag ────────────────────────────────────────
   // ── Reflection sections ───────────────────────────────────
-  // reflSections: array of { list, text } — list-tagged additions to the general reflection
   let reflSections = [];
 
   function reflectionSerialise() {
     const general = document.getElementById('reflectionBox').value.trim();
     const sections = reflSections.filter(s => s.text && s.text.trim());
-    if (!sections.length) return general; // plain text — fully backward compatible
+    if (!sections.length) return general;
     return JSON.stringify({ general, sections });
   }
 
@@ -662,11 +627,8 @@
     if (!raw) return { general: '', sections: [] };
     try {
       const p = JSON.parse(raw);
-      // Current format: { general, sections }
       if (p && typeof p === 'object' && 'general' in p) return { general: p.general || '', sections: p.sections || [] };
-      // Old single-tag format: { tag, text }
       if (p && p.text !== undefined && !Array.isArray(p)) return { general: p.text || '', sections: [] };
-      // Old structured blocks format: array of { list, thankful, sad, learned, thoughts }
       if (Array.isArray(p)) {
         const LABELS = { thankful: 'Thankful for', sad: 'Sad about', learned: 'Learned', thoughts: 'Thoughts' };
         const sections = [];
@@ -679,52 +641,42 @@
         return { general: '', sections };
       }
     } catch(e) {}
-    return { general: raw, sections: [] }; // legacy plain text
+    return { general: raw, sections: [] };
   }
 
   function renderReflTagRow() {
     const usedLists = new Set(reflSections.map(s => s.list));
     const available = LIST_OPTIONS.filter(l => !usedLists.has(l));
-    const row = document.getElementById('reflTagAddRow');
-    row.innerHTML = available.map(l => `<div class="j-add-btn" onclick="addReflSection('${l}')">+ ${l}</div>`).join('');
+    document.getElementById('reflTagAddRow').innerHTML =
+      available.map(l => `<div class="j-add-btn" onclick="addReflSection('${l}')">+ ${l}</div>`).join('');
   }
 
   function renderReflSections() {
-    const display = document.getElementById('reflSectionsDisplay');
-    display.innerHTML = reflSections.map((s, i) =>
+    document.getElementById('reflSectionsDisplay').innerHTML = reflSections.map((s, i) =>
       `<div class="refl-section">
         <div class="refl-section-header">
           <span class="refl-section-label">${esc(s.list)}</span>
-          <button class="refl-section-del" onclick="removeReflSection(${i})">✕</button>
+          <button class="refl-section-del" onclick="removeReflSection(${i})">&#x2715;</button>
         </div>
-        <textarea class="refl-section-ta" placeholder="${esc(s.list)} reflection…"
+        <textarea class="refl-section-ta" placeholder="${esc(s.list)} reflection&hellip;"
           oninput="autoExpand(this);updateReflSection(${i}, this.value)">${esc(s.text||'')}</textarea>
       </div>`
     ).join('');
     renderReflTagRow();
-    // Auto-expand any pre-filled textareas
     setTimeout(() => document.querySelectorAll('.refl-section-ta, .j-textarea').forEach(autoExpand), 0);
   }
 
   function addReflSection(list) {
     reflSections.push({ list, text: '' });
-    renderReflSections(); // don't mark dirty — no content yet
+    renderReflSections();
     setTimeout(() => {
       const tas = document.querySelectorAll('.refl-section-ta');
       if (tas.length) { tas[tas.length-1].focus(); tas[tas.length-1].scrollIntoView({behavior:'smooth',block:'nearest'}); }
     }, 50);
   }
 
-  function removeReflSection(i) {
-    reflSections.splice(i, 1);
-    renderReflSections();
-    // Only dirty if there was content in the removed section
-    onReflectionChange();
-  }
-
-  function updateReflSection(i, value) {
-    if (reflSections[i]) { reflSections[i].text = value; onReflectionChange(); }
-  }
+  function removeReflSection(i) { reflSections.splice(i, 1); renderReflSections(); onReflectionChange(); }
+  function updateReflSection(i, value) { if (reflSections[i]) { reflSections[i].text = value; onReflectionChange(); } }
 
   function resetReflection() {
     reflSections = [];
@@ -741,17 +693,16 @@
     const btn=document.getElementById('reflectionSaveBtn');
     const date=getWriteDate();
     if(!date){showStatus('reflectionSaveStatus','No date set.','err');return;}
-    btn.innerHTML='<span class="spin"></span> Saving…'; btn.style.display='flex';
+    btn.innerHTML='<span class="spin"></span> Saving\u2026'; btn.style.display='flex';
     const payload={date, tasksText:tasksAsText(), reflection:reflectionSerialise()};
     try {
       if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
       else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
       reflectionDirty=false; btn.style.display='none'; btn.textContent='Save';
-      showStatus('reflectionSaveStatus','✓ Saved','ok'); autoClear('reflectionSaveStatus',3000);
+      showStatus('reflectionSaveStatus','\u2713 Saved','ok'); autoClear('reflectionSaveStatus',3000);
     } catch(e){btn.textContent='Save'; showStatus('reflectionSaveStatus','Error: '+e.message,'err');}
   }
 
-  // ── Screenshot extraction ─────────────────────────────────
   // ── Tasks ─────────────────────────────────────────────────
   function nowHHMM() {
     const d = new Date();
@@ -762,7 +713,6 @@
     if (!raw) return [];
     return raw.split('\n').map(l => {
       const line = l.replace(/^•\s*/,'').trim();
-      // Format: [List] [HH:MM] ★ Title  or  [List] ★ Title  or  [List] Title
       const m = line.match(/^\[(.+?)\]\s+(?:\[(\d{2}:\d{2})\]\s+)?(★\s+)?(.+)$/);
       if (m) return { list:m[1], time:m[2]||'', starred:!!m[3], title:m[4] };
       const starred = line.startsWith('★ ');
@@ -786,7 +736,6 @@
       if (!groups[list]) groups[list]=[];
       groups[list].push({...t, idx:i});
     });
-    // Sort each group by time (no time = '00:00' so sorts to top)
     Object.values(groups).forEach(g => g.sort((a,b) => (a.time||'00:00').localeCompare(b.time||'00:00')));
     const keys = Object.keys(groups).sort((a,b) => {
       const ai=LIST_ORDER.indexOf(a), bi=LIST_ORDER.indexOf(b);
@@ -808,7 +757,6 @@
     });
   }
 
-
   function renderWriteTasks() {
     const display = document.getElementById('tasksDisplay');
     const groups = groupByList(tasksData);
@@ -820,23 +768,22 @@
         <span>${esc(list)}</span>
         <div style="display:flex;gap:4px;">
           <div class="j-add-btn" onclick="addTaskToList('${list}')">+ Add</div>
-          <div class="qp-freq-btn${isOpen?' active':''}" onclick="toggleFreqPanel('${list}')">↓ Freq</div>
+          <div class="qp-freq-btn${isOpen?' active':''}" onclick="toggleFreqPanel('${list}')">&#x2193; Freq</div>
         </div>
       </div>`;
-      // Freq panel appears RIGHT after heading, before tasks
       if (isOpen) {
         const items = freqCache[list] || [];
         const existingTitles = new Set(tasksData.map(t=>t.title.trim().toLowerCase()));
-        html += `<div class="qp-panel"><div class="qp-header">Most completed — ${esc(list)}</div>`;
+        html += `<div class="qp-panel"><div class="qp-header">Most completed \u2014 ${esc(list)}</div>`;
         if (!items.length) {
-          html += `<div style="font-size:13px;color:var(--card-muted);padding:8px 14px;font-style:italic;">${freqCacheLoaded?'No history yet.':'Loading…'}</div>`;
+          html += `<div style="font-size:13px;color:var(--card-muted);padding:8px 14px;font-style:italic;">${freqCacheLoaded?'No history yet.':'Loading\u2026'}</div>`;
         } else {
           items.forEach(item => {
             const alreadyAdded = existingTitles.has(item.title.toLowerCase());
             html += `<div class="qp-item${alreadyAdded?' already-added':''}" onclick="${alreadyAdded?'':` addFromFreq('${esc(list)}','${esc(item.title).replace(/'/g,"\\'")}') `}">
               <span class="qp-title">${esc(item.title)}</span>
-              <span class="qp-count">×${item.count}</span>
-              <span class="qp-add">${alreadyAdded?'✓':'＋'}</span>
+              <span class="qp-count">\xd7${item.count}</span>
+              <span class="qp-add">${alreadyAdded?'&#x2713;':'\uff0b'}</span>
             </div>`;
           });
         }
@@ -846,15 +793,15 @@
         group.items.forEach(item => {
           const opts = LIST_OPTIONS.map(l=>`<option value="${l}"${l===item.list?' selected':''}>${l}</option>`).join('');
           const starBtn = item.starred
-            ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">★</button>`
-            : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">☆</button>`;
+            ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">&#x2605;</button>`
+            : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
           html += `<div class="j-task-row" data-idx="${item.idx}">
             <input class="j-task-time" type="time" value="${esc(item.time||'')}"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
             <input class="j-task-title" type="text" value="${esc(item.title)}"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;markTasksDirty()">
             ${starBtn}
-            <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">···</button>
+            <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
               <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
               <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
@@ -867,37 +814,26 @@
   }
 
   function toggleTaskMenu(btn, idx) {
-    // Close any other open menus first
-    document.querySelectorAll('.j-task-menu').forEach(m => {
-      if (m !== btn.nextElementSibling) m.style.display = 'none';
-    });
+    document.querySelectorAll('.j-task-menu').forEach(m => { if (m !== btn.nextElementSibling) m.style.display = 'none'; });
     const menu = btn.nextElementSibling;
     const isOpen = menu.style.display !== 'none';
     menu.style.display = isOpen ? 'none' : 'flex';
     if (!isOpen) {
-      // Close when tapping outside
       setTimeout(() => {
         document.addEventListener('click', function close(e) {
-          if (!menu.contains(e.target) && e.target !== btn) {
-            menu.style.display = 'none';
-          }
+          if (!menu.contains(e.target) && e.target !== btn) menu.style.display = 'none';
           document.removeEventListener('click', close);
         });
       }, 10);
     }
   }
 
-  function toggleFreqPanel(list) {
-    openFreqList = openFreqList === list ? null : list;
-    renderWriteTasks();
-  }
+  function toggleFreqPanel(list) { openFreqList = openFreqList === list ? null : list; renderWriteTasks(); }
 
   function addFromFreq(list, title) {
-    const existing = tasksData.map(t=>t.title.trim().toLowerCase());
-    if (existing.includes(title.trim().toLowerCase())) return;
+    if (tasksData.map(t=>t.title.trim().toLowerCase()).includes(title.trim().toLowerCase())) return;
     tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM() });
-    markTasksDirty();
-    renderWriteTasks();
+    markTasksDirty(); renderWriteTasks();
     setTimeout(()=>{
       const rows = document.querySelectorAll('.j-task-row');
       const last = rows[rows.length-1];
@@ -916,48 +852,33 @@
   }
 
   function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
-  function updateTaskTitle(i,v){if(tasksData[i]){tasksData[i].title=v;markTasksDirty();}}
   function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
   function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
-
   function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
 
-  function promptStarAction(i) {
-    document.querySelectorAll('.star-popup').forEach(p=>p.remove());
-    const row=document.querySelector(`.j-task-row[data-idx="${i}"]`); if(!row) return;
-    const popup=document.createElement('div'); popup.className='star-popup';
-    popup.innerHTML=`<div class="star-popup-btn" onclick="unstarTask(${i})">☆ Unstar</div>`;
-    row.appendChild(popup);
-    setTimeout(()=>{ document.addEventListener('click',function cl(e){if(!popup.contains(e.target)){popup.remove();document.removeEventListener('click',cl);}}); },10);
-  }
-
-  function unstarTask(i){document.querySelectorAll('.star-popup').forEach(p=>p.remove());if(!tasksData[i])return;tasksData[i].starred=false;markTasksDirty();renderWriteTasks();}
-
-  // ── Save tasks ────────────────────────────────────────────
   async function saveTasks() {
-    flushTaskInputs(); // final sync before save
+    flushTaskInputs();
     const btn=document.getElementById('tasksSaveBtn');
-    btn.innerHTML='<span class="spin"></span> Saving…'; btn.style.display='flex';
+    btn.innerHTML='<span class="spin"></span> Saving\u2026'; btn.style.display='flex';
     const payload={date:getWriteDate(),tasksText:tasksAsText(),reflection:reflectionSerialise()};
     try {
       if(existingPageId){await api('updateEntry',{pageId:existingPageId,payload});}
       else{const r=await api('saveEntry',{payload});existingPageId=r.id;}
       tasksDirty=false; btn.style.display='none'; btn.textContent='Save';
-      showStatus('tasksSaveStatus','✓ Saved','ok');autoClear('tasksSaveStatus',3000);
+      showStatus('tasksSaveStatus','\u2713 Saved','ok');autoClear('tasksSaveStatus',3000);
     } catch(e){btn.textContent='Save';showStatus('tasksSaveStatus','Error: '+e.message,'err');}
   }
 
-  // ── Save reflection ───────────────────────────────────────
-  // ── Screenshot extraction ─────────────────────────────────
+  // ── Screenshot / voice extraction ─────────────────────────
   function clearImport(){document.getElementById('screenshotInput').value='';document.getElementById('tasksExtracted').style.display='none';document.getElementById('tasksImportStatus').innerHTML='';extractedTasks=[];}
 
   async function extractFromScreenshot() {
     const input=document.getElementById('screenshotInput');
     const files=Array.from(input.files||[]); if(!files.length) return;
-    extractedTasks=[];document.getElementById('tasksExtracted').style.display='none';
+    extractedTasks=[]; document.getElementById('tasksExtracted').style.display='none';
     try {
       for(let i=0;i<files.length;i++){
-        showStatus('tasksImportStatus',`<span class="spin"></span> Extracting ${i+1} of ${files.length}…`,'info');
+        showStatus('tasksImportStatus',`<span class="spin"></span> Extracting ${i+1} of ${files.length}\u2026`,'info');
         const b64=await toBase64(files[i]);
         const ext=await api('extractTasksFromImage',{base64Data:b64,mediaType:files[i].type||'image/jpeg'});
         extractedTasks=extractedTasks.concat(ext||[]);
@@ -983,15 +904,14 @@
     markTasksDirty();renderWriteTasks();clearImport();
   }
 
-  // ── Task voice recording ──────────────────────────────────
   function toggleTaskRecording(){taskRecording?stopTaskRecording():startTaskRecording();}
   function startTaskRecording(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){showStatus('tasksImportStatus','Voice not supported.','err');return;}
     taskRecognition=new SR();taskRecognition.lang='en-GB';taskRecognition.continuous=true;taskRecognition.interimResults=true;
     taskVoiceTranscript='';taskRecording=true;
-    document.getElementById('taskRecordBtn').textContent='⏹ Stop';
-    showStatus('tasksImportStatus','🔴 Recording — tap Stop when done','info');
+    document.getElementById('taskRecordBtn').textContent='\u23f9 Stop';
+    showStatus('tasksImportStatus','\uD83D\uDD34 Recording \u2014 tap Stop when done','info');
     taskRecognition.onresult=e=>{let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;taskVoiceTranscript=t;};
     taskRecognition.onerror=e=>{stopTaskRecording();showStatus('tasksImportStatus','Error: '+e.error,'err');};
     taskRecognition.onend=()=>{if(taskRecording)stopTaskRecording();};
@@ -999,8 +919,8 @@
   }
   function stopTaskRecording(){
     taskRecording=false;if(taskRecognition){try{taskRecognition.stop();}catch(e){}}
-    document.getElementById('taskRecordBtn').textContent='🎤 Record';
-    if(taskVoiceTranscript){showStatus('tasksImportStatus','<span class="spin"></span> Analysing…','info');extractFromVoice();}
+    document.getElementById('taskRecordBtn').textContent='\uD83C\uDF99 Record';
+    if(taskVoiceTranscript){showStatus('tasksImportStatus','<span class="spin"></span> Analysing\u2026','info');extractFromVoice();}
     else document.getElementById('tasksImportStatus').innerHTML='';
   }
   async function extractFromVoice(){
@@ -1014,26 +934,19 @@
     }catch(e){showStatus('tasksImportStatus','Error: '+e.message,'err');}
   }
 
-  // ── Reflection photo OCR ──────────────────────────────────
+  // ── Reflection photo / voice ──────────────────────────────
   let reflPhotoTarget = null;
-  let lastReflFocus   = null; // continuously updated as user moves between fields
+  let lastReflFocus   = null;
 
-  // Track which reflection textarea the user last focused
   document.addEventListener('focusin', e => {
     if (e.target && (e.target.id === 'reflectionBox' || e.target.classList.contains('refl-section-ta'))) {
       lastReflFocus = e.target;
     }
   });
 
-  function getReflTarget() {
-    return lastReflFocus || document.getElementById('reflectionBox');
-  }
+  function getReflTarget() { return lastReflFocus || document.getElementById('reflectionBox'); }
+  function captureReflPhotoTarget() { reflPhotoTarget = lastReflFocus || document.getElementById('reflectionBox'); }
 
-  function captureReflPhotoTarget() {
-    reflPhotoTarget = lastReflFocus || document.getElementById('reflectionBox');
-  }
-
-  // Shared helper: sync a section textarea back to reflSections data model
   function updateReflSectionModel(box) {
     if (box.classList && box.classList.contains('refl-section-ta')) {
       document.querySelectorAll('.refl-section-ta').forEach((ta, i) => {
@@ -1042,28 +955,23 @@
     }
   }
 
-  // Shared helper: auto-expand a textarea to fit its content
-  function autoExpand(ta) {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
-  }
+  function autoExpand(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
 
   async function handleReflectionPhoto(e){
     const file=e.target.files[0]; if(!file) return;
     const box = reflPhotoTarget || document.getElementById('reflectionBox');
     reflPhotoTarget = null;
-    showStatus('reflectionImportStatus','<span class="spin"></span> Transcribing…','info');
+    showStatus('reflectionImportStatus','<span class="spin"></span> Transcribing\u2026','info');
     try{
       const text=await api('ocrImage',{base64Data:await toBase64(file),mediaType:file.type||'image/jpeg'});
       box.value=box.value?box.value+'\n\n'+text:text;
-      updateReflSectionModel(box);
-      autoExpand(box);
-      onReflectionChange();
-      showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',4000);
+      updateReflSectionModel(box); autoExpand(box); onReflectionChange();
+      showStatus('reflectionImportStatus','\u2713 Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',4000);
     }catch(e){showStatus('reflectionImportStatus','Error: '+e.message,'err');}
     e.target.value='';
   }
 
+  let reflRecordTarget = null;
   function toggleReflectionRecording(){reflRecording?stopReflRecording():startReflRecording();}
   function startReflRecording(){
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1071,10 +979,10 @@
     reflRecordTarget = getReflTarget();
     reflRecognition=new SR();reflRecognition.lang='en-GB';reflRecognition.continuous=true;reflRecognition.interimResults=true;
     reflVoiceTranscript='';reflRecording=true;
-    document.getElementById('reflectionRecordBtn').textContent='⏹ Stop';
+    document.getElementById('reflectionRecordBtn').textContent='\u23f9 Stop';
     const targetName = reflRecordTarget.id==='reflectionBox' ? 'general reflection' :
       (reflRecordTarget.closest('.refl-section')?.querySelector('.refl-section-label')?.textContent || 'section');
-    showStatus('reflectionImportStatus',`🔴 Recording into ${targetName} — tap Stop when done`,'info');
+    showStatus('reflectionImportStatus',`\uD83D\uDD34 Recording into ${targetName} \u2014 tap Stop when done`,'info');
     reflRecognition.onresult=e=>{let f='',im='';for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)f+=e.results[i][0].transcript+' ';else im+=e.results[i][0].transcript;}reflVoiceTranscript=f+im;};
     reflRecognition.onerror=e=>{stopReflRecording();showStatus('reflectionImportStatus','Error: '+e.error,'err');};
     reflRecognition.onend=()=>{if(reflRecording)stopReflRecording();};
@@ -1082,22 +990,19 @@
   }
   async function stopReflRecording(){
     reflRecording=false;if(reflRecognition){try{reflRecognition.stop();}catch(e){}}
-    document.getElementById('reflectionRecordBtn').textContent='🎤 Record';
+    document.getElementById('reflectionRecordBtn').textContent='\uD83C\uDF99 Record';
     if(reflVoiceTranscript.trim()){
       const box = reflRecordTarget || document.getElementById('reflectionBox');
       box.value = box.value ? box.value+'\n\n'+reflVoiceTranscript.trim() : reflVoiceTranscript.trim();
-      updateReflSectionModel(box);
-      autoExpand(box);
-      onReflectionChange();
-      showStatus('reflectionImportStatus','✓ Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',3000);
+      updateReflSectionModel(box); autoExpand(box); onReflectionChange();
+      showStatus('reflectionImportStatus','\u2713 Added','ok');setTimeout(()=>document.getElementById('reflectionImportStatus').innerHTML='',3000);
     }else document.getElementById('reflectionImportStatus').innerHTML='';
     reflRecordTarget=null;
   }
 
-
   // ── READ SCREEN ───────────────────────────────────────────
   async function loadReadView(){
-    showStatus('bookStatus','<span class="spin"></span> Loading journal…','info');
+    showStatus('bookStatus','<span class="spin"></span> Loading journal\u2026','info');
     bookEntries=[];bookIndex=0;stepsInDir=0;lastDir=0;
     try{
       const today=new Date(),monthAgo=new Date(today);monthAgo.setDate(today.getDate()-30);
@@ -1135,16 +1040,7 @@
     if(next){if(bookIndex<=0)next.classList.add('disabled');else next.classList.remove('disabled');}
   }
 
-  let readTaskView = 'list'; // 'list' | 'time'
-
-  function readTaskRow(t, entryId, entryDate) {
-    // Returns HTML for a single task row with tappable star-bullet
-    const starClass = t.starred ? 'starred' : '';
-    const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
-    const safeDate = esc(entryDate);
-    const safeParsed = esc(JSON.stringify({list:t.list,time:t.time||'',starred:t.starred,title:t.title}));
-    return `<div class="j-read-task ${starClass}" onclick="toggleReadStar(this,'${safeDate}')">${time}${esc(t.title)}</div>`;
-  }
+  let readTaskView = 'list';
 
   function buildPageHTML(entry){
     const field=bookField, flist=bookFilterList; let html='';
@@ -1156,11 +1052,11 @@
       if (field === 'starred_reflections') taskObjs = taskObjs.filter(t => t.starred);
       if (flist !== 'all') taskObjs = taskObjs.filter(t => (LIST_OPTIONS.includes(t.list)?t.list:'Other') === flist);
       if (taskObjs.length) {
-        const toggleBtn = `<div class="j-edit-btn" onclick="readTaskView=readTaskView==='list'?'time':'list';renderBookPage(false)" style="margin-right:4px;">${readTaskView==='list'?'⏱ By time':'≡ By list'}</div>`;
+        const toggleBtn = `<div class="j-edit-btn" onclick="readTaskView=readTaskView==='list'?'time':'list';renderBookPage(false)" style="margin-right:4px;">${readTaskView==='list'?'\u23f1 By time':'\u2261 By list'}</div>`;
         let inner = '';
         if (readTaskView === 'time') {
           const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
-          sorted.forEach((t,i) => {
+          sorted.forEach(t => {
             const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
             const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
             inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${pill}${esc(t.title)}</div>`;
@@ -1176,7 +1072,7 @@
             });
           });
         }
-        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span>${toggleBtn}<div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div><div class="j-card-body">${inner}</div></div>`;
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Completed tasks</span>${toggleBtn}<div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">&#x270f; Edit</div></div><div class="j-card-body">${inner}</div></div>`;
       }
     }
 
@@ -1193,7 +1089,7 @@
         sections.filter(s => s.text && s.text.trim()).forEach(s => {
           rhtml += `<div class="refl-read-section"><div class="refl-read-label">${esc(s.list)}</div><div class="refl-read-text">${esc(s.text)}</div></div>`;
         });
-        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">✏ Edit</div></div>${rhtml}</div>`;
+        html += `<div class="j-card"><div class="j-card-header"><span class="j-card-title">Reflection</span><div class="j-edit-btn" onclick="showWriteScreen('${entry.date}')">&#x270f; Edit</div></div>${rhtml}</div>`;
       }
     }
 
@@ -1201,22 +1097,17 @@
   }
 
   async function toggleReadStar(el, date) {
-    // Find entry and toggle star for the task matching this element's text
     const entry = bookEntries.find(e => e.date === date);
     if (!entry) return;
     const tasks = parseTasksText(entry.tasksText);
-    // Match by title text content (strip time and pill text)
-    const titleText = el.textContent.replace(/^\d{2}:\d{2}\s*/,'').replace(/^\w+\s*/,'').trim();
-    const match = tasks.find(t => t.title === titleText || el.textContent.includes(t.title));
+    const match = tasks.find(t => t.title === el.textContent.replace(/^\d{2}:\d{2}\s*/,'').replace(/^\w+\s*/,'').trim() || el.textContent.includes(t.title));
     if (!match) return;
     match.starred = !match.starred;
-    // Update the element immediately
     el.classList.toggle('starred', match.starred);
-    // Rebuild and save
     entry.tasksText = tasks.map(t=>`• [${LIST_OPTIONS.includes(t.list)?t.list:'Other'}] ${t.time?`[${t.time}] `:''}${t.starred?'★ ':''}${t.title}`).join('\n');
     try {
       await api('updateEntry',{pageId:entry.id,payload:{date:entry.date,tasksText:entry.tasksText,reflection:entry.reflection||''}});
-    } catch(e) { el.classList.toggle('starred', !match.starred); /* revert on error */ }
+    } catch(e) { el.classList.toggle('starred', !match.starred); }
   }
 
   function navigateDay(direction){
@@ -1243,18 +1134,14 @@
   })();
 
   // ── REVIEW SCREEN ─────────────────────────────────────────
-  function updateHomePills(){ /* no-op — kept for compatibility */ }
-
-  // ── Review screen state ───────────────────────────────────
   let reviewEntries    = [];
   let reviewActiveList = null;
-  let reviewPeriodType = 'week';  // week | month | quarter | year
-  let reviewPeriodIdx  = 0;       // 0 = current, -1 = previous, etc.
+  let reviewPeriodType = 'week';
+  let reviewPeriodIdx  = 0;
   let reviewNotesDirty = false;
 
-  // ── Period calculation ────────────────────────────────────
+  // ── Period helpers ────────────────────────────────────────
   function getPeriodDates(type, offset) {
-    // offset: 0 = current, -1 = previous, +1 = next
     const today = new Date();
     let from, to;
     switch(type) {
@@ -1301,7 +1188,6 @@
         const day  = today.getDay();
         const diff = day === 0 ? 6 : day - 1;
         const mon  = new Date(today); mon.setDate(today.getDate() - diff + offset * 7);
-        // ISO week number
         const jan4  = new Date(mon.getFullYear(), 0, 4);
         const startOfWeek1 = new Date(jan4); startOfWeek1.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
         const weekNum = Math.floor((mon - startOfWeek1) / (7 * 86400000)) + 1;
@@ -1325,7 +1211,6 @@
   }
 
   function getPeriodKey(type, offset) {
-    // Unique key for storage: review:week:2026-W16 etc.
     const today = new Date();
     switch(type) {
       case 'week': {
@@ -1335,7 +1220,7 @@
         const jan4  = new Date(mon.getFullYear(), 0, 4);
         const startOfWeek1 = new Date(jan4); startOfWeek1.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
         const weekNum = Math.floor((mon - startOfWeek1) / (7 * 86400000)) + 1;
-        return `review:week:${mon.getFullYear()}-W${String(weekNum).padStart(2,'0')}`;
+        return `review:week:${mon.getFullYear()}-W${String(weekNum).padStart(2,'00')}`;
       }
       case 'month': {
         const d = new Date(today.getFullYear(), today.getMonth() + offset, 1);
@@ -1354,9 +1239,23 @@
     }
   }
 
-  function updateHomePills(){ /* no-op */ }
-  function onCustomDateChange(){ /* no-op */ }
-  function onHomeRangeChange(){ loadHomeStats(); clearReviewDetail(); }
+  // ── Review nav button state ───────────────────────────────
+  // Next (›): disabled when already viewing the current period (idx === 0).
+  // Prev (‹): disabled when going back one more step would start before
+  //           EARLIEST_ENTRY_DATE.
+  // TODO (multi-user): Replace EARLIEST_ENTRY_DATE with a dynamic value
+  // fetched from the backend or set in user settings/onboarding.
+  function updateReviewNavBtns() {
+    const prevBtn = document.getElementById('reviewPrevBtn');
+    const nextBtn = document.getElementById('reviewNextBtn');
+
+    // Can never navigate into the future
+    nextBtn.classList.toggle('disabled', reviewPeriodIdx >= 0);
+
+    // Can't go back past the earliest entry
+    const prevDates = getPeriodDates(reviewPeriodType, reviewPeriodIdx - 1);
+    prevBtn.classList.toggle('disabled', prevDates.from < EARLIEST_ENTRY_DATE);
+  }
 
   function updatePeriodHeading() {
     const el = document.getElementById('reviewPeriodHeading');
@@ -1372,12 +1271,33 @@
     document.getElementById('homeDateFrom').value = dates.from;
     document.getElementById('homeDateTo').value   = dates.to;
     updatePeriodHeading();
+    updateReviewNavBtns();
     clearReviewDetail();
     loadHomeStats();
   }
 
+  function navigateReviewPeriod(dir) {
+    const newIdx = reviewPeriodIdx + dir;
+    // Guard: no future periods
+    if (newIdx > 0) return;
+    // Guard: no periods starting before the earliest entry
+    const newDates = getPeriodDates(reviewPeriodType, newIdx);
+    if (newDates.from < EARLIEST_ENTRY_DATE) return;
+
+    reviewPeriodIdx = newIdx;
+    const dates = getPeriodDates(reviewPeriodType, reviewPeriodIdx);
+    document.getElementById('homeDateFrom').value = dates.from;
+    document.getElementById('homeDateTo').value   = dates.to;
+    updatePeriodHeading();
+    updateReviewNavBtns();
+    clearReviewDetail();
+    loadHomeStats().then(() => {
+      if (reviewActiveList) toggleReviewList(reviewActiveList, true);
+    });
+  }
+
   async function loadHomeStats(){
-    document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">Loading…</div>';
+    document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">Loading\u2026</div>';
     const from=document.getElementById('homeDateFrom').value;
     const to=document.getElementById('homeDateTo').value;
     if(!from||!to)return;
@@ -1420,17 +1340,6 @@
     reviewActiveList = null;
   }
 
-  function navigateReviewPeriod(dir) {
-    reviewPeriodIdx += dir;
-    const dates = getPeriodDates(reviewPeriodType, reviewPeriodIdx);
-    document.getElementById('homeDateFrom').value = dates.from;
-    document.getElementById('homeDateTo').value   = dates.to;
-    updatePeriodHeading();
-    loadHomeStats().then(() => {
-      if (reviewActiveList) toggleReviewList(reviewActiveList, true);
-    });
-  }
-
   async function toggleReviewList(list, forceReload) {
     if (!forceReload && reviewActiveList === list) { clearReviewDetail(); return; }
     if (reviewActiveList && reviewActiveList !== list) {
@@ -1441,16 +1350,13 @@
     const row = document.getElementById('stat-row-' + list);
     if (row) row.classList.add('active');
 
-    // Update detail card header
     document.getElementById('reviewDetailList').textContent = list;
-    document.getElementById('reviewDetailBody').innerHTML = '<div class="empty-note"><span class="spin"></span> Loading…</div>';
+    document.getElementById('reviewDetailBody').innerHTML = '<div class="empty-note"><span class="spin"></span> Loading\u2026</div>';
     document.getElementById('reviewDetailCard').style.display = 'block';
     document.getElementById('reviewDetailCard').scrollIntoView({ behavior:'smooth', block:'start' });
 
-    // Load period notes
     await loadReviewNotes(list);
 
-    // Build task list
     const byDate = {};
     reviewEntries.forEach(entry => {
       if (!entry.tasksText) return;
@@ -1458,7 +1364,6 @@
       if (tasks.length) byDate[entry.date] = { tasks, entryId: entry.id, tasksText: entry.tasksText };
     });
 
-    // Collect reflections
     const reflTexts = [];
     reviewEntries.forEach(entry => {
       if (!entry.reflection) return;
@@ -1467,7 +1372,8 @@
       (refl.sections||[]).filter(s=>s.list===list&&s.text&&s.text.trim()).forEach(s=>reflTexts.push(s.text.trim()));
     });
 
-    // Render task list with star toggles
+    // Task rows use j-read-task style (hollow ☆ bullet → filled ★ when starred),
+    // matching the Read screen exactly.
     const dates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
     let taskHtml = '';
     if (!dates.length) {
@@ -1478,22 +1384,23 @@
         const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
         const count = byDate[date].tasks.length;
         const items = byDate[date].tasks.map((t, ti) => {
-          const starClass = t.starred ? 'starred' : '';
           const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
-          return `<div class="review-task-item j-read-task ${starClass}" id="rtask-${date}-${ti}" onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}${esc(t.title)}</div>`;
+          return `<div class="j-read-task ${t.starred ? 'starred' : ''}" id="rtask-${date}-${ti}"
+            onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}${esc(t.title)}</div>`;
         }).join('');
-        return `<div class="review-date-group"><div class="review-date-label" style="display:flex;justify-content:space-between;align-items:center;">${esc(dateStr)}<span class="j-list-count">+${count}</span></div>${items}</div>`;
+        return `<div class="review-date-group">
+          <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}</span></div>
+          ${items}
+        </div>`;
       }).join('');
     }
 
-    // Show summary slot + tasks
     document.getElementById('reviewDetailBody').innerHTML =
-      `<div id="reviewSummarySlot"><div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary…</div></div>` +
+      `<div id="reviewSummarySlot"><div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary\u2026</div></div>` +
       taskHtml;
 
-    // Generate AI summary
     try {
-      const allTasks = dates.flatMap(d => byDate[d].tasks.map(t => (t.starred?'★ ':'')+t.title));
+      const allTasks = dates.flatMap(d => byDate[d].tasks.map(t => (t.starred?'\u2605 ':'')+t.title));
       const summaryText = await generateListSummary(list, allTasks, reflTexts);
       document.getElementById('reviewSummarySlot').innerHTML =
         `<div class="review-summary">${esc(summaryText)}</div>`;
@@ -1512,7 +1419,6 @@
     const globalIdx = tasks.indexOf(listTasks[taskIdx]);
     tasks[globalIdx].starred = !currentlyStarred;
     entry.tasksText = tasks.map(t=>`• [${LIST_OPTIONS.includes(t.list)?t.list:'Other'}] ${t.time?`[${t.time}] `:''}${t.starred?'★ ':''}${t.title}`).join('\n');
-    // Update UI immediately
     const el = document.getElementById(`rtask-${date}-${taskIdx}`);
     if (el) {
       el.classList.toggle('starred', !currentlyStarred);
@@ -1521,7 +1427,6 @@
     try {
       await api('updateEntry',{pageId:entry.id,payload:{date:entry.date,tasksText:entry.tasksText,reflection:entry.reflection||''}});
     } catch(e) {
-      // Revert
       tasks[globalIdx].starred = currentlyStarred;
       if (el) { el.classList.toggle('starred', currentlyStarred); el.setAttribute('onclick', `toggleReviewStar('${date}',${taskIdx},${currentlyStarred})`); }
     }
@@ -1537,7 +1442,7 @@
     try {
       const entry = await api('getEntryForDate', { date: key });
       if (entry && entry.reflection) { box.value = entry.reflection; autoExpand(box); }
-    } catch(e) { /* no entry yet — blank is fine */ }
+    } catch(e) { /* no entry yet */ }
   }
 
   function onReviewNotesChange() {
@@ -1549,9 +1454,8 @@
     const key  = getPeriodKey(reviewPeriodType, reviewPeriodIdx) + ':' + reviewActiveList;
     const text = document.getElementById('reviewNotesBox').value.trim();
     const btn  = document.getElementById('reviewNotesSaveBtn');
-    btn.innerHTML = '<span class="spin"></span> Saving…';
+    btn.innerHTML = '<span class="spin"></span> Saving\u2026';
     try {
-      // Check if entry exists
       const existing = await api('getEntryForDate', { date: key });
       if (existing) {
         await api('updateEntry', { pageId: existing.id, payload: { date: key, tasksText: '', reflection: text } });
@@ -1559,7 +1463,7 @@
         await api('saveEntry', { payload: { date: key, tasksText: '', reflection: text } });
       }
       reviewNotesDirty = false; btn.style.display='none'; btn.textContent='Save';
-      showStatus('reviewNotesSaveStatus','✓ Saved','ok');
+      showStatus('reviewNotesSaveStatus','\u2713 Saved','ok');
       setTimeout(()=>document.getElementById('reviewNotesSaveStatus').innerHTML='',3000);
     } catch(e) { btn.textContent='Save'; showStatus('reviewNotesSaveStatus','Error: '+e.message,'err'); }
   }
@@ -1571,8 +1475,6 @@
     const dateRange = `${fmt(from)} to ${fmt(to)}`;
     return await api('generateListSummary', { list, tasks, reflections, dateRange });
   }
-
-
 </script>
 </body>
 </html>
