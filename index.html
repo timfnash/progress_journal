@@ -97,12 +97,21 @@
     .j-tl-rule-15  { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.09); pointer-events: none; }
     .j-tl-rule-hour{ position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.22); pointer-events: none; }
     .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
-    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 5px; padding: 3px 6px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.3; overflow: hidden; cursor: grab; user-select: none; touch-action: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04); z-index: 2; }
+
+    /* Pills — default: 1 slot (5 min) high, single line, truncated */
+    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 0 6px; font-size: 11.5px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1; cursor: grab; user-select: none; touch-action: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04); z-index: 2; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; transition: height 0.15s ease, box-shadow 0.15s ease; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
-    .j-tl-pill .tl-pill-time { font-size: 10px; color: var(--card-muted); display: block; margin-bottom: 1px; }
-    .j-tl-pill .tl-pill-list { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--card-accent); display: inline-block; margin-right: 4px; }
-    .j-tl-pill .tl-pill-title { font-size: 12px; }
-    .j-tl-pill.dragging { opacity: 0.75; cursor: grabbing; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+    .j-tl-pill .tl-pill-time  { color: var(--card-muted); font-size: 10px; flex-shrink: 0; }
+    .j-tl-pill .tl-pill-list  { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--card-accent); font-size: 9px; flex-shrink: 0; }
+    .j-tl-pill .tl-pill-title { color: var(--card-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .j-tl-pill.dragging { opacity: 0.95; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); white-space: normal; overflow: visible; align-items: flex-start; padding: 5px 7px; flex-wrap: wrap; }
+    .j-tl-pill.dragging .tl-pill-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; width: 100%; flex-basis: 100%; }
+
+    /* Day-start pill — distinct, full-width, dashed border */
+    .j-tl-daystart { position: absolute; left: 0; right: 0; height: auto; background: rgba(110,184,126,0.14); border: 1px dashed var(--green); border-radius: 4px; padding: 0 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); font-family: 'Jost', sans-serif; line-height: 1; cursor: grab; user-select: none; touch-action: none; z-index: 3; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; transition: box-shadow 0.15s ease; }
+    .j-tl-daystart.dragging { background: rgba(110,184,126,0.28); box-shadow: 0 4px 14px rgba(0,0,0,0.2); cursor: grabbing; z-index: 20; }
+    .j-tl-daystart .ds-icon { font-size: 11px; }
+
     .j-tl-empty { text-align: center; color: var(--card-muted); font-style: italic; padding: 30px 0; font-size: 14px; }
     .j-tl-hint { text-align: center; color: var(--card-muted); font-size: 11px; font-style: italic; padding: 4px 0 8px; }
 
@@ -565,7 +574,7 @@
 
   function showWriteScreen(date) {
     showView('writeView');
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false;
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; dayStartTime=null;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading\u2026</div>';
@@ -640,8 +649,9 @@
         document.getElementById('reflectionBox').value = refl.general;
         setTimeout(() => autoExpand(document.getElementById('reflectionBox')), 0);
         reflSections = refl.sections || [];
+        dayStartTime = refl.dayStart || null;
       } else {
-        tasksData = []; reflSections = [];
+        tasksData = []; reflSections = []; dayStartTime = null;
       }
       renderWriteTasks();
       renderReflSections();
@@ -651,7 +661,7 @@
   }
 
   function changeWriteDate(dateStr) {
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; openFreqList=null;
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; openFreqList=null; dayStartTime=null;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     resetReflection();
@@ -676,19 +686,30 @@
   // ── Reflection sections ───────────────────────────────────
   let reflSections = [];
 
+  // ── Day start (Write-screen timeline marker) ──────────────
+  // Stored inside the reflection JSON envelope so no schema change needed.
+  // Kept separate from tasksData so it isn't treated as a task anywhere else.
+  let dayStartTime = null; // 'HH:MM' or null
+
   function reflectionSerialise() {
     const general = document.getElementById('reflectionBox').value.trim();
     const sections = reflSections.filter(s => s.text && s.text.trim());
-    if (!sections.length) return general;
-    return JSON.stringify({ general, sections });
+    // Use the JSON envelope whenever anything other than plain general text needs preserving.
+    if (!sections.length && !dayStartTime) return general;
+    const obj = { general };
+    if (sections.length) obj.sections = sections;
+    if (dayStartTime) obj.dayStart = dayStartTime;
+    return JSON.stringify(obj);
   }
 
   function reflectionParse(raw) {
-    if (!raw) return { general: '', sections: [] };
+    if (!raw) return { general: '', sections: [], dayStart: null };
     try {
       const p = JSON.parse(raw);
-      if (p && typeof p === 'object' && 'general' in p) return { general: p.general || '', sections: p.sections || [] };
-      if (p && p.text !== undefined && !Array.isArray(p)) return { general: p.text || '', sections: [] };
+      if (p && typeof p === 'object' && 'general' in p)
+        return { general: p.general || '', sections: p.sections || [], dayStart: p.dayStart || null };
+      if (p && p.text !== undefined && !Array.isArray(p))
+        return { general: p.text || '', sections: [], dayStart: null };
       if (Array.isArray(p)) {
         const LABELS = { thankful: 'Thankful for', sad: 'Sad about', learned: 'Learned', thoughts: 'Thoughts' };
         const sections = [];
@@ -698,10 +719,10 @@
             .map(f => `${LABELS[f]}: ${block[f].trim()}`);
           if (parts.length) sections.push({ list: block.list || 'Other', text: parts.join('\n') });
         });
-        return { general: '', sections };
+        return { general: '', sections, dayStart: null };
       }
     } catch(e) {}
-    return { general: raw, sections: [] };
+    return { general: raw, sections: [], dayStart: null };
   }
 
   function renderReflTagRow() {
@@ -894,9 +915,9 @@
   }
 
   // ── Timeline view ─────────────────────────────────────────
-  // 24 hours, 5-minute slots. Pixel scale chosen for mobile readability:
-  // 5 min = 6px → 1 hour = 72px → full day = 1728px scrollable.
-  const TL_PX_PER_MIN = 1.2;
+  // 24 hours, 5-minute slots. Pixel scale: 5 min = 14px → 1 hour = 168px.
+  // Pills are one slot tall by default (14px) so they align to a single row.
+  const TL_PX_PER_MIN = 2.8;
   const TL_MIN_PER_DAY = 24 * 60;
 
   function timeToMin(t) {
@@ -955,7 +976,37 @@
     dropHint.style.height = (5 * TL_PX_PER_MIN) + 'px';
     tl.appendChild(dropHint);
 
-    // Group pills by 5-min slot for side-by-side column stacking
+    const slotHeightPx = 5 * TL_PX_PER_MIN;
+
+    // Auto-initialise Day start pill if we have tasks but no dayStart set yet.
+    // Defaults to the time of the earliest task.
+    if (tasksData.length && !dayStartTime) {
+      const earliestMin = tasksData
+        .map(t => snapTo5(timeToMin(t.time || '00:00')))
+        .sort((a,b) => a - b)[0];
+      dayStartTime = minToTime(earliestMin);
+    }
+
+    // Render the Day start pill (always full-width, on top of its slot)
+    if (dayStartTime) {
+      const dsMin = snapTo5(timeToMin(dayStartTime));
+      const ds = document.createElement('div');
+      ds.className = 'j-tl-daystart';
+      ds.dataset.daystart = '1';
+      ds.style.top = (dsMin * TL_PX_PER_MIN) + 'px';
+      ds.style.height = slotHeightPx + 'px';
+      ds.innerHTML = `<span class="ds-icon">&#9728;</span><span class="ds-time">${esc(dayStartTime)}</span><span>Day start</span>`;
+      tl.appendChild(ds);
+      attachTimelineDrag(ds, tl, dropHint, {
+        kind: 'daystart',
+        getTime: () => dayStartTime,
+        // Day start rides on the reflection JSON but we also mark tasks dirty
+        // so the user can save from the card they're actually looking at.
+        setTime: (t) => { dayStartTime = t; markTasksDirty(); onReflectionChange(); }
+      });
+    }
+
+    // Group task pills by 5-min slot for side-by-side column stacking
     const slotGroups = new Map();
     tasksData.forEach((t, idx) => {
       const min = snapTo5(timeToMin(t.time || '00:00'));
@@ -972,10 +1023,8 @@
       return;
     }
 
-    // Render pills — side-by-side columns for overlapping times
-    const PILL_HEIGHT_MIN = 15; // each pill occupies ~15 min of vertical space
-    const pillHeightPx = PILL_HEIGHT_MIN * TL_PX_PER_MIN;
-
+    // Render pills at exactly 1 slot high, single-line with ellipsis.
+    // Side-by-side columns when multiple tasks share a slot.
     slotGroups.forEach((items, min) => {
       const cols = items.length;
       items.forEach((it, col) => {
@@ -983,8 +1032,7 @@
         pill.className = 'j-tl-pill' + (it.task.starred ? ' starred' : '');
         pill.dataset.idx = it.idx;
         pill.style.top = (min * TL_PX_PER_MIN) + 'px';
-        pill.style.height = pillHeightPx + 'px';
-        // Columns: each takes 1/cols width with small gap
+        pill.style.height = slotHeightPx + 'px';
         const gap = 2;
         const pct = 100 / cols;
         pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
@@ -995,37 +1043,49 @@
           `<span class="tl-pill-list">${esc(listTag)}</span>` +
           `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
         tl.appendChild(pill);
-        attachPillDrag(pill, tl, dropHint);
+        attachTimelineDrag(pill, tl, dropHint, {
+          kind: 'task',
+          getTime: () => tasksData[it.idx] ? tasksData[it.idx].time : null,
+          setTime: (t) => { if (tasksData[it.idx]) { tasksData[it.idx].time = t; markTasksDirty(); } }
+        });
       });
     });
 
     wrap.appendChild(tl);
     display.appendChild(wrap);
 
-    // Auto-scroll to earliest task (or 07:00 if none) so the user isn't looking at 00:00 on mobile
+    // Auto-scroll to just before the earliest task (or 07:00 if none)
     setTimeout(() => {
       const earliest = tasksData
         .map(t => snapTo5(timeToMin(t.time || '00:00')))
         .sort((a,b) => a - b)[0] ?? (7 * 60);
       const scrollTarget = Math.max(0, (earliest - 30) * TL_PX_PER_MIN);
-      // Scroll the page to bring the timeline into view near the earliest task
       const tlRect = tl.getBoundingClientRect();
       const y = window.scrollY + tlRect.top + scrollTarget - 100;
       window.scrollTo({ top: y, behavior: 'auto' });
     }, 10);
   }
 
-  // Pointer-based drag: works for mouse and touch
-  function attachPillDrag(pill, timeline, dropHint) {
+  // Pointer-based drag: works for mouse and touch.
+  // Handler receives an adapter object with getTime/setTime so the same code
+  // handles both task pills and the Day-start pill. On drag start the pill
+  // expands to its natural height (via .dragging class) so the user can verify
+  // the full title; on release it snaps back to 1 slot.
+  function attachTimelineDrag(pill, timeline, dropHint, adapter) {
     let dragging = false;
     let startY = 0, startTop = 0;
     let pointerId = null;
+    let originalHeight = null;
 
     function onDown(e) {
       pointerId = e.pointerId;
       pill.setPointerCapture(pointerId);
       dragging = true;
+      // Remember the slot height so we can restore it on drop
+      originalHeight = pill.style.height;
       pill.classList.add('dragging');
+      // Clear fixed height so the pill expands to content while dragging
+      pill.style.height = 'auto';
       startY = e.clientY;
       startTop = parseFloat(pill.style.top) || 0;
       dropHint.style.display = 'block';
@@ -1050,6 +1110,7 @@
       if (!dragging) return;
       dragging = false;
       pill.classList.remove('dragging');
+      if (originalHeight) pill.style.height = originalHeight;
       dropHint.style.display = 'none';
       try { pill.releasePointerCapture(pointerId); } catch(err) {}
 
@@ -1057,14 +1118,10 @@
       const snappedMin = snapTo5(topPx / TL_PX_PER_MIN);
       const newTime = minToTime(snappedMin);
 
-      const idx = parseInt(pill.dataset.idx);
-      if (!isNaN(idx) && tasksData[idx]) {
-        if (tasksData[idx].time !== newTime) {
-          tasksData[idx].time = newTime;
-          markTasksDirty();
-        }
+      if (adapter.getTime() !== newTime) {
+        adapter.setTime(newTime);
       }
-      // Re-render so columns re-compute after the drop
+      // Re-render to recompute columns and overlap stacking
       renderWriteTasksTime();
     }
 
