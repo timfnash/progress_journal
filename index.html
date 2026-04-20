@@ -434,12 +434,54 @@
   }
 
   // ── API ───────────────────────────────────────────────────
+  // Simple client-side cache for read calls to avoid hammering Notion's API
+  // and hitting rate limits. Cache is invalidated on any write (saveEntry /
+  // updateEntry) so edits are visible immediately. TTL is 5 minutes for
+  // anything still in memory that wasn't explicitly invalidated.
+  const CACHE_TTL_MS = 5 * 60 * 1000;
+  const apiCache = new Map(); // key → { data, expires }
+
+  function cacheKey(action, params) {
+    return action + '|' + JSON.stringify(params || {});
+  }
+
+  function cacheGet(key) {
+    const hit = apiCache.get(key);
+    if (!hit) return null;
+    if (Date.now() > hit.expires) { apiCache.delete(key); return null; }
+    return hit.data;
+  }
+
+  function cacheSet(key, data) {
+    apiCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
+  }
+
+  function cacheInvalidateReads() {
+    // Any read whose results may have changed after a write. We just clear
+    // everything — safest, and the next screen view will re-fetch.
+    apiCache.clear();
+  }
+
   async function api(action, params) {
+    // Read actions are cached; write actions invalidate cache after they run.
+    const isRead  = action === 'getEntries' || action === 'getEntryForDate';
+    const isWrite = action === 'saveEntry' || action === 'updateEntry';
+
+    if (isRead) {
+      const key = cacheKey(action, params);
+      const cached = cacheGet(key);
+      if (cached !== null) return cached;
+    }
+
     const res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
     const text = await res.text();
     if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
     const data = JSON.parse(text);
     if (!data.success) throw new Error(data.error);
+
+    if (isRead) cacheSet(cacheKey(action, params), data.data);
+    if (isWrite) cacheInvalidateReads();
+
     return data.data;
   }
 
@@ -1012,7 +1054,7 @@
       const entries=await api('getEntries',{startDate:isoDate(monthAgo),endDate:isoDate(today)});
       document.getElementById('bookStatus').innerHTML='';
       bookEntries=entries.filter(e=>e.date);bookIndex=0;renderBookPage(false);
-    }catch(e){showStatus('bookStatus','Error: '+e.message,'err');}
+    }catch(e){showStatus('bookStatus','Error: '+friendlyError(e),'err');}
   }
 
   async function loadMoreEntries(direction){
@@ -1299,13 +1341,20 @@
     });
   }
 
+  function friendlyError(err) {
+    const msg = err && err.message ? err.message : String(err);
+    if (/bandwidth|quota|rate/i.test(msg))
+      return 'Notion is rate-limiting \u2014 please wait a minute and try again.';
+    return msg;
+  }
+
   async function loadHomeStats(){
     document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">Loading\u2026</div>';
     const from=document.getElementById('homeDateFrom').value;
     const to=document.getElementById('homeDateTo').value;
     if(!from||!to)return;
     try{const entries=await api('getEntries',{startDate:from,endDate:to});renderHomeStats(entries);}
-    catch(e){document.getElementById('homeStatsBody').innerHTML=`<div class="empty-note" style="color:var(--red);">Error: ${e.message}</div>`;}
+    catch(e){document.getElementById('homeStatsBody').innerHTML=`<div class="empty-note" style="color:var(--red);">${esc(friendlyError(e))}</div>`;}
   }
 
   function renderHomeStats(entries){
