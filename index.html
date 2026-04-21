@@ -196,7 +196,7 @@
     .h-stat-row.active .h-list-name { color: var(--accent); }
     .review-summary { font-size: 15px; color: var(--card-text); line-height: 1.8; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; font-style: italic; }
     .review-date-group { margin-bottom: 4px; }
-    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 14px 4px; display: flex; justify-content: space-between; align-items: center; }
+    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 6px 4px 14px; display: flex; justify-content: space-between; align-items: center; }
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
@@ -396,7 +396,10 @@
       <div class="j-card">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--card-border);">
           <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);" id="reviewDetailList"></div>
-          <div class="j-btn" onclick="clearReviewDetail()">Clear</div>
+          <div style="display:flex;gap:4px;">
+            <div class="j-btn" id="reviewDurBtn" onclick="toggleReviewDurationView()">By duration</div>
+            <div class="j-btn" onclick="clearReviewDetail()">Clear</div>
+          </div>
         </div>
         <div style="border-bottom:1px solid var(--card-border);">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px 4px;">
@@ -1552,7 +1555,38 @@
     if(next){if(bookIndex<=0)next.classList.add('disabled');else next.classList.remove('disabled');}
   }
 
-  let readTaskView = 'list';
+  let readTaskView = 'list'; // 'list' | 'time' | 'duration'
+
+  // Cycle read task view: list → time → duration → list
+  function cycleReadTaskView() {
+    if (readTaskView === 'list') readTaskView = 'time';
+    else if (readTaskView === 'time') readTaskView = 'duration';
+    else readTaskView = 'list';
+    renderBookPage(false);
+  }
+
+  function readViewBtnLabel() {
+    if (readTaskView === 'list') return '\u23f1 By time';
+    if (readTaskView === 'time') return '\u23f1 By duration';
+    return '\u2261 By list';
+  }
+
+  // Aggregate tasks by title: combine duplicates, sum durations, count occurrences.
+  // Returns array sorted by total duration descending.
+  function aggregateByDuration(tasks) {
+    const map = new Map();
+    tasks.forEach(t => {
+      const key = t.title.trim().toLowerCase();
+      if (!map.has(key)) {
+        map.set(key, { title: t.title.trim(), totalDur: 0, count: 0, starred: false, list: t.list });
+      }
+      const agg = map.get(key);
+      agg.totalDur += taskDurationMin(t);
+      agg.count += 1;
+      if (t.starred) agg.starred = true;
+    });
+    return [...map.values()].sort((a, b) => b.totalDur - a.totalDur);
+  }
 
   function buildPageHTML(entry){
     const field=bookField, flist=bookFilterList; let html='';
@@ -1564,9 +1598,16 @@
       if (field === 'starred_reflections') taskObjs = taskObjs.filter(t => t.starred);
       if (flist !== 'all') taskObjs = taskObjs.filter(t => (LIST_OPTIONS.includes(t.list)?t.list:'Other') === flist);
       if (taskObjs.length) {
-        const toggleBtn = `<div class="j-edit-btn" onclick="readTaskView=readTaskView==='list'?'time':'list';renderBookPage(false)" style="margin-right:4px;">${readTaskView==='list'?'\u23f1 By time':'\u2261 By list'}</div>`;
+        const toggleBtn = `<div class="j-edit-btn" onclick="cycleReadTaskView()" style="margin-right:4px;">${readViewBtnLabel()}</div>`;
         let inner = '';
-        if (readTaskView === 'time') {
+        if (readTaskView === 'duration') {
+          const agg = aggregateByDuration(taskObjs);
+          agg.forEach(a => {
+            const label = a.count > 1 ? `${esc(a.title)} (${a.count})` : esc(a.title);
+            const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${a.totalDur}m</span>` : '';
+            inner += `<div class="j-read-task ${a.starred?'starred':''}"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>${durStr}</div>`;
+          });
+        } else if (readTaskView === 'time') {
           const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
           sorted.forEach(t => {
             const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
@@ -1655,6 +1696,54 @@
   let reviewPeriodType = 'week';
   let reviewPeriodIdx  = 0;
   let reviewNotesDirty = false;
+  let reviewTaskView = 'date'; // 'date' | 'duration'
+  let reviewByDate = {};       // cached for toggle without re-fetch
+
+  function buildReviewTaskHtml(byDate) {
+    if (reviewTaskView === 'duration') {
+      // Flatten all tasks across dates, aggregate by title
+      const allTasks = Object.values(byDate).flatMap(d => d.tasks);
+      const agg = aggregateByDuration(allTasks);
+      if (!agg.length) return '<div class="empty-note">No tasks found.</div>';
+      return agg.map(a => {
+        const label = a.count > 1 ? `${esc(a.title)} (${a.count})` : esc(a.title);
+        const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${a.totalDur}m</span>` : '';
+        return `<div class="j-read-task ${a.starred?'starred':''}"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>${durStr}</div>`;
+      }).join('');
+    }
+
+    // Default: by date
+    const dates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+    if (!dates.length) return '<div class="empty-note">No tasks found.</div>';
+    return dates.map(date => {
+      const d = new Date(date+'T12:00:00');
+      const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      const count = byDate[date].tasks.length;
+      const items = byDate[date].tasks.map((t, ti) => {
+        const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
+        const dur = taskDurationMin(t);
+        const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
+        return `<div class="j-read-task ${t.starred ? 'starred' : ''}" id="rtask-${date}-${ti}"
+          onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
+      }).join('');
+      return `<div class="review-date-group">
+        <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}</span></div>
+        ${items}
+      </div>`;
+    }).join('');
+  }
+
+  function toggleReviewDurationView() {
+    reviewTaskView = reviewTaskView === 'date' ? 'duration' : 'date';
+    const btn = document.getElementById('reviewDurBtn');
+    if (btn) btn.textContent = reviewTaskView === 'date' ? 'By duration' : 'By date';
+    // Re-render only the task body, preserving the summary slot
+    const body = document.getElementById('reviewDetailBody');
+    if (!body) return;
+    const summarySlot = document.getElementById('reviewSummarySlot');
+    const summaryHtml = summarySlot ? summarySlot.outerHTML : '';
+    body.innerHTML = summaryHtml + buildReviewTaskHtml(reviewByDate);
+  }
 
   // ── Period helpers ────────────────────────────────────────
   function getPeriodDates(type, offset) {
@@ -1861,6 +1950,7 @@
       if (row) row.classList.remove('active');
     }
     reviewActiveList = null;
+    reviewTaskView = 'date';
   }
 
   async function toggleReviewList(list, forceReload) {
@@ -1897,28 +1987,11 @@
 
     // Task rows use j-read-task style (hollow ☆ bullet → filled ★ when starred),
     // matching the Read screen exactly.
-    const dates = Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-    let taskHtml = '';
-    if (!dates.length) {
-      taskHtml = '<div class="empty-note">No tasks found.</div>';
-    } else {
-      taskHtml = dates.map(date => {
-        const d = new Date(date+'T12:00:00');
-        const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-        const count = byDate[date].tasks.length;
-        const items = byDate[date].tasks.map((t, ti) => {
-          const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
-          const dur = taskDurationMin(t);
-          const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
-          return `<div class="j-read-task ${t.starred ? 'starred' : ''}" id="rtask-${date}-${ti}"
-            onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
-        }).join('');
-        return `<div class="review-date-group">
-          <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}</span></div>
-          ${items}
-        </div>`;
-      }).join('');
-    }
+    // Store byDate at module level so toggleReviewDurationView can re-render.
+    reviewByDate = byDate;
+    reviewTaskView = 'date';
+
+    const taskHtml = buildReviewTaskHtml(byDate);
 
     document.getElementById('reviewDetailBody').innerHTML =
       `<div id="reviewSummarySlot"><div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary\u2026</div></div>` +
