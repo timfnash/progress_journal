@@ -79,14 +79,11 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { padding: 4px 0 4px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
+    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-meta { display: flex; align-items: center; gap: 6px; padding: 0 0 2px; }
-    .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: left; -webkit-appearance: none; appearance: none; }
+    .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; margin-top: 2px; }
     .j-task-time::-webkit-calendar-picker-indicator { display: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
-    .j-task-dur { font-size: 10px; color: var(--card-muted); flex-shrink: 0; }
-    .j-task-body { display: flex; align-items: flex-start; gap: 6px; }
     .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; margin-top: 3px; }
@@ -94,7 +91,7 @@
 
     /* ── Write timeline view ── */
     .j-timeline-wrap { position: relative; padding: 4px 8px 8px; }
-    .j-timeline { position: relative; margin-left: 42px; min-height: 100px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .j-timeline { position: relative; margin-left: 42px; min-height: 100px; }
     .j-tl-hour-label { position: absolute; left: -42px; width: 36px; text-align: right; font-size: 10px; color: var(--card-muted); font-family: 'Jost', sans-serif; letter-spacing: 0.04em; transform: translateY(-6px); }
     .j-tl-rule-5   { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.04); pointer-events: none; }
     .j-tl-rule-15  { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.09); pointer-events: none; }
@@ -945,23 +942,19 @@
             ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">&#x2605;</button>`
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
           const dur = taskDurationMin(item);
-          const durLabel = dur > 0 ? `<span class="j-task-dur">${dur}m</span>` : '';
+          const durLabel = dur > 0 ? `<span style="font-size:10px;color:var(--card-muted);flex-shrink:0;padding:0 2px;margin-top:3px;">${dur}m</span>` : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
-            <div class="j-task-meta">
-              <input class="j-task-time" type="time" value="${esc(item.time||'')}"
-                oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
-              ${durLabel}
-            </div>
-            <div class="j-task-body">
-              <textarea class="j-task-title" rows="1"
-                oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
-                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
-              ${starBtn}
-              <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
-              <div class="j-task-menu" style="display:none;">
-                <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
-                <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
-              </div>
+            <input class="j-task-time" type="time" value="${esc(item.time||'')}"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
+            <textarea class="j-task-title" rows="1"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
+            ${durLabel}
+            ${starBtn}
+            <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
+            <div class="j-task-menu" style="display:none;">
+              <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
+              <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
             </div>
           </div>`;
         });
@@ -1118,14 +1111,8 @@
       slotGroups.get(startMin).push({ task: t, idx });
     });
 
-    // Determine max columns across all slots so we can expand the
-    // timeline width for horizontal scroll when there are many overlaps.
-    const MIN_PILL_COL_PX = 160;
-    let maxCols = 1;
-
     slotGroups.forEach((items, startMin) => {
       const cols = items.length;
-      if (cols > maxCols) maxCols = cols;
       items.forEach((it, col) => {
         const startMinT = snapTo5(timeToMin(it.task.startTime || it.task.time || '00:00'));
         const endMinT   = snapTo5(timeToMin(it.task.time || it.task.startTime || '00:00'));
@@ -1140,7 +1127,6 @@
         const pct = 100 / cols;
         pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
         pill.style.width = `calc(${pct}% - ${gap}px)`;
-        pill.style.minWidth = (MIN_PILL_COL_PX - gap) + 'px';
         const listTag = LIST_OPTIONS.includes(it.task.list) ? it.task.list : 'Other';
         const timeLabel = (it.task.startTime && it.task.time && it.task.startTime !== it.task.time)
           ? `${esc(it.task.startTime)}\u2013${esc(it.task.time)}`
@@ -1155,12 +1141,6 @@
         attachSpanDrag(pill, tl, dropHint, dayFromMin, it.idx);
       });
     });
-
-    // If overlapping columns push pills beyond the container, expand the
-    // timeline so overflow-x: auto kicks in and the user can scroll sideways.
-    if (maxCols > 1) {
-      tl.style.minWidth = (maxCols * MIN_PILL_COL_PX) + 'px';
-    }
 
     wrap.appendChild(tl);
     display.appendChild(wrap);
