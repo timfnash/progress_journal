@@ -1128,13 +1128,14 @@
         pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
         pill.style.width = `calc(${pct}% - ${gap}px)`;
         const listTag = LIST_OPTIONS.includes(it.task.list) ? it.task.list : 'Other';
-        const durLabel = durationMin > 0 ? `${durationMin}m` : '';
+        const timeLabel = (it.task.startTime && it.task.time && it.task.startTime !== it.task.time)
+          ? `${esc(it.task.startTime)}\u2013${esc(it.task.time)}`
+          : esc(it.task.time || '--:--');
         pill.innerHTML =
           `<span class="tl-handle tl-handle-top"></span>` +
-          `<span class="tl-pill-time">${esc(it.task.time || '--:--')}</span>` +
+          `<span class="tl-pill-time">${timeLabel}</span>` +
           `<span class="tl-pill-list">${esc(listTag)}</span>` +
           `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>` +
-          (durLabel ? `<span class="tl-pill-dur">${durLabel}</span>` : '') +
           `<span class="tl-handle tl-handle-bot"></span>`;
         tl.appendChild(pill);
         attachSpanDrag(pill, tl, dropHint, dayFromMin, it.idx);
