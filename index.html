@@ -98,14 +98,21 @@
     .j-tl-rule-hour{ position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.22); pointer-events: none; }
     .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
 
-    /* Pills — default: 1 slot (5 min) high, single line, truncated */
-    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 0 6px; font-size: 11.5px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1; cursor: grab; user-select: none; touch-action: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04); z-index: 2; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; transition: height 0.15s ease, box-shadow 0.15s ease; }
+    /* Pills — span from startTime to time (endTime); 1-slot min height.
+       Top/bottom handles drag start/end independently; body drags both. */
+    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 0 6px; font-size: 11.5px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1; cursor: grab; user-select: none; touch-action: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04); z-index: 2; display: flex; align-items: center; gap: 5px; white-space: nowrap; overflow: hidden; transition: box-shadow 0.15s ease; min-height: 14px; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
     .j-tl-pill .tl-pill-time  { color: var(--card-muted); font-size: 10px; flex-shrink: 0; }
     .j-tl-pill .tl-pill-list  { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--card-accent); font-size: 9px; flex-shrink: 0; }
     .j-tl-pill .tl-pill-title { color: var(--card-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
-    .j-tl-pill.dragging { opacity: 0.95; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); white-space: normal; overflow: visible; align-items: flex-start; padding: 5px 7px; flex-wrap: wrap; }
-    .j-tl-pill.dragging .tl-pill-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; width: 100%; flex-basis: 100%; }
+    .j-tl-pill .tl-pill-dur   { color: var(--card-muted); font-size: 10px; flex-shrink: 0; margin-left: auto; padding-left: 4px; }
+    .j-tl-pill.dragging { opacity: 0.95; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+    .j-tl-pill.dragging .tl-pill-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; }
+    /* Drag handles — thin strips at top and bottom of each pill */
+    .tl-handle { position: absolute; left: 0; right: 0; height: 6px; cursor: ns-resize; touch-action: none; background: transparent; z-index: 3; }
+    .tl-handle-top { top: 0; border-top-left-radius: 3px; border-top-right-radius: 3px; }
+    .tl-handle-bot { bottom: 0; border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
+    .tl-handle:hover, .tl-handle:active { background: rgba(200,169,110,0.35); }
 
     /* Day-start pill — distinct, full-width, dashed border */
     .j-tl-daystart { position: absolute; left: 0; right: 0; height: auto; background: rgba(110,184,126,0.14); border: 1px dashed var(--green); border-radius: 4px; padding: 0 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); font-family: 'Jost', sans-serif; line-height: 1; cursor: grab; user-select: none; touch-action: none; z-index: 3; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; transition: box-shadow 0.15s ease; }
@@ -120,11 +127,12 @@
     .star-popup-btn { font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none; }
 
     /* Read + Review task rows — hollow star bullet, filled when starred */
-    .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; }
+    .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: baseline; gap: 0; }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
     .j-read-task.starred::before { content: '★'; color: #b07030; }
     .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; }
+    .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; }
 
     /* Reflection */
     .j-textarea { width: 100%; min-height: 38px; height: 38px; overflow-y: hidden; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 8px 14px; resize: none; display: block; }
@@ -574,7 +582,7 @@
 
   function showWriteScreen(date) {
     showView('writeView');
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; dayStartTime=null;
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; dayStartTime=null; timelineFocusMin=null;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     document.getElementById('tasksDisplay').innerHTML = '<div class="empty-note">Loading\u2026</div>';
@@ -661,7 +669,7 @@
   }
 
   function changeWriteDate(dateStr) {
-    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; openFreqList=null; dayStartTime=null;
+    tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; openFreqList=null; dayStartTime=null; timelineFocusMin=null;
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     resetReflection();
@@ -790,24 +798,62 @@
     return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
   }
 
+  // Tasks persist in a plain-text format inside the Notion Tasks rich_text:
+  //   • [List] [HH:MM] ★ Title              (end time only — no duration)
+  //   • [List] [HH:MM] [5m] ★ Title         (end time + duration in minutes)
+  //   • [List] [HH:MM-HH:MM] ★ Title        (legacy range — still parsed)
+  // Parser accepts all three. Writer always emits [HH:MM] [Nm] when startTime
+  // is set; startTime is derived from endTime - duration on parse.
   function parseTasksText(raw) {
     if (!raw) return [];
     return raw.split('\n').map(l => {
       const line = l.replace(/^•\s*/,'').trim();
-      const m = line.match(/^\[(.+?)\]\s+(?:\[(\d{2}:\d{2})\]\s+)?(★\s+)?(.+)$/);
-      if (m) return { list:m[1], time:m[2]||'', starred:!!m[3], title:m[4] };
+      // Duration form: [Basic] [08:10] [5m] ★ Title
+      const dur = line.match(/^\[(.+?)\]\s+\[(\d{2}:\d{2})\]\s+\[(\d+)m\]\s+(★\s+)?(.+)$/);
+      if (dur) {
+        const endMin = timeToMin(dur[2]);
+        const startMin = Math.max(0, endMin - parseInt(dur[3]));
+        return { list: dur[1], startTime: minToTime(startMin), time: dur[2], starred: !!dur[4], title: dur[5] };
+      }
+      // Legacy range form: [Basic] [08:05-08:10] Title
+      const span = line.match(/^\[(.+?)\]\s+\[(\d{2}:\d{2})-(\d{2}:\d{2})\]\s+(★\s+)?(.+)$/);
+      if (span) return { list: span[1], startTime: span[2], time: span[3], starred: !!span[4], title: span[5] };
+      // Basic form: [Basic] [08:10] Title (end time only)
+      const one = line.match(/^\[(.+?)\]\s+(?:\[(\d{2}:\d{2})\]\s+)?(★\s+)?(.+)$/);
+      if (one) return { list: one[1], startTime: '', time: one[2]||'', starred: !!one[3], title: one[4] };
       const starred = line.startsWith('★ ');
-      return { list:'Other', time:'', starred, title: starred ? line.slice(2) : line };
+      return { list:'Other', startTime: '', time:'', starred, title: starred ? line.slice(2) : line };
     }).filter(t => t.title);
   }
 
+  function taskDurationMin(t) {
+    if (!t.startTime || !t.time) return 0;
+    return Math.max(0, timeToMin(t.time) - timeToMin(t.startTime));
+  }
+
+  function taskToLine(t) {
+    const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+    const time = t.time ? `[${t.time}] ` : '';
+    const dur = taskDurationMin(t);
+    const durStr = dur > 0 ? `[${dur}m] ` : '';
+    const star = t.starred ? '★ ' : '';
+    return `• [${list}] ${time}${durStr}${star}${t.title}`;
+  }
+
+  // Ensure every task with a time has a startTime too (default: 5 min before end).
+  // Clamps to 00:00 if end is very early. Called before rendering the timeline.
+  function ensureStartTimes() {
+    tasksData.forEach(t => {
+      if (t.time && !t.startTime) {
+        const endMin = timeToMin(t.time);
+        const startMin = Math.max(0, endMin - 5);
+        t.startTime = minToTime(startMin);
+      }
+    });
+  }
+
   function tasksAsText() {
-    return tasksData.map(t => {
-      const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
-      const time = t.time ? `[${t.time}] ` : '';
-      const star = t.starred ? '★ ' : '';
-      return `• [${list}] ${time}${star}${t.title}`;
-    }).join('\n');
+    return tasksData.map(taskToLine).join('\n');
   }
 
   function groupByList(tasks) {
@@ -933,43 +979,87 @@
   }
   function snapTo5(min) { return Math.round(min / 5) * 5; }
 
+  // Track a "minute of interest" across re-renders so the view keeps its
+  // position instead of snapping back to the start of the day. Updated
+  // lazily on scroll while in time view.
+  let timelineFocusMin = null;
+  let timelineScrollHandler = null;
+
+  function rememberTimelineFocus() {
+    const tl = document.getElementById('writeTimeline');
+    if (!tl) return;
+    const rect = tl.getBoundingClientRect();
+    const viewportCenter = window.innerHeight / 2;
+    // Pixel within the timeline element that is currently at viewport centre
+    const pxInTimeline = viewportCenter - rect.top;
+    if (pxInTimeline < 0 || pxInTimeline > rect.height) return;
+    // Convert to minutes using current dayFromMin (stored on the element)
+    const fromMin = parseInt(tl.dataset.fromMin) || 0;
+    timelineFocusMin = Math.round(pxInTimeline / TL_PX_PER_MIN) + fromMin;
+  }
+
   function renderWriteTasksTime() {
+    // Remember focus before tearing the DOM down, unless this is the first render
+    rememberTimelineFocus();
+
+    ensureStartTimes();
+
     const display = document.getElementById('tasksDisplay');
     display.innerHTML = '';
+
+    // Compute variable day range: 1 hour before earliest start, 1 hour after
+    // latest end. Falls back to 07:00–18:00 when the day is empty.
+    let dayFromMin, dayToMin;
+    if (tasksData.length) {
+      const starts = tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'));
+      const ends   = tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'));
+      if (dayStartTime) starts.push(timeToMin(dayStartTime));
+      dayFromMin = Math.max(0, snapTo5(Math.min(...starts) - 60));
+      dayToMin   = Math.min(TL_MIN_PER_DAY, snapTo5(Math.max(...ends) + 60));
+    } else {
+      dayFromMin = 7 * 60;
+      dayToMin   = 18 * 60;
+    }
+    // Ensure at least 3-hour window so the view isn't awkwardly tiny
+    if (dayToMin - dayFromMin < 180) dayToMin = Math.min(TL_MIN_PER_DAY, dayFromMin + 180);
 
     const wrap = document.createElement('div');
     wrap.className = 'j-timeline-wrap';
 
     const hint = document.createElement('div');
     hint.className = 'j-tl-hint';
-    hint.textContent = 'Drag a task to a new time slot \u2014 snaps to 5 min';
+    hint.textContent = 'Drag pill to move \u2022 drag top/bottom edges to set start/end';
     wrap.appendChild(hint);
 
     const tl = document.createElement('div');
     tl.className = 'j-timeline';
     tl.id = 'writeTimeline';
-    tl.style.height = (TL_MIN_PER_DAY * TL_PX_PER_MIN) + 'px';
+    tl.dataset.fromMin = String(dayFromMin);
+    tl.dataset.toMin   = String(dayToMin);
+    const rangeMin = dayToMin - dayFromMin;
+    tl.style.height = (rangeMin * TL_PX_PER_MIN) + 'px';
 
     // Rules: 5-min minor, 15-min mid, 60-min heavy + hour label
-    for (let m = 0; m <= TL_MIN_PER_DAY; m += 5) {
+    for (let m = dayFromMin; m <= dayToMin; m += 5) {
+      const y = (m - dayFromMin) * TL_PX_PER_MIN;
       const rule = document.createElement('div');
       if (m % 60 === 0) {
         rule.className = 'j-tl-rule-hour';
         const label = document.createElement('div');
         label.className = 'j-tl-hour-label';
         label.textContent = minToTime(m % TL_MIN_PER_DAY);
-        label.style.top = (m * TL_PX_PER_MIN) + 'px';
+        label.style.top = y + 'px';
         tl.appendChild(label);
       } else if (m % 15 === 0) {
         rule.className = 'j-tl-rule-15';
       } else {
         rule.className = 'j-tl-rule-5';
       }
-      rule.style.top = (m * TL_PX_PER_MIN) + 'px';
+      rule.style.top = y + 'px';
       tl.appendChild(rule);
     }
 
-    // Drop hint (shown while dragging)
+    // Drop hint
     const dropHint = document.createElement('div');
     dropHint.className = 'j-tl-drop-hint';
     dropHint.id = 'tlDropHint';
@@ -978,41 +1068,27 @@
 
     const slotHeightPx = 5 * TL_PX_PER_MIN;
 
-    // Auto-initialise Day start pill if we have tasks but no dayStart set yet.
-    // Defaults to the time of the earliest task.
+    // Auto-initialise Day start from earliest task if missing
     if (tasksData.length && !dayStartTime) {
-      const earliestMin = tasksData
-        .map(t => snapTo5(timeToMin(t.time || '00:00')))
-        .sort((a,b) => a - b)[0];
+      const earliestMin = Math.min(...tasksData.map(t => snapTo5(timeToMin(t.startTime || t.time || '00:00'))));
       dayStartTime = minToTime(earliestMin);
     }
 
-    // Render the Day start pill (always full-width, on top of its slot)
+    // Day start pill (point in time — single slot, body-drag only)
     if (dayStartTime) {
       const dsMin = snapTo5(timeToMin(dayStartTime));
       const ds = document.createElement('div');
       ds.className = 'j-tl-daystart';
       ds.dataset.daystart = '1';
-      ds.style.top = (dsMin * TL_PX_PER_MIN) + 'px';
+      ds.style.top = ((dsMin - dayFromMin) * TL_PX_PER_MIN) + 'px';
       ds.style.height = slotHeightPx + 'px';
       ds.innerHTML = `<span class="ds-icon">&#9728;</span><span class="ds-time">${esc(dayStartTime)}</span><span>Day start</span>`;
       tl.appendChild(ds);
-      attachTimelineDrag(ds, tl, dropHint, {
-        kind: 'daystart',
+      attachPointDrag(ds, tl, dropHint, dayFromMin, {
         getTime: () => dayStartTime,
-        // Day start rides on the reflection JSON but we also mark tasks dirty
-        // so the user can save from the card they're actually looking at.
         setTime: (t) => { dayStartTime = t; markTasksDirty(); onReflectionChange(); }
       });
     }
-
-    // Group task pills by 5-min slot for side-by-side column stacking
-    const slotGroups = new Map();
-    tasksData.forEach((t, idx) => {
-      const min = snapTo5(timeToMin(t.time || '00:00'));
-      if (!slotGroups.has(min)) slotGroups.set(min, []);
-      slotGroups.get(min).push({ task: t, idx });
-    });
 
     if (!tasksData.length) {
       const empty = document.createElement('div');
@@ -1023,105 +1099,219 @@
       return;
     }
 
-    // Render pills at exactly 1 slot high, single-line with ellipsis.
-    // Side-by-side columns when multiple tasks share a slot.
-    slotGroups.forEach((items, min) => {
+    // Group by start time for column stacking when multiple tasks overlap
+    // (heuristic: group by the start minute; good enough for most days)
+    const slotGroups = new Map();
+    tasksData.forEach((t, idx) => {
+      const startMin = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
+      if (!slotGroups.has(startMin)) slotGroups.set(startMin, []);
+      slotGroups.get(startMin).push({ task: t, idx });
+    });
+
+    slotGroups.forEach((items, startMin) => {
       const cols = items.length;
       items.forEach((it, col) => {
+        const startMinT = snapTo5(timeToMin(it.task.startTime || it.task.time || '00:00'));
+        const endMinT   = snapTo5(timeToMin(it.task.time || it.task.startTime || '00:00'));
+        const durationMin = Math.max(5, endMinT - startMinT);
+
         const pill = document.createElement('div');
         pill.className = 'j-tl-pill' + (it.task.starred ? ' starred' : '');
         pill.dataset.idx = it.idx;
-        pill.style.top = (min * TL_PX_PER_MIN) + 'px';
-        pill.style.height = slotHeightPx + 'px';
+        pill.style.top = ((startMinT - dayFromMin) * TL_PX_PER_MIN) + 'px';
+        pill.style.height = (durationMin * TL_PX_PER_MIN) + 'px';
         const gap = 2;
         const pct = 100 / cols;
         pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
         pill.style.width = `calc(${pct}% - ${gap}px)`;
         const listTag = LIST_OPTIONS.includes(it.task.list) ? it.task.list : 'Other';
+        const durLabel = durationMin > 0 ? `${durationMin}m` : '';
         pill.innerHTML =
+          `<span class="tl-handle tl-handle-top"></span>` +
           `<span class="tl-pill-time">${esc(it.task.time || '--:--')}</span>` +
           `<span class="tl-pill-list">${esc(listTag)}</span>` +
-          `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
+          `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>` +
+          (durLabel ? `<span class="tl-pill-dur">${durLabel}</span>` : '') +
+          `<span class="tl-handle tl-handle-bot"></span>`;
         tl.appendChild(pill);
-        attachTimelineDrag(pill, tl, dropHint, {
-          kind: 'task',
-          getTime: () => tasksData[it.idx] ? tasksData[it.idx].time : null,
-          setTime: (t) => { if (tasksData[it.idx]) { tasksData[it.idx].time = t; markTasksDirty(); } }
-        });
+        attachSpanDrag(pill, tl, dropHint, dayFromMin, it.idx);
       });
     });
 
     wrap.appendChild(tl);
     display.appendChild(wrap);
 
-    // Auto-scroll to just before the earliest task (or 07:00 if none)
-    setTimeout(() => {
-      const earliest = tasksData
-        .map(t => snapTo5(timeToMin(t.time || '00:00')))
-        .sort((a,b) => a - b)[0] ?? (7 * 60);
-      const scrollTarget = Math.max(0, (earliest - 30) * TL_PX_PER_MIN);
+    // Install scroll listener once so timelineFocusMin stays current
+    if (!timelineScrollHandler) {
+      timelineScrollHandler = () => { if (writeTaskView === 'time') rememberTimelineFocus(); };
+      window.addEventListener('scroll', timelineScrollHandler, { passive: true });
+    }
+
+    // Restore scroll so the previously-focused minute stays near viewport centre.
+    // On first render, focus the earliest task ~30 min before it.
+    requestAnimationFrame(() => {
       const tlRect = tl.getBoundingClientRect();
-      const y = window.scrollY + tlRect.top + scrollTarget - 100;
-      window.scrollTo({ top: y, behavior: 'auto' });
-    }, 10);
+      const tlAbsTop = window.scrollY + tlRect.top;
+      let targetY;
+      if (timelineFocusMin != null && timelineFocusMin >= dayFromMin && timelineFocusMin <= dayToMin) {
+        const pxInTimeline = (timelineFocusMin - dayFromMin) * TL_PX_PER_MIN;
+        targetY = tlAbsTop + pxInTimeline - window.innerHeight / 2;
+      } else {
+        const earliest = tasksData.length
+          ? Math.min(...tasksData.map(t => snapTo5(timeToMin(t.startTime || t.time || '00:00'))))
+          : (7 * 60);
+        const pxInTimeline = Math.max(0, (earliest - 30 - dayFromMin) * TL_PX_PER_MIN);
+        targetY = tlAbsTop + pxInTimeline - 100;
+      }
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'auto' });
+    });
   }
 
-  // Pointer-based drag: works for mouse and touch.
-  // Handler receives an adapter object with getTime/setTime so the same code
-  // handles both task pills and the Day-start pill. On drag start the pill
-  // expands to its natural height (via .dragging class) so the user can verify
-  // the full title; on release it snaps back to 1 slot.
-  function attachTimelineDrag(pill, timeline, dropHint, adapter) {
+  // ── Drag handlers ─────────────────────────────────────────
+  // Point drag: single time (Day start). Pill has fixed slot height.
+  function attachPointDrag(pill, timeline, dropHint, dayFromMin, adapter) {
     let dragging = false;
     let startY = 0, startTop = 0;
     let pointerId = null;
-    let originalHeight = null;
 
     function onDown(e) {
       pointerId = e.pointerId;
       pill.setPointerCapture(pointerId);
       dragging = true;
-      // Remember the slot height so we can restore it on drop
-      originalHeight = pill.style.height;
       pill.classList.add('dragging');
-      // Clear fixed height so the pill expands to content while dragging
-      pill.style.height = 'auto';
       startY = e.clientY;
       startTop = parseFloat(pill.style.top) || 0;
       dropHint.style.display = 'block';
-      updateDropHint(startTop);
+      updateHint(startTop);
       e.preventDefault();
     }
 
     function onMove(e) {
       if (!dragging) return;
-      const dy = e.clientY - startY;
-      const newTop = Math.max(0, Math.min((TL_MIN_PER_DAY - 5) * TL_PX_PER_MIN, startTop + dy));
+      const tlRect = timeline.getBoundingClientRect();
+      const maxTop = tlRect.height - 5 * TL_PX_PER_MIN;
+      const newTop = Math.max(0, Math.min(maxTop, startTop + (e.clientY - startY)));
       pill.style.top = newTop + 'px';
-      updateDropHint(newTop);
+      updateHint(newTop);
     }
 
-    function updateDropHint(topPx) {
-      const min = snapTo5(topPx / TL_PX_PER_MIN);
-      dropHint.style.top = (min * TL_PX_PER_MIN) + 'px';
+    function updateHint(topPx) {
+      const min = snapTo5(topPx / TL_PX_PER_MIN) + dayFromMin;
+      dropHint.style.top = ((min - dayFromMin) * TL_PX_PER_MIN) + 'px';
     }
 
-    function onUp(e) {
+    function onUp() {
       if (!dragging) return;
       dragging = false;
       pill.classList.remove('dragging');
-      if (originalHeight) pill.style.height = originalHeight;
       dropHint.style.display = 'none';
       try { pill.releasePointerCapture(pointerId); } catch(err) {}
-
       const topPx = parseFloat(pill.style.top) || 0;
-      const snappedMin = snapTo5(topPx / TL_PX_PER_MIN);
+      const snappedMin = snapTo5(topPx / TL_PX_PER_MIN) + dayFromMin;
       const newTime = minToTime(snappedMin);
+      if (adapter.getTime() !== newTime) adapter.setTime(newTime);
+      timelineFocusMin = snappedMin;
+      renderWriteTasksTime();
+    }
 
-      if (adapter.getTime() !== newTime) {
-        adapter.setTime(newTime);
+    pill.addEventListener('pointerdown', onDown);
+    pill.addEventListener('pointermove', onMove);
+    pill.addEventListener('pointerup', onUp);
+    pill.addEventListener('pointercancel', onUp);
+  }
+
+  // Span drag: pill body moves whole task; top handle moves start only; bottom
+  // handle moves end only. Cross-over (start > end or end < start) is refused
+  // — the handle snaps back to its origin.
+  function attachSpanDrag(pill, timeline, dropHint, dayFromMin, taskIdx) {
+    let dragging = false;
+    let mode = null; // 'body' | 'start' | 'end'
+    let startY = 0;
+    let originStartMin = 0, originEndMin = 0;
+    let pointerId = null;
+
+    function onDown(e) {
+      const target = e.target;
+      if (target.classList.contains('tl-handle-top')) mode = 'start';
+      else if (target.classList.contains('tl-handle-bot')) mode = 'end';
+      else mode = 'body';
+
+      pointerId = e.pointerId;
+      pill.setPointerCapture(pointerId);
+      dragging = true;
+      pill.classList.add('dragging');
+      startY = e.clientY;
+      const t = tasksData[taskIdx];
+      if (!t) return;
+      originStartMin = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
+      originEndMin   = snapTo5(timeToMin(t.time || t.startTime || '00:00'));
+      dropHint.style.display = 'block';
+      updateHintForMode();
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    function onMove(e) {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      const dMin = snapTo5(dy / TL_PX_PER_MIN);
+      const t = tasksData[taskIdx];
+      if (!t) return;
+
+      if (mode === 'body') {
+        // Shift both; clamp to 00:00..24:00
+        const duration = originEndMin - originStartMin;
+        let newStart = originStartMin + dMin;
+        if (newStart < 0) newStart = 0;
+        if (newStart + duration > TL_MIN_PER_DAY) newStart = TL_MIN_PER_DAY - duration;
+        t.startTime = minToTime(newStart);
+        t.time      = minToTime(newStart + duration);
+      } else if (mode === 'start') {
+        // Move start only; may not go past end (refuse by clamping)
+        let newStart = Math.max(0, Math.min(originEndMin, originStartMin + dMin));
+        t.startTime = minToTime(newStart);
+      } else if (mode === 'end') {
+        // Move end only; may not go before start
+        let newEnd = Math.max(originStartMin, Math.min(TL_MIN_PER_DAY, originEndMin + dMin));
+        t.time = minToTime(newEnd);
       }
-      // Re-render to recompute columns and overlap stacking
+
+      // Live-update the pill position/height without a full re-render
+      const curStart = timeToMin(t.startTime);
+      const curEnd   = timeToMin(t.time);
+      pill.style.top    = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
+      pill.style.height = (Math.max(5, curEnd - curStart) * TL_PX_PER_MIN) + 'px';
+      updateHintForMode();
+    }
+
+    function updateHintForMode() {
+      const t = tasksData[taskIdx];
+      if (!t) return;
+      const min = mode === 'end'
+        ? snapTo5(timeToMin(t.time || '00:00'))
+        : snapTo5(timeToMin(t.startTime || '00:00'));
+      dropHint.style.top = ((min - dayFromMin) * TL_PX_PER_MIN) + 'px';
+    }
+
+    function onUp() {
+      if (!dragging) return;
+      dragging = false;
+      pill.classList.remove('dragging');
+      dropHint.style.display = 'none';
+      try { pill.releasePointerCapture(pointerId); } catch(err) {}
+      const t = tasksData[taskIdx];
+      if (t) {
+        // Final sanity: refuse any cross-over (snap back to origin)
+        const s = timeToMin(t.startTime);
+        const e = timeToMin(t.time);
+        if (s > e) {
+          t.startTime = minToTime(originStartMin);
+          t.time      = minToTime(originEndMin);
+        }
+        markTasksDirty();
+        // Keep focus roughly where the drag happened
+        timelineFocusMin = timeToMin(t.startTime);
+      }
       renderWriteTasksTime();
     }
 
@@ -1160,12 +1350,12 @@
   }
 
   function addTaskToList(list) {
+    const newIdx = tasksData.length;
     tasksData.push({ list, starred: false, title: '', time: nowHHMM() });
     renderWriteTasks();
     setTimeout(()=>{
-      const rows = document.querySelectorAll('.j-task-row');
-      const last = rows[rows.length-1];
-      if (last) { const inp=last.querySelector('.j-task-title'); if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'nearest'});} }
+      const row = document.querySelector(`.j-task-row[data-idx="${newIdx}"]`);
+      if (row) { const inp=row.querySelector('.j-task-title'); if(inp){inp.focus();inp.scrollIntoView({behavior:'smooth',block:'nearest'});} }
     },50);
   }
 
@@ -1377,7 +1567,9 @@
           sorted.forEach(t => {
             const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
             const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
-            inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${pill}${esc(t.title)}</div>`;
+            const dur = taskDurationMin(t);
+            const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
+            inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${pill}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
           });
         } else {
           const groups = groupByList(taskObjs);
@@ -1386,7 +1578,9 @@
             if(withH) inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
             g.items.forEach(t => {
               const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
-              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${esc(t.title)}</div>`;
+              const dur = taskDurationMin(t);
+              const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
+              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
             });
           });
         }
@@ -1422,7 +1616,7 @@
     if (!match) return;
     match.starred = !match.starred;
     el.classList.toggle('starred', match.starred);
-    entry.tasksText = tasks.map(t=>`• [${LIST_OPTIONS.includes(t.list)?t.list:'Other'}] ${t.time?`[${t.time}] `:''}${t.starred?'★ ':''}${t.title}`).join('\n');
+    entry.tasksText = tasks.map(taskToLine).join('\n');
     try {
       await api('updateEntry',{pageId:entry.id,payload:{date:entry.date,tasksText:entry.tasksText,reflection:entry.reflection||''}});
     } catch(e) { el.classList.toggle('starred', !match.starred); }
@@ -1710,8 +1904,10 @@
         const count = byDate[date].tasks.length;
         const items = byDate[date].tasks.map((t, ti) => {
           const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
+          const dur = taskDurationMin(t);
+          const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
           return `<div class="j-read-task ${t.starred ? 'starred' : ''}" id="rtask-${date}-${ti}"
-            onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}${esc(t.title)}</div>`;
+            onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
         }).join('');
         return `<div class="review-date-group">
           <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}</span></div>
@@ -1743,7 +1939,7 @@
     if (!listTasks[taskIdx]) return;
     const globalIdx = tasks.indexOf(listTasks[taskIdx]);
     tasks[globalIdx].starred = !currentlyStarred;
-    entry.tasksText = tasks.map(t=>`• [${LIST_OPTIONS.includes(t.list)?t.list:'Other'}] ${t.time?`[${t.time}] `:''}${t.starred?'★ ':''}${t.title}`).join('\n');
+    entry.tasksText = tasks.map(taskToLine).join('\n');
     const el = document.getElementById(`rtask-${date}-${taskIdx}`);
     if (el) {
       el.classList.toggle('starred', !currentlyStarred);
