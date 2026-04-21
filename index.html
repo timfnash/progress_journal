@@ -132,12 +132,13 @@
     .star-popup-btn { font-size: 11px; color: var(--card-btn-color); font-family: 'Jost', sans-serif; background: var(--card-btn-bg); border: 1px solid var(--card-btn-bd); border-radius: 4px; padding: 4px 8px; cursor: pointer; white-space: nowrap; user-select: none; }
 
     /* Read + Review task rows — hollow star bullet, filled when starred */
-    .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: baseline; gap: 0; }
+    .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: baseline; gap: 4px; }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
     .j-read-task.starred::before { content: '★'; color: #b07030; }
-    .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; }
+    .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; flex-shrink: 0; }
     .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; }
+    .j-read-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
 
     /* Reflection */
     .j-textarea { width: 100%; min-height: 38px; height: 38px; overflow-y: hidden; background: var(--card-bg3); border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 14px; line-height: 1.65; padding: 8px 14px; resize: none; display: block; }
@@ -205,7 +206,7 @@
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
-    .h-count     { font-size: 14px; font-weight: 600; color: var(--card-text); width: 40px; text-align: right; flex-shrink: 0; font-family: 'Jost', sans-serif; }
+    .h-count     { font-size: 12px; font-weight: 600; color: var(--card-text); min-width: 40px; text-align: right; flex-shrink: 0; font-family: 'Jost', sans-serif; white-space: nowrap; }
     .h-rule      { border: none; border-top: 1px solid var(--card-border); margin: 8px 0 6px; }
     .h-total-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; }
     .h-total-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
@@ -851,6 +852,14 @@
   function taskDurationMin(t) {
     if (!t.startTime || !t.time) return 0;
     return Math.max(0, timeToMin(t.time) - timeToMin(t.startTime));
+  }
+
+  function formatDuration(mins) {
+    if (mins <= 0) return '';
+    if (mins < 60) return mins + 'm';
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
   }
 
   function taskToLine(t) {
@@ -1637,8 +1646,9 @@
           const agg = aggregateByDuration(taskObjs);
           agg.forEach(a => {
             const label = a.count > 1 ? `${esc(a.title)} (${a.count})` : esc(a.title);
-            const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${a.totalDur}m</span>` : '';
-            inner += `<div class="j-read-task ${a.starred?'starred':''}"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>${durStr}</div>`;
+            const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${formatDuration(a.totalDur)}</span>` : '';
+            const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(a.list)}</span>`;
+            inner += `<div class="j-read-task ${a.starred?'starred':''}">${pill}<span class="j-read-title">${label}</span>${durStr}</div>`;
           });
         } else if (readTaskView === 'time') {
           const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
@@ -1646,19 +1656,23 @@
             const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
             const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
             const dur = taskDurationMin(t);
-            const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
-            inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${pill}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
+            const durStr = dur > 0 ? `<span class="j-read-dur">${formatDuration(dur)}</span>` : '';
+            inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}${pill}<span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
           });
         } else {
           const groups = groupByList(taskObjs);
           const withH = groups.length>1||(groups.length===1&&groups[0].list!=='Other');
           groups.forEach(g => {
-            if(withH) inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}</span></div>`;
+            if(withH) {
+              const groupDur = g.items.reduce((sum,t) => sum + taskDurationMin(t), 0);
+              const groupDurStr = groupDur > 0 ? ` in ${formatDuration(groupDur)}` : '';
+              inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}${groupDurStr}</span></div>`;
+            }
             g.items.forEach(t => {
               const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
               const dur = taskDurationMin(t);
-              const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
-              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
+              const durStr = dur > 0 ? `<span class="j-read-dur">${formatDuration(dur)}</span>` : '';
+              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}<span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
             });
           });
         }
@@ -1740,8 +1754,9 @@
       if (!agg.length) return '<div class="empty-note">No tasks found.</div>';
       return agg.map(a => {
         const label = a.count > 1 ? `${esc(a.title)} (${a.count})` : esc(a.title);
-        const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${a.totalDur}m</span>` : '';
-        return `<div class="j-read-task ${a.starred?'starred':''}"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>${durStr}</div>`;
+        const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${formatDuration(a.totalDur)}</span>` : '';
+        const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(a.list)}</span>`;
+        return `<div class="j-read-task ${a.starred?'starred':''}">${pill}<span class="j-read-title">${label}</span>${durStr}</div>`;
       }).join('');
     }
 
@@ -1752,15 +1767,17 @@
       const d = new Date(date+'T12:00:00');
       const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
       const count = byDate[date].tasks.length;
+      const dateDur = byDate[date].tasks.reduce((s,t) => s + taskDurationMin(t), 0);
+      const dateDurStr = dateDur > 0 ? ` in ${formatDuration(dateDur)}` : '';
       const items = byDate[date].tasks.map((t, ti) => {
         const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
         const dur = taskDurationMin(t);
-        const durStr = dur > 0 ? `<span class="j-read-dur">${dur}m</span>` : '';
+        const durStr = dur > 0 ? `<span class="j-read-dur">${formatDuration(dur)}</span>` : '';
         return `<div class="j-read-task ${t.starred ? 'starred' : ''}" id="rtask-${date}-${ti}"
-          onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</span>${durStr}</div>`;
+          onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}<span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
       }).join('');
       return `<div class="review-date-group">
-        <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}</span></div>
+        <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}${dateDurStr}</span></div>
         ${items}
       </div>`;
     }).join('');
@@ -1954,25 +1971,29 @@
     reviewEntries = entries;
     reviewActiveList = null;
     document.getElementById('reviewDetailCard').style.display = 'none';
-    const counts={};let total=0;
+    const counts={};const durations={};let total=0;let totalDur=0;
     entries.forEach(entry=>{
       if(!entry.tasksText)return;
       parseTasksText(entry.tasksText).forEach(t=>{
         const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
         counts[list]=(counts[list]||0)+1;total++;
+        const dur=taskDurationMin(t);
+        durations[list]=(durations[list]||0)+dur;totalDur+=dur;
       });
     });
     if(!total){document.getElementById('homeStatsBody').innerHTML='<div class="empty-note">No tasks found in this date range.</div>';return;}
     const keys=Object.keys(counts).sort((a,b)=>{const ai=LIST_ORDER.indexOf(a),bi=LIST_ORDER.indexOf(b);if(ai===-1&&bi===-1)return a.localeCompare(b);if(ai===-1)return 1;if(bi===-1)return -1;return ai-bi;});
     const max=Math.max(...Object.values(counts));
-    let html=keys.map(k=>
-      `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
+    let html=keys.map(k=>{
+      const durStr=durations[k]>0?` in ${formatDuration(durations[k])}`:'';
+      return `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
         <span class="h-list-name">${esc(k)}</span>
         <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%"></div></div>
-        <span class="h-count">${counts[k].toLocaleString()}</span>
-      </div>`
-    ).join('');
-    html+=`<hr class="h-rule"><div class="h-total-row"><span class="h-total-label">Total</span><span class="h-total-count">${total.toLocaleString()}</span></div>`;
+        <span class="h-count">${counts[k]}${durStr}</span>
+      </div>`;
+    }).join('');
+    const totalDurStr=totalDur>0?` in ${formatDuration(totalDur)}`:'';
+    html+=`<hr class="h-rule"><div class="h-total-row"><span class="h-total-label">Total</span><span class="h-total-count">${total}${totalDurStr}</span></div>`;
     document.getElementById('homeStatsBody').innerHTML=html;
   }
 
