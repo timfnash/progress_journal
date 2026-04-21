@@ -81,9 +81,10 @@
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
     .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-time { width: 58px; font-size: 12px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; margin-top: 2px; }
+    .j-task-time { width: 52px; font-size: 11px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; margin-top: 2px; }
     .j-task-time::-webkit-calendar-picker-indicator { display: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
+    .j-task-sep { font-size: 10px; color: var(--card-muted); margin: 0 -2px; flex-shrink: 0; margin-top: 2px; }
     .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; margin-top: 3px; }
@@ -798,7 +799,21 @@
   // ── Tasks ─────────────────────────────────────────────────
   function nowHHMM() {
     const d = new Date();
-    return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    const min = Math.floor(d.getMinutes() / 5) * 5; // snap to previous 5-min slot
+    return String(d.getHours()).padStart(2,'0') + ':' + String(min).padStart(2,'0');
+  }
+
+  // Start time for a newly added task: the next 5-min slot after the latest
+  // existing task's end time. When several tasks share the same end time
+  // (e.g. batch-uploaded), they should all share the same start time, so we
+  // look at the latest *unique* end time to compute the new start.
+  function newTaskStartTime() {
+    if (!tasksData.length) return nowHHMM();
+    const latestEnd = Math.max(...tasksData.map(t => timeToMin(t.time || '00:00')));
+    const nextSlot = snapTo5(latestEnd + 5);
+    const nowMin = timeToMin(nowHHMM());
+    // Don't set start after now
+    return minToTime(Math.min(nextSlot, nowMin));
   }
 
   // Tasks persist in a plain-text format inside the Notion Tasks rich_text:
@@ -882,10 +897,12 @@
     document.querySelectorAll('.j-task-row').forEach(row => {
       const idx = parseInt(row.dataset.idx);
       if (isNaN(idx) || tasksData[idx] === undefined) return;
-      const inp  = row.querySelector('.j-task-title');
-      const time = row.querySelector('.j-task-time');
-      if (inp)  tasksData[idx].title = inp.value;
-      if (time) tasksData[idx].time  = time.value;
+      const inp   = row.querySelector('.j-task-title');
+      const end   = row.querySelector('.j-task-end');
+      const start = row.querySelector('.j-task-start');
+      if (inp)   tasksData[idx].title     = inp.value;
+      if (end)   tasksData[idx].time      = end.value;
+      if (start) tasksData[idx].startTime = start.value;
     });
   }
 
@@ -944,15 +961,15 @@
           const starBtn = item.starred
             ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">&#x2605;</button>`
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
-          const dur = taskDurationMin(item);
-          const durLabel = dur > 0 ? `<span style="font-size:10px;color:var(--card-muted);flex-shrink:0;padding:0 2px;margin-top:3px;">${dur}m</span>` : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
-            <input class="j-task-time" type="time" value="${esc(item.time||'')}"
+            <input class="j-task-time j-task-start" type="time" step="300" value="${esc(item.startTime||'')}"
+              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].startTime=this.value;markTasksDirty();}">
+            <span class="j-task-sep">&ndash;</span>
+            <input class="j-task-time j-task-end" type="time" step="300" value="${esc(item.time||'')}"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
-            ${durLabel}
             ${starBtn}
             <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
@@ -1347,7 +1364,7 @@
 
   function addFromFreq(list, title) {
     if (tasksData.map(t=>t.title.trim().toLowerCase()).includes(title.trim().toLowerCase())) return;
-    tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM() });
+    tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM(), startTime: newTaskStartTime() });
     markTasksDirty(); renderWriteTasks();
     setTimeout(()=>{
       const rows = document.querySelectorAll('.j-task-row');
@@ -1358,7 +1375,7 @@
 
   function addTaskToList(list) {
     const newIdx = tasksData.length;
-    tasksData.push({ list, starred: false, title: '', time: nowHHMM() });
+    tasksData.push({ list, starred: false, title: '', time: nowHHMM(), startTime: newTaskStartTime() });
     renderWriteTasks();
     setTimeout(()=>{
       const row = document.querySelector(`.j-task-row[data-idx="${newIdx}"]`);
@@ -1408,11 +1425,12 @@
 
   function addExtractedTasks(){
     const now = nowHHMM();
+    const start = newTaskStartTime();
     const existing=new Set(tasksData.map(t=>t.title.toLowerCase()));
     extractedTasks.forEach(t=>{
       if(!existing.has(t.title.trim().toLowerCase())){
         const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
-        tasksData.push({title:t.title.trim(),list,starred:false,time:now});
+        tasksData.push({title:t.title.trim(),list,starred:false,time:now,startTime:start});
         existing.add(t.title.trim().toLowerCase());
       }
     });
