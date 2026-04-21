@@ -806,7 +806,7 @@
   // is set; startTime is derived from endTime - duration on parse.
   function parseTasksText(raw) {
     if (!raw) return [];
-    return raw.split('\n').map(l => {
+    const result = raw.split('\n').map(l => {
       const line = l.replace(/^•\s*/,'').trim();
       // Duration form: [Basic] [08:10] [5m] ★ Title
       const dur = line.match(/^\[(.+?)\]\s+\[(\d{2}:\d{2})\]\s+\[(\d+)m\]\s+(★\s+)?(.+)$/);
@@ -824,6 +824,7 @@
       const starred = line.startsWith('★ ');
       return { list:'Other', startTime: '', time:'', starred, title: starred ? line.slice(2) : line };
     }).filter(t => t.title);
+    return ensureStartTimes(result);
   }
 
   function taskDurationMin(t) {
@@ -841,15 +842,16 @@
   }
 
   // Ensure every task with a time has a startTime too (default: 5 min before end).
-  // Clamps to 00:00 if end is very early. Called before rendering the timeline.
-  function ensureStartTimes() {
-    tasksData.forEach(t => {
+  // Clamps to 00:00 if end is very early. Called automatically by parseTasksText.
+  function ensureStartTimes(tasks) {
+    tasks.forEach(t => {
       if (t.time && !t.startTime) {
         const endMin = timeToMin(t.time);
         const startMin = Math.max(0, endMin - 5);
         t.startTime = minToTime(startMin);
       }
     });
+    return tasks;
   }
 
   function tasksAsText() {
@@ -939,12 +941,15 @@
           const starBtn = item.starred
             ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">&#x2605;</button>`
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
+          const dur = taskDurationMin(item);
+          const durLabel = dur > 0 ? `<span style="font-size:10px;color:var(--card-muted);flex-shrink:0;padding:0 2px;margin-top:3px;">${dur}m</span>` : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
             <input class="j-task-time" type="time" value="${esc(item.time||'')}"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
+            ${durLabel}
             ${starBtn}
             <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
@@ -1001,8 +1006,6 @@
   function renderWriteTasksTime() {
     // Remember focus before tearing the DOM down, unless this is the first render
     rememberTimelineFocus();
-
-    ensureStartTimes();
 
     const display = document.getElementById('tasksDisplay');
     display.innerHTML = '';
