@@ -79,16 +79,20 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0 5px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
+    .j-task-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; padding: 5px 0 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-time { width: 52px; font-size: 11px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 0; flex-shrink: 0; color-scheme: light; text-align: center; -webkit-appearance: none; appearance: none; margin-top: 2px; }
-    .j-task-time::-webkit-calendar-picker-indicator { display: none; }
+    .j-task-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .j-task-time { width: auto; font-size: 11px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 2px; flex-shrink: 0; -webkit-appearance: none; appearance: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
-    .j-task-sep { font-size: 10px; color: var(--card-muted); margin: 0 -2px; flex-shrink: 0; margin-top: 2px; }
-    .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
+    .j-task-sep { font-size: 10px; color: var(--card-muted); flex-shrink: 0; }
+    .j-task-title { flex: 1 1 100%; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
-    .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; margin-top: 3px; }
-    .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; margin-top: 3px; }
+    /* On wider screens, title shares row with controls */
+    @media (min-width: 480px) {
+      .j-task-title { flex: 1 1 auto; }
+    }
+    .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
+    .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
 
     /* ── Write timeline view ── */
     .j-timeline-wrap { position: relative; padding: 4px 8px 8px; }
@@ -179,7 +183,7 @@
     .book-page { overflow: hidden; position: relative; min-height: calc(100dvh - 160px); }
     .book-content { padding: 16px 14px 60px; }
 
-    .j-more-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; color: var(--card-muted); line-height: 1; letter-spacing: 1px; margin-top: 3px; }
+    .j-more-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; color: var(--card-muted); line-height: 1; letter-spacing: 1px; }
     .j-task-menu { position: absolute; right: 0; top: 100%; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; z-index: 20; display: flex; flex-direction: column; gap: 6px; min-width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .j-task-menu-select { font-size: 13px; padding: 5px 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; color: var(--card-accent); font-family: 'Jost', sans-serif; width: 100%; -webkit-appearance: none; }
     .j-task-menu-del { font-size: 13px; padding: 5px 8px; background: var(--red-dim); border: 1px solid var(--red); border-radius: 6px; color: var(--red); font-family: 'Jost', sans-serif; cursor: pointer; text-align: left; }
@@ -191,8 +195,10 @@
     .qp-item:last-child { border-bottom: none; }
     .qp-item.already-added { opacity: 0.4; pointer-events: none; }
     .qp-title { flex: 1; font-size: 13px; color: var(--card-text); }
+    .qp-title-edit { flex: 1; font-size: 13px; color: var(--card-text); background: transparent; border: none; border-bottom: 1px solid transparent; font-family: 'Jost', sans-serif; padding: 1px 0; min-width: 0; }
+    .qp-title-edit:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
     .qp-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border-radius: 4px; padding: 1px 5px; border: 1px solid var(--card-border); flex-shrink: 0; }
-    .qp-add { font-size: 16px; color: var(--card-accent); flex-shrink: 0; line-height: 1; }
+    .qp-add { font-size: 16px; color: var(--card-accent); flex-shrink: 0; line-height: 1; cursor: pointer; padding: 4px; }
     .review-period-btn { font-size: 12px; font-weight: 500; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; user-select: none; white-space: nowrap; }
     .review-period-btn.active { background: var(--accent-dim); border-color: rgba(200,169,110,0.45); color: var(--accent); font-weight: 600; }
 
@@ -202,7 +208,7 @@
     .h-stat-row.active .h-list-name { color: var(--accent); }
     .review-summary { font-size: 15px; color: var(--card-text); line-height: 1.8; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; font-style: italic; }
     .review-date-group { margin-bottom: 4px; }
-    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 6px 4px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 6px 4px 0; display: flex; justify-content: space-between; align-items: center; }
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
@@ -862,6 +868,15 @@
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
   }
 
+  function timeSelectOptions(selected) {
+    let html = '';
+    for (let m = 0; m < 1440; m += 5) {
+      const val = minToTime(m);
+      html += `<option value="${val}"${val===selected?' selected':''}>${val}</option>`;
+    }
+    return html;
+  }
+
   function taskToLine(t) {
     const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
     const time = t.time ? `[${t.time}] ` : '';
@@ -956,12 +971,14 @@
         if (!items.length) {
           html += `<div style="font-size:13px;color:var(--card-muted);padding:8px 14px;font-style:italic;">${freqCacheLoaded?'No history yet.':'Loading\u2026'}</div>`;
         } else {
-          items.forEach(item => {
+          items.forEach((item, fi) => {
             const alreadyAdded = existingTitles.has(item.title.toLowerCase());
-            html += `<div class="qp-item${alreadyAdded?' already-added':''}" onclick="${alreadyAdded?'':` addFromFreq('${esc(list)}','${esc(item.title).replace(/'/g,"\\'")}') `}">
-              <span class="qp-title">${esc(item.title)}</span>
+            const itemId = `freq-${list}-${fi}`;
+            html += `<div class="qp-item${alreadyAdded?' already-added':''}">
+              <input class="qp-title-edit" id="${itemId}" type="text" value="${esc(item.title)}"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();addFromFreqInput('${esc(list)}','${itemId}');}">
               <span class="qp-count">\xd7${item.count}</span>
-              <span class="qp-add">${alreadyAdded?'&#x2713;':'\uff0b'}</span>
+              <span class="qp-add" onclick="addFromFreqInput('${esc(list)}','${itemId}')">${alreadyAdded?'&#x2713;':'\uff0b'}</span>
             </div>`;
           });
         }
@@ -973,21 +990,25 @@
           const starBtn = item.starred
             ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">&#x2605;</button>`
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
+          const startOpts = timeSelectOptions(item.startTime || '');
+          const endOpts = timeSelectOptions(item.time || '');
           html += `<div class="j-task-row" data-idx="${item.idx}">
-            <input class="j-task-time j-task-start" type="time" step="300" value="${esc(item.startTime||'')}"
-              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].startTime=this.value;markTasksDirty();}">
-            <span class="j-task-sep">&ndash;</span>
-            <input class="j-task-time j-task-end" type="time" step="300" value="${esc(item.time||'')}"
-              oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">
+            <div class="j-task-controls">
+              <select class="j-task-time j-task-start"
+                onchange="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].startTime=this.value;markTasksDirty();}">${startOpts}</select>
+              <span class="j-task-sep">&ndash;</span>
+              <select class="j-task-time j-task-end"
+                onchange="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">${endOpts}</select>
+              ${starBtn}
+              <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
+              <div class="j-task-menu" style="display:none;">
+                <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
+                <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
+              </div>
+            </div>
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
-            ${starBtn}
-            <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
-            <div class="j-task-menu" style="display:none;">
-              <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
-              <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
-            </div>
           </div>`;
         });
       }
@@ -1397,6 +1418,14 @@
     }, 50);
   }
 
+  function addFromFreqInput(list, inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const title = input.value.trim();
+    if (!title) return;
+    addFromFreq(list, title);
+  }
+
   function addTaskToList(list) {
     const newIdx = tasksData.length;
     tasksData.push({ list, starred: false, title: '', time: nowHHMM(), startTime: newTaskStartTime() });
@@ -1645,10 +1674,11 @@
         if (readTaskView === 'duration') {
           const agg = aggregateByDuration(taskObjs);
           agg.forEach(a => {
-            const label = a.count > 1 ? `${esc(a.title)} (${a.count})` : esc(a.title);
+            const countBadge = a.count > 1 ? `<span style="font-size:11px;color:var(--card-muted);margin-right:3px;">(${a.count}x)</span>` : ''; const label = countBadge + esc(a.title);
             const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${formatDuration(a.totalDur)}</span>` : '';
-            const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(a.list)}</span>`;
-            inner += `<div class="j-read-task ${a.starred?'starred':''}">${pill}<span class="j-read-title">${label}</span>${durStr}</div>`;
+            const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;flex-shrink:0;">${esc(a.list)}</span>`;
+            const spacer = `<span class="j-read-time" style="visibility:hidden;">00:00</span>`;
+            inner += `<div class="j-read-task ${a.starred?'starred':''}">${spacer}${pill}<span class="j-read-title">${label}</span>${durStr}</div>`;
           });
         } else if (readTaskView === 'time') {
           const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
@@ -1753,7 +1783,7 @@
       const agg = aggregateByDuration(allTasks);
       if (!agg.length) return '<div class="empty-note">No tasks found.</div>';
       return agg.map(a => {
-        const label = a.count > 1 ? `${esc(a.title)} (${a.count})` : esc(a.title);
+        const countBadge = a.count > 1 ? `<span style="font-size:11px;color:var(--card-muted);margin-right:3px;">(${a.count}x)</span>` : ''; const label = countBadge + esc(a.title);
         const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${formatDuration(a.totalDur)}</span>` : '';
         const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(a.list)}</span>`;
         return `<div class="j-read-task ${a.starred?'starred':''}">${pill}<span class="j-read-title">${label}</span>${durStr}</div>`;
@@ -2052,7 +2082,7 @@
       taskHtml;
 
     try {
-      const allTasks = dates.flatMap(d => byDate[d].tasks.map(t => (t.starred?'\u2605 ':'')+t.title));
+      const allTasks = Object.keys(byDate).flatMap(d => byDate[d].tasks.map(t => (t.starred?'\u2605 ':'')+t.title));
       const summaryText = await generateListSummary(list, allTasks, reflTexts);
       document.getElementById('reviewSummarySlot').innerHTML =
         `<div class="review-summary">${esc(summaryText)}</div>`;
