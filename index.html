@@ -86,7 +86,7 @@
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
     .j-task-sep { font-size: 10px; color: var(--card-muted); flex-shrink: 0; }
     .j-task-spacer { flex: 1; }
-    .j-task-title { font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; width: 100%; }
+    .j-task-title { font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow-y: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; width: 100%; white-space: pre-wrap; }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
@@ -1014,6 +1014,13 @@
     display.innerHTML = html;
     // Auto-expand task title textareas so pre-existing long titles show in full
     setTimeout(() => display.querySelectorAll('.j-task-title').forEach(autoExpand), 0);
+    // Re-expand textareas when the container width changes (e.g. browser resize)
+    if (!display._resizeObserver) {
+      display._resizeObserver = new ResizeObserver(() => {
+        display.querySelectorAll('.j-task-title').forEach(autoExpand);
+      });
+      display._resizeObserver.observe(display);
+    }
   }
 
   // ── Timeline view ─────────────────────────────────────────
