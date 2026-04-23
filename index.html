@@ -264,7 +264,7 @@
 
     <!-- Completed tasks card -->
     <div class="j-card">
-      <div class="j-card-header" id="tasksCardHeader" style="flex-direction:column;gap:6px;position:sticky;top:85px;z-index:15;background:var(--card-bg);border-radius:0;">
+      <div class="j-card-header" id="tasksCardHeader" style="flex-direction:column;gap:6px;">
         <span class="j-card-title" style="width:100%;">Completed tasks</span>
         <div style="display:flex;align-items:center;gap:4px;width:100%;flex-wrap:wrap;">
           <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()">&#x2195; Distribute</div>
@@ -274,8 +274,9 @@
           <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
           <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
         </div>
-        <div id="distBarSlot"></div>
       </div>
+      <!-- Fixed distribute bar rendered here when active -->
+      <div id="distBarFixed" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:40;"></div>
       <div class="j-card-body" id="tasksDisplay"><div class="empty-note">Loading&hellip;</div></div>
       <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
       <div class="j-add-strip">
@@ -1057,8 +1058,8 @@
       dbtn.innerHTML = '&#x2195; Distribute';
       dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
     }
-    const dslot = document.getElementById('distBarSlot');
-    if (dslot) dslot.innerHTML = '';
+    const dslot = document.getElementById('distBarFixed');
+    if (dslot) { dslot.innerHTML = ''; dslot.style.display = 'none'; }
     renderWriteTasks();
   }
 
@@ -1140,13 +1141,14 @@
 
     display.innerHTML = html;
 
-    // Render distribute bar into the sticky header slot
-    const distSlot = document.getElementById('distBarSlot');
-    if (distSlot) {
+    // Render distribute bar into fixed bottom bar
+    const distFixed = document.getElementById('distBarFixed');
+    if (distFixed) {
       if (distributeMode) {
         const defFrom = tasksData.length ? minToTime(snapTo5(Math.min(...tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'))))) : '08:00';
         const defTo = tasksData.length ? minToTime(snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'))))) : '18:00';
-        distSlot.innerHTML = `<div class="j-dist-bar" id="distBar" style="position:static;border-top:none;padding:6px 0 2px;">
+        distFixed.style.display = 'block';
+        distFixed.innerHTML = `<div class="j-dist-bar" id="distBar" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--card-border);box-shadow:0 -2px 12px rgba(0,0,0,0.15);">
           <span class="j-dist-count">${distributeSelected.size} selected</span>
           <span style="flex:1;"></span>
           <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
@@ -1155,7 +1157,8 @@
           <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
         </div>`;
       } else {
-        distSlot.innerHTML = '';
+        distFixed.style.display = 'none';
+        distFixed.innerHTML = '';
       }
     }
 
@@ -1651,8 +1654,8 @@
     const btn = document.getElementById('distributeBtn');
     if (btn) btn.innerHTML = distributeMode ? 'Cancel' : '&#x2195; Distribute';
     if (!distributeMode) {
-      const slot = document.getElementById('distBarSlot');
-      if (slot) slot.innerHTML = '';
+      const slot = document.getElementById('distBarFixed');
+      if (slot) { slot.innerHTML = ''; slot.style.display = 'none'; }
     }
     renderWriteTasks();
   }
@@ -1724,8 +1727,8 @@
     distributeSelected.clear();
     const btn = document.getElementById('distributeBtn');
     if (btn) btn.innerHTML = '&#x2195; Distribute';
-    const slot = document.getElementById('distBarSlot');
-    if (slot) slot.innerHTML = '';
+    const slot = document.getElementById('distBarFixed');
+    if (slot) { slot.innerHTML = ''; slot.style.display = 'none'; }
     renderWriteTasks();
   }
 
