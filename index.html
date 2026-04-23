@@ -793,6 +793,12 @@
 
   function changeWriteDate(dateStr) {
     tasksData=[]; existingPageId=null; tasksDirty=false; reflectionDirty=false; openFreqList=null; dayStartTime=null; timelineFocusMin=null;
+    // Cancel distribute mode
+    distributeMode=false; distributeSelected.clear();
+    const dbtn=document.getElementById('distributeBtn');
+    if(dbtn) dbtn.innerHTML='&#x2195; Distribute';
+    const df=document.getElementById('distBarFixed');
+    if(df){df.innerHTML='';df.style.display='none';}
     document.getElementById('tasksSaveBtn').style.display      = 'none';
     document.getElementById('reflectionSaveBtn').style.display = 'none';
     resetReflection();
@@ -1151,8 +1157,9 @@
         distFixed.innerHTML = `<div class="j-dist-bar" id="distBar" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--card-border);box-shadow:0 -2px 12px rgba(0,0,0,0.15);">
           <span class="j-dist-count">${distributeSelected.size} selected</span>
           <span style="flex:1;"></span>
+          <span style="font-size:12px;color:var(--card-text);">Evenly distribute between</span>
           <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
-          <span class="j-task-sep">&ndash;</span>
+          <span style="font-size:12px;color:var(--card-text);">and</span>
           <select id="distTo" onchange="this._userChanged=true;">${timeSelectOptions(defTo)}</select>
           <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
         </div>`;
