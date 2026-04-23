@@ -264,7 +264,7 @@
 
     <!-- Completed tasks card -->
     <div class="j-card">
-      <div class="j-card-header" id="tasksCardHeader" style="flex-direction:column;gap:6px;position:sticky;top:90px;z-index:15;background:var(--card-bg);">
+      <div class="j-card-header" id="tasksCardHeader" style="flex-direction:column;gap:6px;position:sticky;top:85px;z-index:15;background:var(--card-bg);border-radius:0;">
         <span class="j-card-title" style="width:100%;">Completed tasks</span>
         <div style="display:flex;align-items:center;gap:4px;width:100%;flex-wrap:wrap;">
           <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()">&#x2195; Distribute</div>
@@ -1053,13 +1053,18 @@
     distributeMode = false;
     distributeSelected.clear();
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.innerHTML = '&#x2195; Distribute';
+    if (dbtn) {
+      dbtn.innerHTML = '&#x2195; Distribute';
+      dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
+    }
     const dslot = document.getElementById('distBarSlot');
     if (dslot) dslot.innerHTML = '';
     renderWriteTasks();
   }
 
   function renderWriteTasks() {
+    const dbtn = document.getElementById('distributeBtn');
+    if (dbtn) dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
     if (writeTaskView === 'time') { renderWriteTasksTime(); return; }
     renderWriteTasksList();
   }
@@ -1425,20 +1430,21 @@
   // Pill drag: whole block moves (preserves duration). Tap opens editor.
   // Distinguishes tap vs drag by distance threshold.
   function attachSpanDrag(pill, timeline, dropHint, dayFromMin, taskIdx) {
+    let pointerIsDown = false;
     let dragging = false;
     let startY = 0;
     let originStartMin = 0, originEndMin = 0;
     let pointerId = null;
-    let totalDy = 0;
     const TAP_THRESHOLD = 5; // px — less than this = tap
 
     const dragTimeEl = document.getElementById('tlDragTime');
 
     function onDown(e) {
+      pointerIsDown = true;
       pointerId = e.pointerId;
       pill.setPointerCapture(pointerId);
       startY = e.clientY;
-      totalDy = 0;
+      dragging = false;
       const t = tasksData[taskIdx];
       if (!t) return;
       originStartMin = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
@@ -1447,6 +1453,7 @@
     }
 
     function onMove(e) {
+      if (!pointerIsDown) return;
       const dy = e.clientY - startY;
       if (!dragging && Math.abs(dy) > TAP_THRESHOLD) {
         dragging = true;
@@ -1470,10 +1477,8 @@
 
       const curStart = timeToMin(t.startTime);
       pill.style.top    = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
-      // Update drop hint
       dropHint.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
       dropHint.style.height = (Math.max(5, duration) * TL_PX_PER_MIN) + 'px';
-      // Update drag-time in left margin
       if (dragTimeEl) {
         dragTimeEl.textContent = t.startTime;
         dragTimeEl.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
@@ -1481,7 +1486,9 @@
     }
 
     function onUp() {
+      if (!pointerIsDown) return;
       const wasDragging = dragging;
+      pointerIsDown = false;
       dragging = false;
       pill.classList.remove('dragging');
       dropHint.style.display = 'none';
@@ -1489,7 +1496,6 @@
       try { pill.releasePointerCapture(pointerId); } catch(err) {}
 
       if (!wasDragging) {
-        // It was a tap — open editor
         openTaskEditor(taskIdx);
         return;
       }
