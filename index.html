@@ -91,6 +91,13 @@
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
 
+    /* Distribute mode */
+    .j-dist-check { width: 18px; height: 18px; accent-color: var(--card-accent); flex-shrink: 0; cursor: pointer; margin: 0; }
+    .j-dist-bar { position: sticky; bottom: 0; left: 0; right: 0; background: var(--card-bg2); border-top: 1px solid var(--card-border); padding: 10px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; z-index: 10; }
+    .j-dist-bar select { font-size: 12px; padding: 4px 6px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 5px; color: var(--card-text); font-family: 'Jost', sans-serif; -webkit-appearance: none; }
+    .j-dist-bar .j-save-btn { padding: 6px 14px; }
+    .j-dist-count { font-size: 12px; color: var(--card-muted); }
+
     /* ── Write timeline view ── */
     .j-timeline-wrap { position: relative; padding: 4px 8px 8px; }
     .j-timeline { position: relative; margin-left: 42px; min-height: 100px; }
@@ -260,11 +267,16 @@
 
     <!-- Completed tasks card -->
     <div class="j-card">
-      <div class="j-card-header">
-        <span class="j-card-title">Completed tasks</span>
-        <div class="j-edit-btn" id="writeTaskViewToggle" onclick="toggleWriteTaskView()" style="margin-right:4px;">&#9201; By time</div>
-        <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
-        <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
+      <div class="j-card-header" style="flex-direction:column;gap:6px;">
+        <span class="j-card-title" style="width:100%;">Completed tasks</span>
+        <div style="display:flex;align-items:center;gap:4px;width:100%;flex-wrap:wrap;">
+          <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()">Distribute</div>
+          <span style="flex:1;"></span>
+          <div id="tasksSaveStatus" style="font-size:12px;"></div>
+          <div class="j-edit-btn" id="writeTaskViewToggle" onclick="toggleWriteTaskView()" style="margin-right:4px;">&#9201; By time</div>
+          <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
+          <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
+        </div>
       </div>
       <div class="j-card-body" id="tasksDisplay"><div class="empty-note">Loading&hellip;</div></div>
       <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
@@ -280,13 +292,13 @@
           <div class="j-btn" onclick="clearImport()">Clear</div>
         </div>
       </div>
-      <div id="tasksSaveStatus" style="padding:0 14px;"></div>
     </div>
 
     <!-- Reflection card -->
     <div class="j-card">
       <div class="j-card-header">
         <span class="j-card-title">Reflection</span>
+        <div id="reflectionSaveStatus" style="font-size:12px;"></div>
         <div class="j-save-btn" id="reflectionSaveBtn" style="display:none;" onclick="saveReflection()">Save</div>
       </div>
       <textarea class="j-textarea" id="reflectionBox" placeholder="Write your reflection for today&hellip;" oninput="autoExpand(this);onReflectionChange()"></textarea>
@@ -298,7 +310,6 @@
         <div class="j-strip-btn" id="reflectionRecordBtn" onclick="toggleReflectionRecording()">&#127908; Record</div>
       </div>
       <div id="reflectionImportStatus" style="padding:0 14px;"></div>
-      <div id="reflectionSaveStatus" style="padding:0 14px;"></div>
     </div>
 
   </div>
@@ -466,8 +477,18 @@
   // ── Utilities ─────────────────────────────────────────────
   function isoDate(d)   { return d.toISOString().split('T')[0]; }
   function esc(s)       { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-  function showStatus(id,msg,type){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="status ${type}">${msg}</div>`;}
-  function autoClear(id,ms){setTimeout(()=>{const el=document.getElementById(id);if(el)el.innerHTML='';},ms);}
+  function showStatus(id,msg,type){
+    const el=document.getElementById(id);
+    if(!el)return;
+    // For inline status elements (in card headers), use compact text
+    if(el.style.fontSize==='12px'){
+      el.textContent=msg.replace(/<[^>]+>/g,'');
+      el.style.color=type==='ok'?'var(--green)':type==='err'?'var(--red)':'var(--accent)';
+    } else {
+      el.innerHTML=`<div class="status ${type}">${msg}</div>`;
+    }
+  }
+  function autoClear(id,ms){setTimeout(()=>{const el=document.getElementById(id);if(el){el.innerHTML='';el.textContent='';}},ms);}
   function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});}
 
   function getWriteDate() { return document.getElementById('writeDateLabel').dataset.date || isoDate(new Date()); }
@@ -520,11 +541,45 @@
       if (cached !== null) return cached;
     }
 
-    const res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
-    const text = await res.text();
-    if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
-    const data = JSON.parse(text);
-    if (!data.success) throw new Error(data.error);
+    // Ensure token is fresh before calling
+    await ensureFreshToken();
+
+    let res, text, data;
+    try {
+      res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
+      text = await res.text();
+      if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
+      data = JSON.parse(text);
+    } catch(e) {
+      // On network or parse error, try refreshing token and retrying once
+      const refreshed = await refreshToken();
+      if (!refreshed) throw e;
+      res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
+      text = await res.text();
+      if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
+      data = JSON.parse(text);
+    }
+
+    if (!data.success) {
+      // If error looks auth-related, try refreshing and retrying once
+      const errMsg = (data.error || '').toLowerCase();
+      if (errMsg.includes('auth') || errMsg.includes('token') || errMsg.includes('access') || errMsg.includes('credential') || errMsg.includes('inaccessible')) {
+        const refreshed = await refreshToken();
+        if (refreshed) {
+          res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
+          text = await res.text();
+          if (!text.trim().startsWith('<')) {
+            data = JSON.parse(text);
+            if (data.success) {
+              if (isRead) cacheSet(cacheKey(action, params), data.data);
+              if (isWrite) cacheInvalidateReads();
+              return data.data;
+            }
+          }
+        }
+      }
+      throw new Error(data.error);
+    }
 
     if (isRead) cacheSet(cacheKey(action, params), data.data);
     if (isWrite) cacheInvalidateReads();
@@ -534,6 +589,61 @@
 
   // ── Google Auth ───────────────────────────────────────────
   const TOKEN_KEY = 'tj_credential';
+  let tokenRefreshTimer = null;
+
+  function getTokenExpiry() {
+    try {
+      const payload = JSON.parse(atob(idToken.split('.')[1]));
+      return payload.exp * 1000; // ms
+    } catch(e) { return 0; }
+  }
+
+  function isTokenExpiringSoon() {
+    if (!idToken) return true;
+    return Date.now() > getTokenExpiry() - 5 * 60 * 1000; // within 5 min of expiry
+  }
+
+  function scheduleTokenRefresh() {
+    if (tokenRefreshTimer) clearTimeout(tokenRefreshTimer);
+    if (!idToken) return;
+    const expiresAt = getTokenExpiry();
+    // Refresh 5 minutes before expiry
+    const refreshIn = Math.max(10000, expiresAt - Date.now() - 5 * 60 * 1000);
+    tokenRefreshTimer = setTimeout(() => {
+      refreshToken();
+    }, refreshIn);
+  }
+
+  async function ensureFreshToken() {
+    if (isTokenExpiringSoon()) {
+      await refreshToken();
+    }
+  }
+
+  function refreshToken() {
+    return new Promise((resolve) => {
+      try {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: (response) => {
+            idToken = response.credential;
+            saveToken(idToken);
+            scheduleTokenRefresh();
+            resolve(true);
+          },
+          auto_select: true
+        });
+        google.accounts.id.prompt((notification) => {
+          // If prompt was dismissed or not displayed, we couldn't refresh silently
+          if (notification.isNotDisplayed() || notification.isDismissedMoment()) {
+            resolve(false);
+          }
+        });
+      } catch(e) {
+        resolve(false);
+      }
+    });
+  }
 
   function saveToken(credential) {
     try {
@@ -559,6 +669,7 @@
       initApp();
       google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
       google.accounts.id.prompt();
+      scheduleTokenRefresh();
       return;
     }
     google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
@@ -571,6 +682,7 @@
     saveToken(idToken);
     document.getElementById('lockScreen').style.display = 'none';
     initApp();
+    scheduleTokenRefresh();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -939,6 +1051,11 @@
     writeTaskView = writeTaskView === 'list' ? 'time' : 'list';
     const toggle = document.getElementById('writeTaskViewToggle');
     if (toggle) toggle.innerHTML = writeTaskView === 'list' ? '\u23f1 By time' : '\u2261 By list';
+    // Exit distribute mode when switching views
+    distributeMode = false;
+    distributeSelected.clear();
+    const dbtn = document.getElementById('distributeBtn');
+    if (dbtn) dbtn.textContent = 'Distribute';
     renderWriteTasks();
   }
 
@@ -989,8 +1106,12 @@
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
           const startOpts = timeSelectOptions(item.startTime || '');
           const endOpts = timeSelectOptions(item.time || '');
+          const distCheck = distributeMode
+            ? `<input type="checkbox" class="j-dist-check" data-idx="${item.idx}" ${distributeSelected.has(item.idx)?'checked':''} onclick="toggleDistributeCheck(${item.idx})">`
+            : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
             <div class="j-task-controls">
+              ${distCheck}
               <select class="j-task-time j-task-start"
                 onchange="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].startTime=this.value;markTasksDirty();}">${startOpts}</select>
               <span class="j-task-sep">&ndash;</span>
@@ -1011,6 +1132,21 @@
         });
       }
     });
+
+    // Distribute bar at bottom when in distribute mode
+    if (distributeMode) {
+      const defFrom = tasksData.length ? minToTime(snapTo5(Math.min(...tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'))))) : '08:00';
+      const defTo = tasksData.length ? minToTime(snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'))))) : '18:00';
+      html += `<div class="j-dist-bar" id="distBar">
+        <span class="j-dist-count">${distributeSelected.size} selected</span>
+        <span style="flex:1;"></span>
+        <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
+        <span class="j-task-sep">&ndash;</span>
+        <select id="distTo" onchange="this._userChanged=true;">${timeSelectOptions(defTo)}</select>
+        <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
+      </div>`;
+    }
+
     display.innerHTML = html;
     // Auto-expand task title textareas so pre-existing long titles show in full
     setTimeout(() => display.querySelectorAll('.j-task-title').forEach(autoExpand), 0);
@@ -1445,6 +1581,88 @@
   function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
   function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
   function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
+
+  // ── Distribute mode ───────────────────────────────────────
+  let distributeMode = false;
+  let distributeSelected = new Set(); // indices into tasksData
+
+  function toggleDistributeMode() {
+    distributeMode = !distributeMode;
+    distributeSelected.clear();
+    const btn = document.getElementById('distributeBtn');
+    if (btn) btn.textContent = distributeMode ? 'Cancel' : 'Distribute';
+    renderWriteTasks();
+  }
+
+  function toggleDistributeCheck(idx) {
+    if (distributeSelected.has(idx)) distributeSelected.delete(idx);
+    else distributeSelected.add(idx);
+    updateDistributeBar();
+  }
+
+  function updateDistributeBar() {
+    const bar = document.getElementById('distBar');
+    if (!bar) return;
+    const count = distributeSelected.size;
+    bar.querySelector('.j-dist-count').textContent = count + ' selected';
+    const applyBtn = bar.querySelector('.j-save-btn');
+    if (applyBtn) {
+      applyBtn.style.opacity = count >= 2 ? '1' : '0.4';
+      applyBtn.style.pointerEvents = count >= 2 ? 'auto' : 'none';
+    }
+    // Update default times based on selection
+    if (count >= 2) {
+      const indices = [...distributeSelected].sort((a,b) => {
+        const aStart = timeToMin(tasksData[a]?.startTime || tasksData[a]?.time || '00:00');
+        const bStart = timeToMin(tasksData[b]?.startTime || tasksData[b]?.time || '00:00');
+        return aStart - bStart;
+      });
+      const earliest = tasksData[indices[0]];
+      const latest = tasksData[indices[indices.length - 1]];
+      const fromSel = bar.querySelector('#distFrom');
+      const toSel = bar.querySelector('#distTo');
+      if (fromSel && !fromSel._userChanged) fromSel.value = earliest.startTime || earliest.time || '00:00';
+      if (toSel && !toSel._userChanged) toSel.value = latest.time || latest.startTime || '00:00';
+    }
+    // Update checkboxes visually
+    document.querySelectorAll('.j-dist-check').forEach(cb => {
+      const idx = parseInt(cb.dataset.idx);
+      cb.checked = distributeSelected.has(idx);
+    });
+  }
+
+  function applyDistribute() {
+    if (distributeSelected.size < 2) return;
+    const bar = document.getElementById('distBar');
+    const fromMin = timeToMin(bar.querySelector('#distFrom').value);
+    const toMin = timeToMin(bar.querySelector('#distTo').value);
+    if (toMin <= fromMin) { showStatus('tasksSaveStatus', 'End must be after start.', 'err'); autoClear('tasksSaveStatus', 3000); return; }
+
+    // Sort selected tasks by their current start time to preserve order
+    const indices = [...distributeSelected].sort((a,b) => {
+      const aStart = timeToMin(tasksData[a]?.startTime || tasksData[a]?.time || '00:00');
+      const bStart = timeToMin(tasksData[b]?.startTime || tasksData[b]?.time || '00:00');
+      return aStart - bStart;
+    });
+
+    const n = indices.length;
+    const totalMin = toMin - fromMin;
+    const slotMin = totalMin / n;
+
+    indices.forEach((taskIdx, i) => {
+      const slotStart = snapTo5(fromMin + Math.round(slotMin * i));
+      const slotEnd = snapTo5(fromMin + Math.round(slotMin * (i + 1)));
+      tasksData[taskIdx].startTime = minToTime(Math.min(slotStart, toMin));
+      tasksData[taskIdx].time = minToTime(Math.min(slotEnd, toMin));
+    });
+
+    markTasksDirty();
+    distributeMode = false;
+    distributeSelected.clear();
+    const btn = document.getElementById('distributeBtn');
+    if (btn) btn.textContent = 'Distribute';
+    renderWriteTasks();
+  }
 
   async function saveTasks() {
     flushTaskInputs();
