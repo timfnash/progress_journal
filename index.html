@@ -107,25 +107,22 @@
     .j-tl-rule-hour{ position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.22); pointer-events: none; }
     .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
 
-    /* Pills — span from startTime to time (endTime); 1-slot min height.
-       Drag grip on left; tap pill to cycle mode (Move/Start/End). */
-    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-radius: 4px; padding: 0 6px 0 0; font-size: 11.5px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1; user-select: none; touch-action: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04); z-index: 2; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; transition: box-shadow 0.15s ease; min-height: 14px; }
+    /* Pills — clean cards showing title only; drag to move, edges to resize */
+    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: none; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
-    .j-tl-pill .tl-pill-time  { color: var(--card-muted); font-size: 10px; flex-shrink: 0; font-variant-numeric: tabular-nums; width: 72px; min-width: 72px; }
-    .j-tl-pill .tl-pill-list  { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--card-accent); font-size: 9px; flex-shrink: 0; }
-    .j-tl-pill .tl-pill-title { color: var(--card-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
-    .j-tl-pill .tl-pill-dur   { color: var(--card-muted); font-size: 10px; flex-shrink: 0; margin-left: auto; padding-left: 4px; }
-    .j-tl-pill.dragging { opacity: 0.95; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
-    .j-tl-pill.dragging .tl-pill-title { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.3; }
-    /* Drag grip — left edge of pill */
-    .tl-grip { width: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: stretch; cursor: grab; color: var(--card-muted); font-size: 12px; letter-spacing: -1px; border-right: 1px solid var(--card-border); touch-action: none; }
-    .tl-grip:active { cursor: grabbing; background: rgba(200,169,110,0.15); }
-    /* Mode indicator */
-    .tl-mode { font-size: 8px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--card-muted); flex-shrink: 0; padding: 1px 4px; border-radius: 3px; cursor: pointer; line-height: 1.2; }
-    .j-tl-pill.mode-start { border-top: 2px solid var(--accent); }
-    .j-tl-pill.mode-end   { border-bottom: 2px solid var(--accent); }
-    .j-tl-pill.mode-start .tl-mode,
-    .j-tl-pill.mode-end .tl-mode { color: var(--card-accent); background: rgba(200,169,110,0.15); }
+    .j-tl-pill .tl-pill-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden; }
+    .j-tl-pill.dragging { opacity: 0.92; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+    /* Drag-time indicator in left margin */
+    .j-tl-drag-time { position: absolute; left: -42px; width: 36px; text-align: right; font-size: 10px; font-weight: 700; color: var(--card-accent); font-family: 'Jost', sans-serif; font-variant-numeric: tabular-nums; pointer-events: none; display: none; z-index: 25; }
+    /* Tap-to-edit overlay */
+    .j-tl-editor { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .j-tl-editor-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 10px; }
+    .j-tl-editor-row { display: flex; align-items: center; gap: 8px; }
+    .j-tl-editor-row label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); width: 40px; flex-shrink: 0; }
+    .j-tl-editor-row select, .j-tl-editor-row input { font-size: 13px; padding: 6px 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; color: var(--card-text); font-family: 'Jost', sans-serif; flex: 1; -webkit-appearance: none; }
+    .j-tl-editor-row textarea { font-size: 14px; padding: 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; color: var(--card-text); font-family: 'Jost', sans-serif; flex: 1; min-height: 60px; resize: none; line-height: 1.5; }
+    .j-tl-editor-row textarea:focus, .j-tl-editor-row select:focus { outline: none; border-color: var(--card-accent); }
+    .j-tl-editor-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
     /* Day-start pill — distinct, full-width, dashed border */
     .j-tl-daystart { position: absolute; left: 0; right: 0; height: auto; background: rgba(110,184,126,0.14); border: 1px dashed var(--green); border-radius: 4px; padding: 0 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--green); font-family: 'Jost', sans-serif; line-height: 1; cursor: grab; user-select: none; touch-action: none; z-index: 3; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; transition: box-shadow 0.15s ease; }
@@ -267,16 +264,17 @@
 
     <!-- Completed tasks card -->
     <div class="j-card">
-      <div class="j-card-header" style="flex-direction:column;gap:6px;">
+      <div class="j-card-header" id="tasksCardHeader" style="flex-direction:column;gap:6px;position:sticky;top:90px;z-index:15;background:var(--card-bg);">
         <span class="j-card-title" style="width:100%;">Completed tasks</span>
         <div style="display:flex;align-items:center;gap:4px;width:100%;flex-wrap:wrap;">
-          <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()">Distribute</div>
+          <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()">&#x2195; Distribute</div>
           <span style="flex:1;"></span>
           <div id="tasksSaveStatus" style="font-size:12px;"></div>
           <div class="j-edit-btn" id="writeTaskViewToggle" onclick="toggleWriteTaskView()" style="margin-right:4px;">&#9201; By time</div>
           <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
           <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
         </div>
+        <div id="distBarSlot"></div>
       </div>
       <div class="j-card-body" id="tasksDisplay"><div class="empty-note">Loading&hellip;</div></div>
       <input type="file" id="screenshotInput" accept="image/*" multiple style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
@@ -1055,7 +1053,9 @@
     distributeMode = false;
     distributeSelected.clear();
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.textContent = 'Distribute';
+    if (dbtn) dbtn.innerHTML = '&#x2195; Distribute';
+    const dslot = document.getElementById('distBarSlot');
+    if (dslot) dslot.innerHTML = '';
     renderWriteTasks();
   }
 
@@ -1133,21 +1133,27 @@
       }
     });
 
-    // Distribute bar at bottom when in distribute mode
-    if (distributeMode) {
-      const defFrom = tasksData.length ? minToTime(snapTo5(Math.min(...tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'))))) : '08:00';
-      const defTo = tasksData.length ? minToTime(snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'))))) : '18:00';
-      html += `<div class="j-dist-bar" id="distBar">
-        <span class="j-dist-count">${distributeSelected.size} selected</span>
-        <span style="flex:1;"></span>
-        <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
-        <span class="j-task-sep">&ndash;</span>
-        <select id="distTo" onchange="this._userChanged=true;">${timeSelectOptions(defTo)}</select>
-        <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
-      </div>`;
+    display.innerHTML = html;
+
+    // Render distribute bar into the sticky header slot
+    const distSlot = document.getElementById('distBarSlot');
+    if (distSlot) {
+      if (distributeMode) {
+        const defFrom = tasksData.length ? minToTime(snapTo5(Math.min(...tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'))))) : '08:00';
+        const defTo = tasksData.length ? minToTime(snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'))))) : '18:00';
+        distSlot.innerHTML = `<div class="j-dist-bar" id="distBar" style="position:static;border-top:none;padding:6px 0 2px;">
+          <span class="j-dist-count">${distributeSelected.size} selected</span>
+          <span style="flex:1;"></span>
+          <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
+          <span class="j-task-sep">&ndash;</span>
+          <select id="distTo" onchange="this._userChanged=true;">${timeSelectOptions(defTo)}</select>
+          <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
+        </div>`;
+      } else {
+        distSlot.innerHTML = '';
+      }
     }
 
-    display.innerHTML = html;
     // Auto-expand task title textareas so pre-existing long titles show in full
     setTimeout(() => display.querySelectorAll('.j-task-title').forEach(autoExpand), 0);
     // Re-expand textareas when the container width changes (e.g. browser resize)
@@ -1225,7 +1231,7 @@
 
     const hint = document.createElement('div');
     hint.className = 'j-tl-hint';
-    hint.textContent = 'Tap pill to cycle Move / Start / End \u2022 drag grip to adjust';
+    hint.textContent = 'Drag to move \u2022 drag edges to resize \u2022 tap to edit';
     wrap.appendChild(hint);
 
     const tl = document.createElement('div');
@@ -1262,6 +1268,12 @@
     dropHint.id = 'tlDropHint';
     dropHint.style.height = (5 * TL_PX_PER_MIN) + 'px';
     tl.appendChild(dropHint);
+
+    // Drag-time indicator in left margin
+    const dragTimeLabel = document.createElement('div');
+    dragTimeLabel.className = 'j-tl-drag-time';
+    dragTimeLabel.id = 'tlDragTime';
+    tl.appendChild(dragTimeLabel);
 
     const slotHeightPx = 5 * TL_PX_PER_MIN;
 
@@ -1321,17 +1333,8 @@
         const pct = 100 / cols;
         pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
         pill.style.width = `calc(${pct}% - ${gap}px)`;
-        const listTag = LIST_OPTIONS.includes(it.task.list) ? it.task.list : 'Other';
-        const timeLabel = (it.task.startTime && it.task.time && it.task.startTime !== it.task.time)
-          ? `${esc(it.task.startTime)}\u2013${esc(it.task.time)}`
-          : esc(it.task.time || '--:--');
-        pill.dataset.dragMode = 'body';
-        pill.innerHTML =
-          `<span class="tl-grip" title="Drag">&#x2630;</span>` +
-          `<span class="tl-mode" title="Tap to cycle: Move / Start / End">Move</span>` +
-          `<span class="tl-pill-time">${timeLabel}</span>` +
-          `<span class="tl-pill-list">${esc(listTag)}</span>` +
-          `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
+        pill.dataset.idx = it.idx;
+        pill.innerHTML = `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
         tl.appendChild(pill);
         attachSpanDrag(pill, tl, dropHint, dayFromMin, it.idx);
       });
@@ -1419,116 +1422,166 @@
     pill.addEventListener('pointercancel', onUp);
   }
 
-  // Span drag: grip on the left is the drag target. Tapping the pill body
-  // (not the grip) cycles through three modes: body → start → end → body.
-  // The mode determines what the grip drag adjusts. Visual feedback: top/bottom
-  // border highlight + label text. Cross-over is refused (snap back to origin).
+  // Pill drag: whole block moves (preserves duration). Tap opens editor.
+  // Distinguishes tap vs drag by distance threshold.
   function attachSpanDrag(pill, timeline, dropHint, dayFromMin, taskIdx) {
     let dragging = false;
-    let mode = 'body'; // 'body' | 'start' | 'end'
     let startY = 0;
     let originStartMin = 0, originEndMin = 0;
     let pointerId = null;
-    let pointerDownTime = 0;
+    let totalDy = 0;
+    const TAP_THRESHOLD = 5; // px — less than this = tap
 
-    const grip = pill.querySelector('.tl-grip');
-    const modeLabel = pill.querySelector('.tl-mode');
+    const dragTimeEl = document.getElementById('tlDragTime');
 
-    function updateModeUI() {
-      pill.classList.remove('mode-start', 'mode-end');
-      if (mode === 'start') { pill.classList.add('mode-start'); modeLabel.textContent = 'Start'; }
-      else if (mode === 'end') { pill.classList.add('mode-end'); modeLabel.textContent = 'End'; }
-      else { modeLabel.textContent = 'Move'; }
-    }
-
-    // Tap on pill body (not grip) cycles mode
-    pill.addEventListener('click', (e) => {
-      if (e.target === grip || e.target.closest('.tl-grip')) return;
-      if (mode === 'body') mode = 'start';
-      else if (mode === 'start') mode = 'end';
-      else mode = 'body';
-      pill.dataset.dragMode = mode;
-      updateModeUI();
-    });
-
-    // Drag on grip
-    grip.addEventListener('pointerdown', (e) => {
-      mode = pill.dataset.dragMode || 'body';
+    function onDown(e) {
       pointerId = e.pointerId;
-      grip.setPointerCapture(pointerId);
-      dragging = true;
-      pill.classList.add('dragging');
+      pill.setPointerCapture(pointerId);
       startY = e.clientY;
+      totalDy = 0;
       const t = tasksData[taskIdx];
       if (!t) return;
       originStartMin = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
       originEndMin   = snapTo5(timeToMin(t.time || t.startTime || '00:00'));
-      dropHint.style.display = 'block';
-      updateHintForMode();
       e.preventDefault();
-      e.stopPropagation();
-    });
+    }
 
-    grip.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
+    function onMove(e) {
       const dy = e.clientY - startY;
+      if (!dragging && Math.abs(dy) > TAP_THRESHOLD) {
+        dragging = true;
+        pill.classList.add('dragging');
+        dropHint.style.display = 'block';
+        if (dragTimeEl) dragTimeEl.style.display = 'block';
+      }
+      if (!dragging) return;
+
       const dMin = snapTo5(dy / TL_PX_PER_MIN);
       const t = tasksData[taskIdx];
       if (!t) return;
 
-      if (mode === 'body') {
-        const duration = originEndMin - originStartMin;
-        let newStart = originStartMin + dMin;
-        if (newStart < 0) newStart = 0;
-        if (newStart + duration > TL_MIN_PER_DAY) newStart = TL_MIN_PER_DAY - duration;
-        t.startTime = minToTime(newStart);
-        t.time      = minToTime(newStart + duration);
-      } else if (mode === 'start') {
-        let newStart = Math.max(0, Math.min(originEndMin, originStartMin + dMin));
-        t.startTime = minToTime(newStart);
-      } else if (mode === 'end') {
-        let newEnd = Math.max(originStartMin, Math.min(TL_MIN_PER_DAY, originEndMin + dMin));
-        t.time = minToTime(newEnd);
-      }
+      const duration = originEndMin - originStartMin;
+      let newStart = originStartMin + dMin;
+      if (newStart < 0) newStart = 0;
+      if (newStart + duration > TL_MIN_PER_DAY) newStart = TL_MIN_PER_DAY - duration;
+
+      t.startTime = minToTime(newStart);
+      t.time      = minToTime(newStart + duration);
 
       const curStart = timeToMin(t.startTime);
-      const curEnd   = timeToMin(t.time);
       pill.style.top    = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
-      pill.style.height = (Math.max(5, curEnd - curStart) * TL_PX_PER_MIN) + 'px';
-      updateHintForMode();
-    });
-
-    function updateHintForMode() {
-      const t = tasksData[taskIdx];
-      if (!t) return;
-      const min = mode === 'end'
-        ? snapTo5(timeToMin(t.time || '00:00'))
-        : snapTo5(timeToMin(t.startTime || '00:00'));
-      dropHint.style.top = ((min - dayFromMin) * TL_PX_PER_MIN) + 'px';
+      // Update drop hint
+      dropHint.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
+      dropHint.style.height = (Math.max(5, duration) * TL_PX_PER_MIN) + 'px';
+      // Update drag-time in left margin
+      if (dragTimeEl) {
+        dragTimeEl.textContent = t.startTime;
+        dragTimeEl.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
+      }
     }
 
     function onUp() {
-      if (!dragging) return;
+      const wasDragging = dragging;
       dragging = false;
       pill.classList.remove('dragging');
       dropHint.style.display = 'none';
-      try { grip.releasePointerCapture(pointerId); } catch(err) {}
+      if (dragTimeEl) dragTimeEl.style.display = 'none';
+      try { pill.releasePointerCapture(pointerId); } catch(err) {}
+
+      if (!wasDragging) {
+        // It was a tap — open editor
+        openTaskEditor(taskIdx);
+        return;
+      }
+
       const t = tasksData[taskIdx];
       if (t) {
-        const s = timeToMin(t.startTime);
-        const e = timeToMin(t.time);
-        if (s > e) {
-          t.startTime = minToTime(originStartMin);
-          t.time      = minToTime(originEndMin);
-        }
         markTasksDirty();
         timelineFocusMin = timeToMin(t.startTime);
       }
       renderWriteTasksTime();
     }
 
-    grip.addEventListener('pointerup', onUp);
-    grip.addEventListener('pointercancel', onUp);
+    pill.addEventListener('pointerdown', onDown);
+    pill.addEventListener('pointermove', onMove);
+    pill.addEventListener('pointerup', onUp);
+    pill.addEventListener('pointercancel', onUp);
+  }
+
+  // ── Task editor overlay ───────────────────────────────────
+  function openTaskEditor(taskIdx) {
+    const t = tasksData[taskIdx];
+    if (!t) return;
+    const listTag = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+    const listOpts = LIST_OPTIONS.map(l => `<option value="${l}"${l===listTag?' selected':''}>${l}</option>`).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'j-tl-editor';
+    overlay.innerHTML = `
+      <div class="j-tl-editor-card">
+        <div class="j-tl-editor-row">
+          <label>Time</label>
+          <select id="editorStart">${timeSelectOptions(t.startTime || '')}</select>
+          <span class="j-task-sep">&ndash;</span>
+          <select id="editorEnd">${timeSelectOptions(t.time || '')}</select>
+        </div>
+        <div class="j-tl-editor-row">
+          <label>List</label>
+          <select id="editorList">${listOpts}</select>
+        </div>
+        <div class="j-tl-editor-row">
+          <label>Task</label>
+          <textarea id="editorTitle">${esc(t.title)}</textarea>
+        </div>
+        <div class="j-tl-editor-actions">
+          <div class="j-btn" id="editorDelete" style="color:var(--red);border-color:var(--red);">Delete</div>
+          <span style="flex:1;"></span>
+          <div class="j-btn" id="editorCancel">Cancel</div>
+          <div class="j-save-btn" id="editorDone">Done</div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Close on backdrop click
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeEditor(overlay, taskIdx);
+    });
+
+    overlay.querySelector('#editorCancel').addEventListener('click', () => {
+      document.body.removeChild(overlay);
+    });
+
+    overlay.querySelector('#editorDelete').addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      deleteTask(taskIdx);
+    });
+
+    overlay.querySelector('#editorDone').addEventListener('click', () => {
+      closeEditor(overlay, taskIdx);
+    });
+
+    // Focus title
+    setTimeout(() => overlay.querySelector('#editorTitle').focus(), 50);
+  }
+
+  function closeEditor(overlay, taskIdx) {
+    const t = tasksData[taskIdx];
+    if (t) {
+      const newStart = overlay.querySelector('#editorStart').value;
+      const newEnd   = overlay.querySelector('#editorEnd').value;
+      const newList  = overlay.querySelector('#editorList').value;
+      const newTitle = overlay.querySelector('#editorTitle').value;
+
+      let changed = false;
+      if (t.startTime !== newStart) { t.startTime = newStart; changed = true; }
+      if (t.time !== newEnd)        { t.time = newEnd; changed = true; }
+      if (t.list !== newList)       { t.list = newList; changed = true; }
+      if (t.title !== newTitle)     { t.title = newTitle; changed = true; }
+      if (changed) markTasksDirty();
+    }
+    document.body.removeChild(overlay);
+    renderWriteTasksTime();
   }
 
   function toggleTaskMenu(btn, idx) {
@@ -1590,7 +1643,11 @@
     distributeMode = !distributeMode;
     distributeSelected.clear();
     const btn = document.getElementById('distributeBtn');
-    if (btn) btn.textContent = distributeMode ? 'Cancel' : 'Distribute';
+    if (btn) btn.innerHTML = distributeMode ? 'Cancel' : '&#x2195; Distribute';
+    if (!distributeMode) {
+      const slot = document.getElementById('distBarSlot');
+      if (slot) slot.innerHTML = '';
+    }
     renderWriteTasks();
   }
 
@@ -1660,7 +1717,9 @@
     distributeMode = false;
     distributeSelected.clear();
     const btn = document.getElementById('distributeBtn');
-    if (btn) btn.textContent = 'Distribute';
+    if (btn) btn.innerHTML = '&#x2195; Distribute';
+    const slot = document.getElementById('distBarSlot');
+    if (slot) slot.innerHTML = '';
     renderWriteTasks();
   }
 
