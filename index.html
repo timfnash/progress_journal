@@ -1358,6 +1358,24 @@
     wrap.appendChild(tl);
     display.appendChild(wrap);
 
+    // Tap on empty area of timeline → create new task at that time
+    tl.addEventListener('click', (e) => {
+      // Ignore if the click landed on a pill or inside a pill
+      if (e.target.closest('.j-tl-pill') || e.target.closest('.j-tl-daystart')) return;
+      const rect = tl.getBoundingClientRect();
+      const yInTimeline = e.clientY - rect.top;
+      const clickedMin = snapTo5(yInTimeline / TL_PX_PER_MIN) + dayFromMin;
+      const startTime = minToTime(Math.max(0, Math.min(TL_MIN_PER_DAY - 5, clickedMin)));
+      const endTime = minToTime(Math.min(TL_MIN_PER_DAY, clickedMin + 5));
+      const newIdx = tasksData.length;
+      tasksData.push({ list: 'Other', starred: false, title: '', time: endTime, startTime: startTime });
+      markTasksDirty();
+      timelineFocusMin = clickedMin;
+      renderWriteTasksTime();
+      // Open editor for the new task after render
+      setTimeout(() => openTaskEditor(newIdx), 50);
+    });
+
     // Install scroll listener once so timelineFocusMin stays current
     if (!timelineScrollHandler) {
       timelineScrollHandler = () => { if (writeTaskView === 'time') rememberTimelineFocus(); };
@@ -1445,9 +1463,9 @@
     let startY = 0;
     let originStartMin = 0, originEndMin = 0;
     let pointerId = null;
-    const TAP_THRESHOLD = 5; // px — less than this = tap
+    const TAP_THRESHOLD = 5;
 
-    const dragTimeEl = document.getElementById('tlDragTime');
+    function getDragTimeEl() { return document.getElementById('tlDragTime'); }
 
     function onDown(e) {
       pointerIsDown = true;
@@ -1469,7 +1487,8 @@
         dragging = true;
         pill.classList.add('dragging');
         dropHint.style.display = 'block';
-        if (dragTimeEl) dragTimeEl.style.display = 'block';
+        const dte = getDragTimeEl();
+        if (dte) dte.style.display = 'block';
       }
       if (!dragging) return;
 
@@ -1489,9 +1508,10 @@
       pill.style.top    = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
       dropHint.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
       dropHint.style.height = (Math.max(5, duration) * TL_PX_PER_MIN) + 'px';
-      if (dragTimeEl) {
-        dragTimeEl.textContent = t.startTime;
-        dragTimeEl.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
+      const dte = getDragTimeEl();
+      if (dte) {
+        dte.textContent = t.startTime;
+        dte.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
       }
     }
 
@@ -1502,7 +1522,8 @@
       dragging = false;
       pill.classList.remove('dragging');
       dropHint.style.display = 'none';
-      if (dragTimeEl) dragTimeEl.style.display = 'none';
+      const dte = getDragTimeEl();
+      if (dte) dte.style.display = 'none';
       try { pill.releasePointerCapture(pointerId); } catch(err) {}
 
       if (!wasDragging) {
