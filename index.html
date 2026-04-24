@@ -287,9 +287,9 @@
       <div id="tasksImportStatus" style="padding:0 14px;"></div>
       <div class="j-extracted" id="tasksExtracted">
         <textarea id="extractedBox" placeholder="Extracted tasks will appear here&hellip;"></textarea>
-        <div class="j-extracted-actions">
-          <span style="font-size:12px;color:var(--card-muted);">Default to</span>
-          <select id="extractListSelect" style="font-size:12px;padding:4px 6px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:5px;color:var(--card-text);font-family:'Jost',sans-serif;-webkit-appearance:none;">
+        <div class="j-extracted-actions" style="align-items:center;">
+          <span style="font-size:12px;color:var(--card-muted);">Default list:</span>
+          <select id="extractListSelect" style="font-size:12px;padding:4px 8px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:5px;color:var(--card-accent);font-family:'Jost',sans-serif;-webkit-appearance:none;">
             <option value="Other">Other</option>
             <option value="Basic">Basic</option>
             <option value="Personal">Personal</option>
@@ -2097,7 +2097,7 @@
           groups.forEach(g => {
             if(withH) {
               const groupDur = g.items.reduce((sum,t) => sum + taskDurationMin(t), 0);
-              const groupDurStr = groupDur > 0 ? ` in ${formatDuration(groupDur)}` : '';
+              const groupDurStr = groupDur > 0 ? ` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(groupDur)}` : '';
               inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}${groupDurStr}</span></div>`;
             }
             g.items.forEach(t => {
@@ -2192,7 +2192,7 @@
         reviewSummaryData.tasks,
         reviewSummaryData.reflections
       );
-      slot.innerHTML = `<div class="review-summary">${summaryText.replace(/\n/g, '<br>')}</div>`;
+      slot.innerHTML = `<div class="review-summary">${summaryText.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>`;
       if (btn) { btn.textContent = 'Refresh'; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; }
     } catch(e) {
       slot.innerHTML = `<div class="empty-note" style="color:var(--red);">Summary error: ${esc(e.message)}</div>`;
@@ -2221,7 +2221,7 @@
       const dateStr = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
       const count = byDate[date].tasks.length;
       const dateDur = byDate[date].tasks.reduce((s,t) => s + taskDurationMin(t), 0);
-      const dateDurStr = dateDur > 0 ? ` in ${formatDuration(dateDur)}` : '';
+      const dateDurStr = dateDur > 0 ? ` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(dateDur)}` : '';
       const items = byDate[date].tasks.map((t, ti) => {
         const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
         const dur = taskDurationMin(t);
@@ -2438,14 +2438,14 @@
     const keys=Object.keys(counts).sort((a,b)=>{const ai=LIST_ORDER.indexOf(a),bi=LIST_ORDER.indexOf(b);if(ai===-1&&bi===-1)return a.localeCompare(b);if(ai===-1)return 1;if(bi===-1)return -1;return ai-bi;});
     const max=Math.max(...Object.values(counts));
     let html=keys.map(k=>{
-      const durStr=durations[k]>0?` in ${formatDuration(durations[k])}`:'';
+      const durStr=durations[k]>0?` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(durations[k])}`:'';
       return `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
         <span class="h-list-name">${esc(k)}</span>
         <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%"></div></div>
         <span class="h-count">${counts[k]}${durStr}</span>
       </div>`;
     }).join('');
-    const totalDurStr=totalDur>0?` in ${formatDuration(totalDur)}`:'';
+    const totalDurStr=totalDur>0?` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(totalDur)}`:'';
     html+=`<hr class="h-rule"><div class="h-total-row"><span class="h-total-label">Total</span><span class="h-total-count">${total}${totalDurStr}</span></div>`;
     document.getElementById('homeStatsBody').innerHTML=html;
   }
