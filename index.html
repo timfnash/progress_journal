@@ -248,6 +248,7 @@
   <div class="j-header">
     <div class="j-title-row">
       <span>Tim's Journal</span>
+      <span style="font-size:10px;color:var(--muted);cursor:pointer;letter-spacing:0.06em;" onclick="signOut()">Sign out</span>
     </div>
     <div class="j-nav-row">
       <div class="j-nav-btn" onclick="changeWriteDate(offsetDate(getWriteDate(),-1))">&#8249;</div>
@@ -451,6 +452,7 @@
 
   // ── State ─────────────────────────────────────────────────
   let idToken          = null;
+  let sessionToken     = null;
   let tasksData        = [];
   let existingPageId   = null;
   let extractedTasks   = [];
@@ -529,8 +531,9 @@
     apiCache.clear();
   }
 
+  const USER_AGENT = (navigator.userAgent || '').slice(0, 100);
+
   async function api(action, params) {
-    // Read actions are cached; write actions invalidate cache after they run.
     const isRead  = action === 'getEntries' || action === 'getEntryForDate';
     const isWrite = action === 'saveEntry' || action === 'updateEntry';
 
@@ -543,33 +546,40 @@
     // Ensure token is fresh before calling
     await ensureFreshToken();
 
+    const payload = { action, params: params||{}, idToken, sessionToken, userAgent: USER_AGENT };
     let res, text, data;
     try {
-      res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
+      res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
       text = await res.text();
       if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
       data = JSON.parse(text);
     } catch(e) {
-      // On network or parse error, try refreshing token and retrying once
       const refreshed = await refreshToken();
       if (!refreshed) throw e;
-      res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
+      payload.idToken = idToken;
+      res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
       text = await res.text();
       if (text.trim().startsWith('<')) throw new Error('Apps Script error \u2014 check deployment.');
       data = JSON.parse(text);
     }
 
     if (!data.success) {
-      // If error looks auth-related, try refreshing and retrying once
       const errMsg = (data.error || '').toLowerCase();
       if (errMsg.includes('auth') || errMsg.includes('token') || errMsg.includes('access') || errMsg.includes('credential') || errMsg.includes('inaccessible')) {
         const refreshed = await refreshToken();
         if (refreshed) {
-          res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({action, params:params||{}, idToken}) });
+          payload.idToken = idToken;
+          res  = await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) });
           text = await res.text();
           if (!text.trim().startsWith('<')) {
             data = JSON.parse(text);
             if (data.success) {
+              // Check if backend returned a new session token
+              if (data.data && data.data._sessionToken) {
+                sessionToken = data.data._sessionToken;
+                saveSession(sessionToken);
+                delete data.data._sessionToken;
+              }
               if (isRead) cacheSet(cacheKey(action, params), data.data);
               if (isWrite) cacheInvalidateReads();
               return data.data;
@@ -580,15 +590,52 @@
       throw new Error(data.error);
     }
 
+    // Check if backend returned a new session token
+    if (data.data && data.data._sessionToken) {
+      sessionToken = data.data._sessionToken;
+      saveSession(sessionToken);
+      delete data.data._sessionToken;
+    }
+
     if (isRead) cacheSet(cacheKey(action, params), data.data);
     if (isWrite) cacheInvalidateReads();
 
     return data.data;
   }
 
-  // ── Google Auth ───────────────────────────────────────────
-  const TOKEN_KEY = 'tj_credential';
+  // ── Google Auth + Session ───────────────────────────────
+  const TOKEN_KEY   = 'tj_credential';
+  const SESSION_KEY = 'tj_session';
   let tokenRefreshTimer = null;
+
+  function saveSession(token) {
+    try { localStorage.setItem(SESSION_KEY, token); } catch(e) {}
+  }
+
+  function loadSession() {
+    try { return localStorage.getItem(SESSION_KEY) || null; } catch(e) { return null; }
+  }
+
+  function clearSession() {
+    try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+    sessionToken = null;
+  }
+
+  async function signOut() {
+    // Revoke server-side session
+    if (sessionToken) {
+      try { await fetch(SCRIPT_URL, { method:'POST', body: JSON.stringify({ action:'revokeSession', sessionToken, userAgent: USER_AGENT }) }); } catch(e) {}
+    }
+    clearSession();
+    idToken = null;
+    localStorage.removeItem(TOKEN_KEY);
+    if (tokenRefreshTimer) clearTimeout(tokenRefreshTimer);
+    document.getElementById('lockScreen').style.display = 'flex';
+    ['writeView','readView','reviewView'].forEach(v => document.getElementById(v).classList.remove('active'));
+    // Re-render sign-in button
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: false });
+    google.accounts.id.renderButton(document.getElementById('googleSignInBtn'), { theme:'outline', size:'large', text:'sign_in_with', shape:'pill' });
+  }
 
   function getTokenExpiry() {
     try {
@@ -661,9 +708,25 @@
   }
 
   function initGoogleAuth() {
-    const stored = loadToken();
-    if (stored) {
-      idToken = stored;
+    // Try session token first — no Google auth needed if valid
+    const storedSession = loadSession();
+    const storedCred    = loadToken();
+
+    if (storedSession) {
+      sessionToken = storedSession;
+      // Also load Google credential if available (for refresh fallback)
+      if (storedCred) idToken = storedCred;
+      document.getElementById('lockScreen').style.display = 'none';
+      initApp();
+      // Still initialize Google for potential token refresh
+      google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
+      google.accounts.id.prompt();
+      if (idToken) scheduleTokenRefresh();
+      return;
+    }
+
+    if (storedCred) {
+      idToken = storedCred;
       document.getElementById('lockScreen').style.display = 'none';
       initApp();
       google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
@@ -671,6 +734,7 @@
       scheduleTokenRefresh();
       return;
     }
+
     google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse, auto_select: true });
     google.accounts.id.renderButton(document.getElementById('googleSignInBtn'), { theme:'outline', size:'large', text:'sign_in_with', shape:'pill' });
     google.accounts.id.prompt();
@@ -682,6 +746,13 @@
     document.getElementById('lockScreen').style.display = 'none';
     initApp();
     scheduleTokenRefresh();
+    // Request a session token from the backend so future visits don't need Google auth
+    api('createSession', {}).then(data => {
+      if (data && data.sessionToken) {
+        sessionToken = data.sessionToken;
+        saveSession(sessionToken);
+      }
+    }).catch(() => { /* session creation failed — still works with ID token */ });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
