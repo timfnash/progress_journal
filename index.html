@@ -288,7 +288,7 @@
       <div class="j-extracted" id="tasksExtracted">
         <textarea id="extractedBox" placeholder="Extracted tasks will appear here&hellip;"></textarea>
         <div class="j-extracted-actions">
-          <span style="font-size:12px;color:var(--card-muted);">Add to</span>
+          <span style="font-size:12px;color:var(--card-muted);">Default to</span>
           <select id="extractListSelect" style="font-size:12px;padding:4px 6px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:5px;color:var(--card-text);font-family:'Jost',sans-serif;-webkit-appearance:none;">
             <option value="Other">Other</option>
             <option value="Basic">Basic</option>
@@ -300,6 +300,7 @@
           <div class="j-btn" onclick="addExtractedTasks()">Add to tasks</div>
           <div class="j-btn" onclick="clearImport()">Clear</div>
         </div>
+        <div style="padding:2px 0 0;font-size:10px;color:var(--card-muted);font-style:italic;">Note: Tasks with [List] prefix keep their list.</div>
       </div>
     </div>
 
