@@ -207,7 +207,7 @@
     .h-stat-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; user-select: none; }
     .h-stat-row:last-of-type { border-bottom: none; }
     .h-stat-row.active .h-list-name { color: var(--accent); }
-    .review-summary { font-size: 15px; color: var(--card-text); line-height: 1.8; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; font-style: italic; }
+    .review-summary { font-size: 14px; color: var(--card-text); line-height: 1.7; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; white-space: pre-line; }
     .review-date-group { margin-bottom: 4px; }
     .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 6px 4px 0; display: flex; justify-content: space-between; align-items: center; }
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
@@ -417,6 +417,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--card-border);">
           <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--card-accent);" id="reviewDetailList"></div>
           <div style="display:flex;gap:4px;">
+            <div class="j-btn" id="reviewSummaryBtn" onclick="requestReviewSummary()">AI Summary</div>
             <div class="j-btn" id="reviewDurBtn" onclick="toggleReviewDurationView()">By duration</div>
             <div class="j-btn" onclick="clearReviewDetail()">Clear</div>
           </div>
@@ -2164,6 +2165,28 @@
   let reviewNotesDirty = false;
   let reviewTaskView = 'date'; // 'date' | 'duration'
   let reviewByDate = {};       // cached for toggle without re-fetch
+  let reviewSummaryData = null; // { list, tasks, reflections } for on-demand summary
+
+  async function requestReviewSummary() {
+    if (!reviewSummaryData) return;
+    const slot = document.getElementById('reviewSummarySlot');
+    const btn  = document.getElementById('reviewSummaryBtn');
+    if (!slot) return;
+    if (btn) { btn.textContent = 'Loading\u2026'; btn.style.pointerEvents = 'none'; btn.style.opacity = '0.5'; }
+    slot.innerHTML = '<div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary\u2026</div>';
+    try {
+      const summaryText = await generateListSummary(
+        reviewSummaryData.list,
+        reviewSummaryData.tasks,
+        reviewSummaryData.reflections
+      );
+      slot.innerHTML = `<div class="review-summary">${summaryText.replace(/\n/g, '<br>')}</div>`;
+      if (btn) { btn.textContent = 'Refresh'; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; }
+    } catch(e) {
+      slot.innerHTML = `<div class="empty-note" style="color:var(--red);">Summary error: ${esc(e.message)}</div>`;
+      if (btn) { btn.textContent = 'AI Summary'; btn.style.pointerEvents = 'auto'; btn.style.opacity = '1'; }
+    }
+  }
 
   function buildReviewTaskHtml(byDate) {
     if (reviewTaskView === 'duration') {
@@ -2465,19 +2488,19 @@
 
     const taskHtml = buildReviewTaskHtml(byDate);
 
-    document.getElementById('reviewDetailBody').innerHTML =
-      `<div id="reviewSummarySlot"><div class="empty-note" style="padding:8px 0;"><span class="spin"></span> Generating summary\u2026</div></div>` +
-      taskHtml;
+    // Store data for on-demand summary generation
+    reviewSummaryData = {
+      list: list,
+      tasks: Object.keys(byDate).flatMap(d => byDate[d].tasks.map(t => {
+        const dur = taskDurationMin(t);
+        return (t.starred ? '\u2605 ' : '') + t.title + (dur > 0 ? ` (${dur}m)` : '');
+      })),
+      reflections: reflTexts
+    };
 
-    try {
-      const allTasks = Object.keys(byDate).flatMap(d => byDate[d].tasks.map(t => (t.starred?'\u2605 ':'')+t.title));
-      const summaryText = await generateListSummary(list, allTasks, reflTexts);
-      document.getElementById('reviewSummarySlot').innerHTML =
-        `<div class="review-summary">${esc(summaryText)}</div>`;
-    } catch(e) {
-      document.getElementById('reviewSummarySlot').innerHTML =
-        `<div class="empty-note" style="color:var(--red);">Summary error: ${esc(e.message)}</div>`;
-    }
+    document.getElementById('reviewDetailBody').innerHTML =
+      `<div id="reviewSummarySlot"></div>` +
+      taskHtml;
   }
 
   async function toggleReviewStar(date, taskIdx, currentlyStarred) {
