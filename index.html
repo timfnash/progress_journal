@@ -288,6 +288,15 @@
       <div class="j-extracted" id="tasksExtracted">
         <textarea id="extractedBox" placeholder="Extracted tasks will appear here&hellip;"></textarea>
         <div class="j-extracted-actions">
+          <span style="font-size:12px;color:var(--card-muted);">Add to</span>
+          <select id="extractListSelect" style="font-size:12px;padding:4px 6px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:5px;color:var(--card-text);font-family:'Jost',sans-serif;-webkit-appearance:none;">
+            <option value="Other">Other</option>
+            <option value="Basic">Basic</option>
+            <option value="Personal">Personal</option>
+            <option value="Work">Work</option>
+            <option value="Zipf">Zipf</option>
+          </select>
+          <span style="flex:1;"></span>
           <div class="j-btn" onclick="addExtractedTasks()">Add to tasks</div>
           <div class="j-btn" onclick="clearImport()">Clear</div>
         </div>
@@ -1870,10 +1879,12 @@
   function addExtractedTasks(){
     const now = nowHHMM();
     const start = newTaskStartTime();
+    const defaultList = document.getElementById('extractListSelect')?.value || 'Other';
     const existing=new Set(tasksData.map(t=>t.title.toLowerCase()));
     extractedTasks.forEach(t=>{
       if(!existing.has(t.title.trim().toLowerCase())){
-        const list=LIST_OPTIONS.includes(t.list)?t.list:'Other';
+        // Keep the extracted list if it's a recognized list name; otherwise use the selected default
+        const list = (LIST_OPTIONS.includes(t.list) && t.list !== 'Other') ? t.list : defaultList;
         tasksData.push({title:t.title.trim(),list,starred:false,time:now,startTime:start});
         existing.add(t.title.trim().toLowerCase());
       }
