@@ -181,6 +181,7 @@
     .j-ext-num { font-size: 10px; color: var(--card-muted); width: 16px; text-align: center; flex-shrink: 0; }
     .j-ext-grip { flex-shrink: 0; cursor: grab; color: var(--card-muted); font-size: 14px; padding: 4px 6px; touch-action: none; user-select: none; }
     .j-ext-grip:active { cursor: grabbing; color: var(--card-accent); }
+    .j-ext-list { font-size: 11px; color: var(--card-accent); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 4px; padding: 2px 4px; font-family: 'Jost', sans-serif; flex-shrink: 0; -webkit-appearance: none; }
     .j-ext-title { flex: 1; font-size: 13px; color: var(--card-text); background: transparent; border: none; border-bottom: 1px solid transparent; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; }
     .j-ext-title:focus { outline: none; border-bottom-color: var(--card-accent); }
     .j-ext-del { background: none; border: none; color: #c87070; font-size: 13px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; line-height: 1; }
@@ -299,20 +300,10 @@
       <div id="tasksImportStatus" style="padding:0 14px;"></div>
       <div class="j-extracted" id="tasksExtracted">
         <div id="extractedList"></div>
-        <div class="j-extracted-actions" style="align-items:center;">
-          <span style="font-size:12px;color:var(--card-muted);">Default list:</span>
-          <select id="extractListSelect" style="font-size:12px;padding:4px 8px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:5px;color:var(--card-accent);font-family:'Jost',sans-serif;-webkit-appearance:none;">
-            <option value="Other">Other</option>
-            <option value="Basic">Basic</option>
-            <option value="Personal">Personal</option>
-            <option value="Work">Work</option>
-            <option value="Zipf">Zipf</option>
-          </select>
-          <span style="flex:1;"></span>
+        <div class="j-extracted-actions" style="align-items:center;justify-content:flex-end;">
           <div class="j-btn" onclick="addExtractedTasks()">Add to tasks</div>
           <div class="j-btn" onclick="clearImport()">Clear</div>
         </div>
-        <div style="padding:2px 0 0;font-size:10px;color:var(--card-muted);font-style:italic;">Note: Tasks with [List] prefix keep their list.</div>
       </div>
     </div>
 
@@ -2025,16 +2016,17 @@
     const container = document.getElementById('extractedList');
     if (!container) return;
     container.innerHTML = extractedTasks.map((t, i) => {
-      const listPfx = LIST_OPTIONS.includes(t.list) && t.list !== 'Other' ? `[${esc(t.list)}] ` : '';
+      const currentList = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+      const listOpts = LIST_OPTIONS.map(l => `<option value="${l}"${l===currentList?' selected':''}>${l}</option>`).join('');
       return `<div class="j-ext-item" data-ext-idx="${i}" draggable="false">
         <span class="j-ext-num">${i + 1}</span>
         <span class="j-ext-grip" data-grip="${i}">&#x2630;</span>
-        <input class="j-ext-title" type="text" value="${esc(listPfx + t.title)}"
+        <select class="j-ext-list" onchange="updateExtractedList(${i}, this.value)">${listOpts}</select>
+        <input class="j-ext-title" type="text" value="${esc(t.title)}"
           onchange="updateExtractedTitle(${i}, this.value)">
         <button class="j-ext-del" onclick="removeExtracted(${i})">&#x2715;</button>
       </div>`;
     }).join('');
-    // Attach drag handlers to grips
     container.querySelectorAll('.j-ext-grip').forEach(grip => {
       attachExtractedDrag(grip, container);
     });
@@ -2123,13 +2115,12 @@
 
   function updateExtractedTitle(idx, value) {
     if (!extractedTasks[idx]) return;
-    const m = value.match(/^\[(.+?)\]\s*(.*)$/);
-    if (m && LIST_OPTIONS.includes(m[1])) {
-      extractedTasks[idx].list = m[1];
-      extractedTasks[idx].title = m[2] || value;
-    } else {
-      extractedTasks[idx].title = value;
-    }
+    extractedTasks[idx].title = value;
+  }
+
+  function updateExtractedList(idx, list) {
+    if (!extractedTasks[idx]) return;
+    extractedTasks[idx].list = list;
   }
 
   async function extractFromScreenshot() {
@@ -2154,12 +2145,10 @@
   function addExtractedTasks(){
     const now = nowHHMM();
     const start = newTaskStartTime();
-    const defaultList = document.getElementById('extractListSelect')?.value || 'Other';
     const existing=new Set(tasksData.map(t=>t.title.toLowerCase()));
     extractedTasks.forEach(t=>{
       if(!existing.has(t.title.trim().toLowerCase())){
-        // Keep the extracted list if it's a recognized list name; otherwise use the selected default
-        const list = (LIST_OPTIONS.includes(t.list) && t.list !== 'Other') ? t.list : defaultList;
+        const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
         tasksData.push({title:t.title.trim(),list,starred:false,time:now,startTime:start});
         existing.add(t.title.trim().toLowerCase());
       }
