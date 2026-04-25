@@ -2023,12 +2023,26 @@
         <span class="j-ext-grip" data-grip="${i}">&#x2630;</span>
         <select class="j-ext-list" onchange="updateExtractedList(${i}, this.value)">${listOpts}</select>
         <input class="j-ext-title" type="text" value="${esc(t.title)}"
-          onchange="updateExtractedTitle(${i}, this.value)">
+          oninput="updateExtractedTitle(${i}, this.value)">
         <button class="j-ext-del" onclick="removeExtracted(${i})">&#x2715;</button>
       </div>`;
     }).join('');
     container.querySelectorAll('.j-ext-grip').forEach(grip => {
       attachExtractedDrag(grip, container);
+    });
+  }
+
+  // Sync all visible extracted task inputs back to the array
+  function flushExtractedInputs() {
+    const container = document.getElementById('extractedList');
+    if (!container) return;
+    container.querySelectorAll('.j-ext-item').forEach(item => {
+      const idx = parseInt(item.dataset.extIdx);
+      if (isNaN(idx) || !extractedTasks[idx]) return;
+      const titleInput = item.querySelector('.j-ext-title');
+      const listSelect = item.querySelector('.j-ext-list');
+      if (titleInput) extractedTasks[idx].title = titleInput.value;
+      if (listSelect) extractedTasks[idx].list = listSelect.value;
     });
   }
 
@@ -2041,6 +2055,7 @@
     let placeholder = null;
 
     grip.addEventListener('pointerdown', (e) => {
+      flushExtractedInputs();
       dragIdx = parseInt(grip.dataset.grip);
       if (isNaN(dragIdx)) return;
       pointerId = e.pointerId;
@@ -2108,6 +2123,7 @@
   }
 
   function removeExtracted(idx) {
+    flushExtractedInputs();
     extractedTasks.splice(idx, 1);
     if (!extractedTasks.length) { clearImport(); return; }
     renderExtractedList();
