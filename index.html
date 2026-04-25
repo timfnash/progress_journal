@@ -77,7 +77,7 @@
     /* Task list */
     .j-list-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); margin: 12px 0 4px; display: flex; align-items: center; justify-content: space-between; }
     .j-list-label:first-child { margin-top: 0; }
-    .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; }
+    .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; text-transform: none; font-weight: 400; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
     .j-task-row { display: flex; flex-direction: column; gap: 2px; padding: 5px 0 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
@@ -143,7 +143,7 @@
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
     .j-read-task.starred::before { content: '★'; color: #b07030; }
     .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; flex-shrink: 0; }
-    .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; }
+    .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; text-transform: none; }
     .j-read-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
 
     /* Reflection */
@@ -174,15 +174,16 @@
     .j-extracted textarea:focus { outline: none; }
     .j-extracted-actions { display: flex; gap: 8px; margin-top: 8px; }
     /* Reorderable extracted task items */
-    .j-ext-item { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .j-ext-item { display: flex; align-items: center; gap: 6px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; transition: opacity 0.15s ease; }
     .j-ext-item:last-child { border-bottom: none; }
+    .j-ext-item.ext-dragging { opacity: 0.4; }
+    .j-ext-item.ext-drag-over { border-top: 2px solid var(--card-accent); }
     .j-ext-num { font-size: 10px; color: var(--card-muted); width: 16px; text-align: center; flex-shrink: 0; }
+    .j-ext-grip { flex-shrink: 0; cursor: grab; color: var(--card-muted); font-size: 14px; padding: 4px 6px; touch-action: none; user-select: none; }
+    .j-ext-grip:active { cursor: grabbing; color: var(--card-accent); }
     .j-ext-title { flex: 1; font-size: 13px; color: var(--card-text); background: transparent; border: none; border-bottom: 1px solid transparent; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; }
     .j-ext-title:focus { outline: none; border-bottom-color: var(--card-accent); }
-    .j-ext-arrows { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
-    .j-ext-arrow { background: rgba(180,140,80,0.14); border: 1px solid rgba(180,140,80,0.4); border-radius: 3px; color: var(--card-btn-color); font-size: 10px; cursor: pointer; padding: 1px 5px; line-height: 1; font-family: inherit; }
-    .j-ext-arrow:disabled { opacity: 0.3; cursor: default; }
-    .j-ext-del { background: none; border: none; color: #c87070; font-size: 13px; cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1; }
+    .j-ext-del { background: none; border: none; color: #c87070; font-size: 13px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; line-height: 1; }
 
     /* Filter panel */
     .filter-panel { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 16px; }
@@ -224,11 +225,11 @@
     .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
-    .h-count     { font-size: 12px; font-weight: 600; color: var(--card-text); min-width: 40px; text-align: right; flex-shrink: 0; font-family: 'Jost', sans-serif; white-space: nowrap; }
+    .h-count     { font-size: 12px; font-weight: 600; color: var(--card-text); min-width: 40px; text-align: right; flex-shrink: 0; font-family: 'Jost', sans-serif; white-space: nowrap; text-transform: none; }
     .h-rule      { border: none; border-top: 1px solid var(--card-border); margin: 8px 0 6px; }
     .h-total-row { display: flex; align-items: center; justify-content: space-between; padding: 2px 0; }
     .h-total-label { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--card-muted); }
-    .h-total-count { font-size: 14px; font-weight: 600; color: var(--card-text); font-family: 'Jost', sans-serif; }
+    .h-total-count { font-size: 14px; font-weight: 600; color: var(--card-text); font-family: 'Jost', sans-serif; text-transform: none; }
 
     /* Status / spinner */
     .status { font-size: 14px; padding: 10px 12px; border-radius: 8px; margin: 8px 0; line-height: 1.45; }
@@ -1391,10 +1392,10 @@
 
     const slotHeightPx = 5 * TL_PX_PER_MIN;
 
-    // Auto-initialise Day start from earliest task if missing
+    // Auto-initialise Day start to 5 min before earliest task if not set
     if (tasksData.length && !dayStartTime) {
       const earliestMin = Math.min(...tasksData.map(t => snapTo5(timeToMin(t.startTime || t.time || '00:00'))));
-      dayStartTime = minToTime(earliestMin);
+      dayStartTime = minToTime(Math.max(0, earliestMin - 5));
     }
 
     // Day start pill (point in time — single slot, body-drag only)
@@ -1422,37 +1423,70 @@
       return;
     }
 
-    // Group by start time for column stacking when multiple tasks overlap
-    // (heuristic: group by the start minute; good enough for most days)
-    const slotGroups = new Map();
-    tasksData.forEach((t, idx) => {
-      const startMin = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
-      if (!slotGroups.has(startMin)) slotGroups.set(startMin, []);
-      slotGroups.get(startMin).push({ task: t, idx });
+    // Proper overlap detection: assign each pill to a column so overlapping
+    // time ranges sit side-by-side rather than hiding each other.
+    const pillData = tasksData.map((t, idx) => {
+      const s = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
+      const e = snapTo5(timeToMin(t.time || t.startTime || '00:00'));
+      return { idx, start: s, end: Math.max(s + 5, e) };
+    }).sort((a, b) => a.start - b.start || a.end - b.end);
+
+    // Assign columns: greedy — place each pill in the first column where it
+    // doesn't overlap any existing pill.
+    const columns = []; // columns[c] = array of { start, end }
+    const pillCols = new Map(); // idx → { col, totalCols }
+
+    pillData.forEach(p => {
+      let placed = false;
+      for (let c = 0; c < columns.length; c++) {
+        const last = columns[c][columns[c].length - 1];
+        if (p.start >= last.end) {
+          columns[c].push(p);
+          pillCols.set(p.idx, { col: c });
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        columns.push([p]);
+        pillCols.set(p.idx, { col: columns.length - 1 });
+      }
     });
 
-    slotGroups.forEach((items, startMin) => {
-      const cols = items.length;
-      items.forEach((it, col) => {
-        const startMinT = snapTo5(timeToMin(it.task.startTime || it.task.time || '00:00'));
-        const endMinT   = snapTo5(timeToMin(it.task.time || it.task.startTime || '00:00'));
-        const durationMin = Math.max(5, endMinT - startMinT);
-
-        const pill = document.createElement('div');
-        pill.className = 'j-tl-pill' + (it.task.starred ? ' starred' : '');
-        pill.dataset.idx = it.idx;
-        pill.style.top = ((startMinT - dayFromMin) * TL_PX_PER_MIN) + 'px';
-        pill.style.height = (durationMin * TL_PX_PER_MIN) + 'px';
-        const gap = 2;
-        const pct = 100 / cols;
-        pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
-        pill.style.width = `calc(${pct}% - ${gap}px)`;
-        pill.dataset.idx = it.idx;
-        pill.innerHTML = `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
-        if (distributeMode && distributeSelected.has(it.idx)) pill.classList.add('dist-selected');
-        tl.appendChild(pill);
-        attachSpanDrag(pill, tl, dropHint, dayFromMin, it.idx);
+    // For each pill, compute how many columns overlap at its position
+    // so all columns at that point share the width equally.
+    pillData.forEach(p => {
+      let maxCols = 1;
+      pillData.forEach(q => {
+        if (q.start < p.end && q.end > p.start) {
+          const qCol = pillCols.get(q.idx).col;
+          if (qCol + 1 > maxCols) maxCols = qCol + 1;
+        }
       });
+      // Also count our own column
+      const myCol = pillCols.get(p.idx).col;
+      if (myCol + 1 > maxCols) maxCols = myCol + 1;
+      pillCols.get(p.idx).totalCols = maxCols;
+    });
+
+    pillData.forEach(p => {
+      const t = tasksData[p.idx];
+      const { col, totalCols } = pillCols.get(p.idx);
+      const durationMin = p.end - p.start;
+
+      const pill = document.createElement('div');
+      pill.className = 'j-tl-pill' + (t.starred ? ' starred' : '');
+      pill.dataset.idx = p.idx;
+      pill.style.top = ((p.start - dayFromMin) * TL_PX_PER_MIN) + 'px';
+      pill.style.height = (durationMin * TL_PX_PER_MIN) + 'px';
+      const gap = 2;
+      const pct = 100 / totalCols;
+      pill.style.left = `calc(${col * pct}% + ${col > 0 ? gap/2 : 0}px)`;
+      pill.style.width = `calc(${pct}% - ${gap}px)`;
+      pill.innerHTML = `<span class="tl-pill-title">${esc(t.title || '(untitled)')}</span>`;
+      if (distributeMode && distributeSelected.has(p.idx)) pill.classList.add('dist-selected');
+      tl.appendChild(pill);
+      attachSpanDrag(pill, tl, dropHint, dayFromMin, p.idx);
     });
 
     wrap.appendChild(tl);
@@ -1992,25 +2026,93 @@
     if (!container) return;
     container.innerHTML = extractedTasks.map((t, i) => {
       const listPfx = LIST_OPTIONS.includes(t.list) && t.list !== 'Other' ? `[${esc(t.list)}] ` : '';
-      return `<div class="j-ext-item" data-ext-idx="${i}">
+      return `<div class="j-ext-item" data-ext-idx="${i}" draggable="false">
         <span class="j-ext-num">${i + 1}</span>
-        <div class="j-ext-arrows">
-          <button class="j-ext-arrow" onclick="moveExtracted(${i},-1)" ${i===0?'disabled':''}>&uarr;</button>
-          <button class="j-ext-arrow" onclick="moveExtracted(${i},1)" ${i===extractedTasks.length-1?'disabled':''}>&darr;</button>
-        </div>
+        <span class="j-ext-grip" data-grip="${i}">&#x2630;</span>
         <input class="j-ext-title" type="text" value="${esc(listPfx + t.title)}"
           onchange="updateExtractedTitle(${i}, this.value)">
         <button class="j-ext-del" onclick="removeExtracted(${i})">&#x2715;</button>
       </div>`;
     }).join('');
+    // Attach drag handlers to grips
+    container.querySelectorAll('.j-ext-grip').forEach(grip => {
+      attachExtractedDrag(grip, container);
+    });
   }
 
-  function moveExtracted(idx, dir) {
-    const to = idx + dir;
-    if (to < 0 || to >= extractedTasks.length) return;
-    const item = extractedTasks.splice(idx, 1)[0];
-    extractedTasks.splice(to, 0, item);
-    renderExtractedList();
+  // Touch/pointer-friendly drag reorder for extracted tasks
+  function attachExtractedDrag(grip, container) {
+    let dragging = false;
+    let dragIdx = -1;
+    let pointerId = null;
+    let startY = 0;
+    let placeholder = null;
+
+    grip.addEventListener('pointerdown', (e) => {
+      dragIdx = parseInt(grip.dataset.grip);
+      if (isNaN(dragIdx)) return;
+      pointerId = e.pointerId;
+      grip.setPointerCapture(pointerId);
+      startY = e.clientY;
+      dragging = false;
+      e.preventDefault();
+    });
+
+    grip.addEventListener('pointermove', (e) => {
+      if (dragIdx < 0) return;
+      if (!dragging && Math.abs(e.clientY - startY) > 5) {
+        dragging = true;
+        const items = container.querySelectorAll('.j-ext-item');
+        if (items[dragIdx]) items[dragIdx].classList.add('ext-dragging');
+      }
+      if (!dragging) return;
+
+      // Find which item we're hovering over
+      const items = container.querySelectorAll('.j-ext-item');
+      items.forEach(item => item.classList.remove('ext-drag-over'));
+      for (const item of items) {
+        const rect = item.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          item.classList.add('ext-drag-over');
+          break;
+        }
+      }
+    });
+
+    function onUp(e) {
+      if (dragIdx < 0) return;
+      const wasDragging = dragging;
+      dragging = false;
+      try { grip.releasePointerCapture(pointerId); } catch(err) {}
+
+      const items = container.querySelectorAll('.j-ext-item');
+      items.forEach(item => { item.classList.remove('ext-dragging', 'ext-drag-over'); });
+
+      if (!wasDragging) { dragIdx = -1; return; }
+
+      // Find drop target
+      let dropIdx = extractedTasks.length; // default: end
+      for (let i = 0; i < items.length; i++) {
+        const rect = items[i].getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          dropIdx = parseInt(items[i].dataset.extIdx);
+          break;
+        }
+      }
+
+      // Perform the move
+      if (dropIdx !== dragIdx) {
+        const item = extractedTasks.splice(dragIdx, 1)[0];
+        const insertAt = dropIdx > dragIdx ? dropIdx - 1 : dropIdx;
+        extractedTasks.splice(Math.max(0, insertAt), 0, item);
+        renderExtractedList();
+      }
+      dragIdx = -1;
+    }
+
+    grip.addEventListener('pointerup', onUp);
+    grip.addEventListener('pointercancel', onUp);
   }
 
   function removeExtracted(idx) {
@@ -2021,7 +2123,6 @@
 
   function updateExtractedTitle(idx, value) {
     if (!extractedTasks[idx]) return;
-    // Check if value starts with [ListName] prefix
     const m = value.match(/^\[(.+?)\]\s*(.*)$/);
     if (m && LIST_OPTIONS.includes(m[1])) {
       extractedTasks[idx].list = m[1];
