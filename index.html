@@ -108,7 +108,7 @@
     .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
 
     /* Pills — clean cards showing title only; drag to move, edges to resize */
-    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: none; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; }
+    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
     .j-tl-pill .tl-pill-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden; }
     .j-tl-pill.dragging { opacity: 0.92; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
@@ -173,6 +173,16 @@
     .j-extracted textarea { width: 100%; min-height: 80px; background: transparent; border: none; color: var(--card-text); font-family: 'Jost', sans-serif; font-size: 13px; line-height: 1.6; resize: none; }
     .j-extracted textarea:focus { outline: none; }
     .j-extracted-actions { display: flex; gap: 8px; margin-top: 8px; }
+    /* Reorderable extracted task items */
+    .j-ext-item { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+    .j-ext-item:last-child { border-bottom: none; }
+    .j-ext-num { font-size: 10px; color: var(--card-muted); width: 16px; text-align: center; flex-shrink: 0; }
+    .j-ext-title { flex: 1; font-size: 13px; color: var(--card-text); background: transparent; border: none; border-bottom: 1px solid transparent; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; }
+    .j-ext-title:focus { outline: none; border-bottom-color: var(--card-accent); }
+    .j-ext-arrows { display: flex; flex-direction: column; gap: 1px; flex-shrink: 0; }
+    .j-ext-arrow { background: rgba(180,140,80,0.14); border: 1px solid rgba(180,140,80,0.4); border-radius: 3px; color: var(--card-btn-color); font-size: 10px; cursor: pointer; padding: 1px 5px; line-height: 1; font-family: inherit; }
+    .j-ext-arrow:disabled { opacity: 0.3; cursor: default; }
+    .j-ext-del { background: none; border: none; color: #c87070; font-size: 13px; cursor: pointer; padding: 0 2px; flex-shrink: 0; line-height: 1; }
 
     /* Filter panel */
     .filter-panel { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 16px; }
@@ -287,7 +297,7 @@
       </div>
       <div id="tasksImportStatus" style="padding:0 14px;"></div>
       <div class="j-extracted" id="tasksExtracted">
-        <textarea id="extractedBox" placeholder="Extracted tasks will appear here&hellip;"></textarea>
+        <div id="extractedList"></div>
         <div class="j-extracted-actions" style="align-items:center;">
           <span style="font-size:12px;color:var(--card-muted);">Default list:</span>
           <select id="extractListSelect" style="font-size:12px;padding:4px 8px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:5px;color:var(--card-accent);font-family:'Jost',sans-serif;-webkit-appearance:none;">
@@ -1182,11 +1192,18 @@
           items.forEach((item, fi) => {
             const alreadyAdded = existingTitles.has(item.title.toLowerCase());
             const itemId = `freq-${list}-${fi}`;
-            html += `<div class="qp-item${alreadyAdded?' already-added':''}">
+            const origTitle = item.title.replace(/'/g, "\\'");
+            html += `<div class="qp-item${alreadyAdded?' already-added':''}" style="flex-wrap:wrap;">
               <input class="qp-title-edit" id="${itemId}" type="text" value="${esc(item.title)}"
+                data-orig="${esc(item.title)}"
+                oninput="onFreqTitleEdit('${itemId}')"
                 onkeydown="if(event.key==='Enter'){event.preventDefault();addFromFreqInput('${esc(list)}','${itemId}');}">
               <span class="qp-count">\xd7${item.count}</span>
               <span class="qp-add" onclick="addFromFreqInput('${esc(list)}','${itemId}')">${alreadyAdded?'&#x2713;':'\uff0b'}</span>
+              <div id="${itemId}-rename" style="display:none;width:100%;padding:4px 0 0;display:none;">
+                <div class="j-save-btn" style="font-size:10px;padding:3px 8px;" onclick="renameFreqTask('${esc(list)}','${itemId}')">Rename in all entries</div>
+                <span id="${itemId}-status" style="font-size:11px;margin-left:6px;"></span>
+              </div>
             </div>`;
           });
         }
@@ -1328,7 +1345,7 @@
 
     const hint = document.createElement('div');
     hint.className = 'j-tl-hint';
-    hint.textContent = 'Drag to move \u2022 drag edges to resize \u2022 tap to edit';
+    hint.textContent = 'Hold to drag \u2022 tap to edit';
     wrap.appendChild(hint);
 
     const tl = document.createElement('div');
@@ -1560,44 +1577,80 @@
     pill.addEventListener('pointercancel', onUp);
   }
 
-  // Pill drag: whole block moves (preserves duration). Tap opens editor.
-  // In distribute mode: tap selects/deselects, drag is disabled.
+  // Pill interaction: tap-and-hold to drag (like Google Calendar), quick tap to edit.
+  // In distribute mode: tap selects/deselects, no drag.
   function attachSpanDrag(pill, timeline, dropHint, dayFromMin, taskIdx) {
     let pointerIsDown = false;
+    let holdReady = false;    // true once hold timer fires
     let dragging = false;
-    let startY = 0;
+    let startY = 0, startX = 0;
     let originStartMin = 0, originEndMin = 0;
     let pointerId = null;
-    const TAP_THRESHOLD = 5;
+    let holdTimer = null;
+    const HOLD_MS = 400;      // hold duration to activate drag
+    const MOVE_CANCEL = 8;    // px movement that cancels the hold (allows scroll)
 
     function getDragTimeEl() { return document.getElementById('tlDragTime'); }
 
     function onDown(e) {
       if (distributeMode) { e.preventDefault(); return; }
       pointerIsDown = true;
-      pointerId = e.pointerId;
-      pill.setPointerCapture(pointerId);
-      startY = e.clientY;
+      holdReady = false;
       dragging = false;
+      pointerId = e.pointerId;
+      startY = e.clientY;
+      startX = e.clientX;
       const t = tasksData[taskIdx];
       if (!t) return;
       originStartMin = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
       originEndMin   = snapTo5(timeToMin(t.time || t.startTime || '00:00'));
-      e.preventDefault();
+
+      // Start hold timer — don't capture pointer yet (let scroll work)
+      holdTimer = setTimeout(() => {
+        if (!pointerIsDown) return;
+        holdReady = true;
+        // Now capture pointer to take over from scroll
+        try { pill.setPointerCapture(pointerId); } catch(err) {}
+        // Visual feedback: scale pulse
+        pill.style.transform = 'scale(1.03)';
+        pill.style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)';
+        setTimeout(() => {
+          pill.style.transform = '';
+          pill.style.boxShadow = '';
+        }, 200);
+        // Vibrate if available (mobile)
+        if (navigator.vibrate) navigator.vibrate(30);
+      }, HOLD_MS);
+
+      // Don't preventDefault here — allow scroll to work during hold wait
     }
 
     function onMove(e) {
       if (!pointerIsDown || distributeMode) return;
-      const dy = e.clientY - startY;
-      if (!dragging && Math.abs(dy) > TAP_THRESHOLD) {
+
+      // If hold hasn't fired yet, check if user moved too much (they're scrolling)
+      if (!holdReady) {
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dx > MOVE_CANCEL || dy > MOVE_CANCEL) {
+          // User is scrolling — cancel everything
+          clearTimeout(holdTimer);
+          pointerIsDown = false;
+          return;
+        }
+        return; // still waiting for hold
+      }
+
+      // Hold has fired — now we're in drag mode
+      if (!dragging) {
         dragging = true;
         pill.classList.add('dragging');
         dropHint.style.display = 'block';
         const dte = getDragTimeEl();
         if (dte) dte.style.display = 'block';
       }
-      if (!dragging) return;
 
+      const dy = e.clientY - startY;
       const dMin = snapTo5(dy / TL_PX_PER_MIN);
       const t = tasksData[taskIdx];
       if (!t) return;
@@ -1619,25 +1672,33 @@
         dte.textContent = t.startTime;
         dte.style.top = ((curStart - dayFromMin) * TL_PX_PER_MIN) + 'px';
       }
+      e.preventDefault(); // prevent scroll while dragging
     }
 
     function onUp() {
+      clearTimeout(holdTimer);
+
       if (distributeMode) {
         toggleDistributeCheck(taskIdx);
         pill.classList.toggle('dist-selected', distributeSelected.has(taskIdx));
         return;
       }
       if (!pointerIsDown) return;
+
       const wasDragging = dragging;
       pointerIsDown = false;
+      holdReady = false;
       dragging = false;
       pill.classList.remove('dragging');
+      pill.style.transform = '';
+      pill.style.boxShadow = '';
       dropHint.style.display = 'none';
       const dte = getDragTimeEl();
       if (dte) dte.style.display = 'none';
       try { pill.releasePointerCapture(pointerId); } catch(err) {}
 
       if (!wasDragging) {
+        // Quick tap — open editor
         openTaskEditor(taskIdx);
         return;
       }
@@ -1768,6 +1829,45 @@
     addFromFreq(list, title);
   }
 
+  function onFreqTitleEdit(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const orig = input.dataset.orig || '';
+    const current = input.value.trim();
+    const renameRow = document.getElementById(inputId + '-rename');
+    if (renameRow) {
+      renameRow.style.display = (current && current !== orig) ? 'block' : 'none';
+    }
+  }
+
+  async function renameFreqTask(list, inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const oldTitle = input.dataset.orig || '';
+    const newTitle = input.value.trim();
+    if (!newTitle || newTitle === oldTitle) return;
+    const statusEl = document.getElementById(inputId + '-status');
+    const renameRow = document.getElementById(inputId + '-rename');
+    if (statusEl) statusEl.innerHTML = '<span class="spin"></span> Renaming\u2026';
+    try {
+      const result = await api('renameTask', { list, oldTitle, newTitle });
+      if (statusEl) {
+        statusEl.textContent = '\u2713 ' + (result.updated || 0) + ' entries updated';
+        statusEl.style.color = 'var(--green)';
+      }
+      // Update the orig attribute so the button hides
+      input.dataset.orig = newTitle;
+      if (renameRow) setTimeout(() => { renameRow.style.display = 'none'; }, 2000);
+      // Refresh freq cache
+      freqCacheLoaded = false;
+      loadFreqCache();
+      // Also invalidate the API read cache so renamed tasks show correctly
+      cacheInvalidateReads();
+    } catch(e) {
+      if (statusEl) { statusEl.textContent = 'Error: ' + e.message; statusEl.style.color = 'var(--red)'; }
+    }
+  }
+
   function addTaskToList(list) {
     const newIdx = tasksData.length;
     tasksData.push({ list, starred: false, title: '', time: nowHHMM(), startTime: newTaskStartTime() });
@@ -1887,6 +1987,50 @@
   // ── Screenshot / voice extraction ─────────────────────────
   function clearImport(){document.getElementById('screenshotInput').value='';document.getElementById('tasksExtracted').style.display='none';document.getElementById('tasksImportStatus').innerHTML='';extractedTasks=[];}
 
+  function renderExtractedList() {
+    const container = document.getElementById('extractedList');
+    if (!container) return;
+    container.innerHTML = extractedTasks.map((t, i) => {
+      const listPfx = LIST_OPTIONS.includes(t.list) && t.list !== 'Other' ? `[${esc(t.list)}] ` : '';
+      return `<div class="j-ext-item" data-ext-idx="${i}">
+        <span class="j-ext-num">${i + 1}</span>
+        <div class="j-ext-arrows">
+          <button class="j-ext-arrow" onclick="moveExtracted(${i},-1)" ${i===0?'disabled':''}>&uarr;</button>
+          <button class="j-ext-arrow" onclick="moveExtracted(${i},1)" ${i===extractedTasks.length-1?'disabled':''}>&darr;</button>
+        </div>
+        <input class="j-ext-title" type="text" value="${esc(listPfx + t.title)}"
+          onchange="updateExtractedTitle(${i}, this.value)">
+        <button class="j-ext-del" onclick="removeExtracted(${i})">&#x2715;</button>
+      </div>`;
+    }).join('');
+  }
+
+  function moveExtracted(idx, dir) {
+    const to = idx + dir;
+    if (to < 0 || to >= extractedTasks.length) return;
+    const item = extractedTasks.splice(idx, 1)[0];
+    extractedTasks.splice(to, 0, item);
+    renderExtractedList();
+  }
+
+  function removeExtracted(idx) {
+    extractedTasks.splice(idx, 1);
+    if (!extractedTasks.length) { clearImport(); return; }
+    renderExtractedList();
+  }
+
+  function updateExtractedTitle(idx, value) {
+    if (!extractedTasks[idx]) return;
+    // Check if value starts with [ListName] prefix
+    const m = value.match(/^\[(.+?)\]\s*(.*)$/);
+    if (m && LIST_OPTIONS.includes(m[1])) {
+      extractedTasks[idx].list = m[1];
+      extractedTasks[idx].title = m[2] || value;
+    } else {
+      extractedTasks[idx].title = value;
+    }
+  }
+
   async function extractFromScreenshot() {
     const input=document.getElementById('screenshotInput');
     const files=Array.from(input.files||[]); if(!files.length) return;
@@ -1900,7 +2044,7 @@
       }
       input.value='';
       if(!extractedTasks.length){showStatus('tasksImportStatus','No completed tasks found.','err');return;}
-      document.getElementById('extractedBox').value=extractedTasks.map(t=>LIST_OPTIONS.includes(t.list)?`[${t.list}] ${t.title}`:t.title).join('\n');
+      renderExtractedList();
       document.getElementById('tasksExtracted').style.display='block';
       document.getElementById('tasksImportStatus').innerHTML='';
     } catch(e){showStatus('tasksImportStatus','Error: '+e.message,'err');}
@@ -1965,7 +2109,7 @@
       const ext=await api('extractTasksFromTranscript',{transcript:taskVoiceTranscript});
       if(!ext||!ext.length){showStatus('tasksImportStatus','No tasks found.','err');return;}
       extractedTasks=ext;
-      document.getElementById('extractedBox').value=ext.map(t=>LIST_OPTIONS.includes(t.list)?`[${t.list}] ${t.title}`:t.title).join('\n');
+      renderExtractedList();
       document.getElementById('tasksExtracted').style.display='block';
       document.getElementById('tasksImportStatus').innerHTML='';
     }catch(e){showStatus('tasksImportStatus','Error: '+e.message,'err');}
