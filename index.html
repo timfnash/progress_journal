@@ -112,6 +112,7 @@
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
     .j-tl-pill .tl-pill-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden; }
     .j-tl-pill.dragging { opacity: 0.92; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
+    .j-tl-pill.dist-selected { border-color: var(--accent); border-width: 2px; box-shadow: 0 0 0 2px rgba(200,169,110,0.3); }
     /* Drag-time indicator in left margin */
     .j-tl-drag-time { position: absolute; left: -42px; width: 36px; text-align: right; font-size: 10px; font-weight: 700; color: var(--card-accent); font-family: 'Jost', sans-serif; font-variant-numeric: tabular-nums; pointer-events: none; display: none; z-index: 25; }
     /* Tap-to-edit overlay */
@@ -1144,7 +1145,6 @@
     const dbtn = document.getElementById('distributeBtn');
     if (dbtn) {
       dbtn.innerHTML = '&#x2195; Distribute';
-      dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
     }
     const dslot = document.getElementById('distBarFixed');
     if (dslot) { dslot.innerHTML = ''; dslot.style.display = 'none'; }
@@ -1153,7 +1153,7 @@
 
   function renderWriteTasks() {
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
+    if (dbtn) dbtn.style.display = '';
     if (writeTaskView === 'time') { renderWriteTasksTime(); return; }
     renderWriteTasksList();
   }
@@ -1432,6 +1432,7 @@
         pill.style.width = `calc(${pct}% - ${gap}px)`;
         pill.dataset.idx = it.idx;
         pill.innerHTML = `<span class="tl-pill-title">${esc(it.task.title || '(untitled)')}</span>`;
+        if (distributeMode && distributeSelected.has(it.idx)) pill.classList.add('dist-selected');
         tl.appendChild(pill);
         attachSpanDrag(pill, tl, dropHint, dayFromMin, it.idx);
       });
@@ -1457,6 +1458,28 @@
       // Open editor for the new task after render
       setTimeout(() => openTaskEditor(newIdx), 50);
     });
+
+    // Render distribute bar for time view
+    const distFixed = document.getElementById('distBarFixed');
+    if (distFixed) {
+      if (distributeMode) {
+        const defFrom = tasksData.length ? minToTime(snapTo5(Math.min(...tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'))))) : '08:00';
+        const defTo = tasksData.length ? minToTime(snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'))))) : '18:00';
+        distFixed.style.display = 'block';
+        distFixed.innerHTML = `<div class="j-dist-bar" id="distBar" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--card-border);box-shadow:0 -2px 12px rgba(0,0,0,0.15);">
+          <span class="j-dist-count">${distributeSelected.size} selected</span>
+          <span style="flex:1;"></span>
+          <span style="font-size:12px;color:var(--card-text);">Evenly distribute between</span>
+          <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
+          <span style="font-size:12px;color:var(--card-text);">and</span>
+          <select id="distTo" onchange="this._userChanged=true;">${timeSelectOptions(defTo)}</select>
+          <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
+        </div>`;
+      } else {
+        distFixed.style.display = 'none';
+        distFixed.innerHTML = '';
+      }
+    }
 
     // Install scroll listener once so timelineFocusMin stays current
     if (!timelineScrollHandler) {
@@ -1538,7 +1561,7 @@
   }
 
   // Pill drag: whole block moves (preserves duration). Tap opens editor.
-  // Distinguishes tap vs drag by distance threshold.
+  // In distribute mode: tap selects/deselects, drag is disabled.
   function attachSpanDrag(pill, timeline, dropHint, dayFromMin, taskIdx) {
     let pointerIsDown = false;
     let dragging = false;
@@ -1550,6 +1573,7 @@
     function getDragTimeEl() { return document.getElementById('tlDragTime'); }
 
     function onDown(e) {
+      if (distributeMode) { e.preventDefault(); return; }
       pointerIsDown = true;
       pointerId = e.pointerId;
       pill.setPointerCapture(pointerId);
@@ -1563,7 +1587,7 @@
     }
 
     function onMove(e) {
-      if (!pointerIsDown) return;
+      if (!pointerIsDown || distributeMode) return;
       const dy = e.clientY - startY;
       if (!dragging && Math.abs(dy) > TAP_THRESHOLD) {
         dragging = true;
@@ -1598,6 +1622,11 @@
     }
 
     function onUp() {
+      if (distributeMode) {
+        toggleDistributeCheck(taskIdx);
+        pill.classList.toggle('dist-selected', distributeSelected.has(taskIdx));
+        return;
+      }
       if (!pointerIsDown) return;
       const wasDragging = dragging;
       pointerIsDown = false;
@@ -1890,7 +1919,26 @@
         existing.add(t.title.trim().toLowerCase());
       }
     });
+    const addedCount = tasksData.length - existing.size + distributeSelected.size; // rough count
     markTasksDirty();renderWriteTasks();clearImport();
+
+    // If 2+ tasks were added with the same time, auto-enter distribute mode
+    // with those tasks pre-selected
+    const addedTime = now;
+    const sameTimeTasks = tasksData
+      .map((t, i) => ({ t, i }))
+      .filter(({ t }) => t.time === addedTime && t.startTime === start);
+    if (sameTimeTasks.length >= 2) {
+      distributeMode = true;
+      distributeSelected.clear();
+      sameTimeTasks.forEach(({ i }) => distributeSelected.add(i));
+      const btn = document.getElementById('distributeBtn');
+      if (btn) btn.innerHTML = 'Cancel';
+      renderWriteTasks();
+      showStatus('tasksImportStatus',
+        `${sameTimeTasks.length} tasks share the same time \u2014 distribute them across a range?`, 'info');
+      autoClear('tasksImportStatus', 6000);
+    }
   }
 
   function toggleTaskRecording(){taskRecording?stopTaskRecording():startTaskRecording();}
