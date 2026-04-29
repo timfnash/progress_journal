@@ -79,8 +79,10 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; text-transform: none; font-weight: 400; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
+    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; transition: opacity 0.15s ease; }
     .j-task-row:last-child { border-bottom: none; }
+    .j-task-row.task-dragging { opacity: 0.4; }
+    .j-task-row.task-drag-over { border-top: 2px solid var(--card-accent); }
     .j-task-time { width: auto; font-size: 11px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 2px; flex-shrink: 0; -webkit-appearance: none; appearance: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
     .j-task-sep { font-size: 10px; color: var(--card-muted); flex-shrink: 0; }
@@ -88,6 +90,8 @@
     .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
+    .j-task-grip { flex-shrink: 0; cursor: grab; color: var(--card-muted); font-size: 13px; padding: 2px 4px; touch-action: none; user-select: none; line-height: 1; }
+    .j-task-grip:active { cursor: grabbing; color: var(--card-accent); }
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
 
     /* Distribute mode */
@@ -1210,7 +1214,7 @@
             ? `<input type="checkbox" class="j-dist-check" data-idx="${item.idx}" ${distributeSelected.has(item.idx)?'checked':''} onclick="toggleDistributeCheck(${item.idx})">`
             : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
-            ${distCheck}
+            <span class="j-task-grip" data-grip-idx="${item.idx}">&#x2630;</span>
             ${starBtn}
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
@@ -1226,6 +1230,11 @@
     });
 
     display.innerHTML = html;
+
+    // Attach drag-to-reorder handlers to task grips
+    display.querySelectorAll('.j-task-grip').forEach(grip => {
+      attachTaskRowDrag(grip, display);
+    });
 
     // Render distribute bar into fixed bottom bar
     const distFixed = document.getElementById('distBarFixed');
@@ -1893,6 +1902,85 @@
   }
 
   function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
+
+  // Drag-to-reorder tasks within the Write by-list view.
+  // Grabs by the ☰ grip; reorders in tasksData and re-renders.
+  function attachTaskRowDrag(grip, container) {
+    let dragging = false;
+    let dragIdx = -1;
+    let pointerId = null;
+    let startY = 0;
+
+    grip.addEventListener('pointerdown', (e) => {
+      // Flush all textarea edits before reorder
+      flushTaskInputs();
+      dragIdx = parseInt(grip.dataset.gripIdx);
+      if (isNaN(dragIdx)) return;
+      pointerId = e.pointerId;
+      grip.setPointerCapture(pointerId);
+      startY = e.clientY;
+      dragging = false;
+      e.preventDefault();
+    });
+
+    grip.addEventListener('pointermove', (e) => {
+      if (dragIdx < 0) return;
+      if (!dragging && Math.abs(e.clientY - startY) > 5) {
+        dragging = true;
+        const rows = container.querySelectorAll('.j-task-row');
+        rows.forEach(r => {
+          if (parseInt(r.dataset.idx) === dragIdx) r.classList.add('task-dragging');
+        });
+      }
+      if (!dragging) return;
+
+      // Highlight drop target
+      const rows = container.querySelectorAll('.j-task-row');
+      rows.forEach(r => r.classList.remove('task-drag-over'));
+      for (const row of rows) {
+        const rect = row.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          row.classList.add('task-drag-over');
+          break;
+        }
+      }
+    });
+
+    function onUp(e) {
+      if (dragIdx < 0) return;
+      const wasDragging = dragging;
+      dragging = false;
+      try { grip.releasePointerCapture(pointerId); } catch(err) {}
+
+      const rows = container.querySelectorAll('.j-task-row');
+      rows.forEach(r => r.classList.remove('task-dragging', 'task-drag-over'));
+
+      if (!wasDragging) { dragIdx = -1; return; }
+
+      // Find drop target index in tasksData
+      let dropIdx = tasksData.length;
+      for (const row of rows) {
+        const rect = row.getBoundingClientRect();
+        if (e.clientY < rect.top + rect.height / 2) {
+          dropIdx = parseInt(row.dataset.idx);
+          break;
+        }
+      }
+
+      // Perform the move in tasksData
+      if (dropIdx !== dragIdx) {
+        const item = tasksData.splice(dragIdx, 1)[0];
+        const insertAt = dropIdx > dragIdx ? dropIdx - 1 : dropIdx;
+        tasksData.splice(Math.max(0, insertAt), 0, item);
+        markTasksDirty();
+        renderWriteTasks();
+      }
+      dragIdx = -1;
+    }
+
+    grip.addEventListener('pointerup', onUp);
+    grip.addEventListener('pointercancel', onUp);
+  }
   function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
   function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
   function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
@@ -2007,21 +2095,15 @@
     container.innerHTML = extractedTasks.map((t, i) => {
       const currentList = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const listOpts = LIST_OPTIONS.map(l => `<option value="${l}"${l===currentList?' selected':''}>${l}</option>`).join('');
-      return `<div class="j-ext-item" data-ext-idx="${i}" draggable="false">
-        <span class="j-ext-num">${i + 1}</span>
-        <span class="j-ext-grip" data-grip="${i}">&#x2630;</span>
+      return `<div class="j-ext-item" data-ext-idx="${i}">
         <select class="j-ext-list" onchange="updateExtractedList(${i}, this.value)">${listOpts}</select>
         <input class="j-ext-title" type="text" value="${esc(t.title)}"
           oninput="updateExtractedTitle(${i}, this.value)">
         <button class="j-ext-del" onclick="removeExtracted(${i})">&#x2715;</button>
       </div>`;
     }).join('');
-    container.querySelectorAll('.j-ext-grip').forEach(grip => {
-      attachExtractedDrag(grip, container);
-    });
   }
 
-  // Sync all visible extracted task inputs back to the array
   function flushExtractedInputs() {
     const container = document.getElementById('extractedList');
     if (!container) return;
@@ -2033,82 +2115,6 @@
       if (titleInput) extractedTasks[idx].title = titleInput.value;
       if (listSelect) extractedTasks[idx].list = listSelect.value;
     });
-  }
-
-  // Touch/pointer-friendly drag reorder for extracted tasks
-  function attachExtractedDrag(grip, container) {
-    let dragging = false;
-    let dragIdx = -1;
-    let pointerId = null;
-    let startY = 0;
-    let placeholder = null;
-
-    grip.addEventListener('pointerdown', (e) => {
-      flushExtractedInputs();
-      dragIdx = parseInt(grip.dataset.grip);
-      if (isNaN(dragIdx)) return;
-      pointerId = e.pointerId;
-      grip.setPointerCapture(pointerId);
-      startY = e.clientY;
-      dragging = false;
-      e.preventDefault();
-    });
-
-    grip.addEventListener('pointermove', (e) => {
-      if (dragIdx < 0) return;
-      if (!dragging && Math.abs(e.clientY - startY) > 5) {
-        dragging = true;
-        const items = container.querySelectorAll('.j-ext-item');
-        if (items[dragIdx]) items[dragIdx].classList.add('ext-dragging');
-      }
-      if (!dragging) return;
-
-      // Find which item we're hovering over
-      const items = container.querySelectorAll('.j-ext-item');
-      items.forEach(item => item.classList.remove('ext-drag-over'));
-      for (const item of items) {
-        const rect = item.getBoundingClientRect();
-        const midY = rect.top + rect.height / 2;
-        if (e.clientY < midY) {
-          item.classList.add('ext-drag-over');
-          break;
-        }
-      }
-    });
-
-    function onUp(e) {
-      if (dragIdx < 0) return;
-      const wasDragging = dragging;
-      dragging = false;
-      try { grip.releasePointerCapture(pointerId); } catch(err) {}
-
-      const items = container.querySelectorAll('.j-ext-item');
-      items.forEach(item => { item.classList.remove('ext-dragging', 'ext-drag-over'); });
-
-      if (!wasDragging) { dragIdx = -1; return; }
-
-      // Find drop target
-      let dropIdx = extractedTasks.length; // default: end
-      for (let i = 0; i < items.length; i++) {
-        const rect = items[i].getBoundingClientRect();
-        if (e.clientY < rect.top + rect.height / 2) {
-          dropIdx = parseInt(items[i].dataset.extIdx);
-          break;
-        }
-      }
-
-      // Perform the move
-      if (dropIdx !== dragIdx) {
-        const item = extractedTasks.splice(dragIdx, 1)[0];
-        const insertAt = dropIdx > dragIdx ? dropIdx - 1 : dropIdx;
-        extractedTasks.splice(Math.max(0, insertAt), 0, item);
-        renderExtractedList();
-      }
-      dragIdx = -1;
-    }
-
-    grip.addEventListener('pointerup', onUp);
-    grip.addEventListener('pointercancel', onUp);
   }
 
   function removeExtracted(idx) {
@@ -2158,26 +2164,7 @@
         existing.add(t.title.trim().toLowerCase());
       }
     });
-    const addedCount = tasksData.length - existing.size + distributeSelected.size; // rough count
     markTasksDirty();renderWriteTasks();clearImport();
-
-    // If 2+ tasks were added with the same time, auto-enter distribute mode
-    // with those tasks pre-selected
-    const addedTime = now;
-    const sameTimeTasks = tasksData
-      .map((t, i) => ({ t, i }))
-      .filter(({ t }) => t.time === addedTime && t.startTime === start);
-    if (sameTimeTasks.length >= 2) {
-      distributeMode = true;
-      distributeSelected.clear();
-      sameTimeTasks.forEach(({ i }) => distributeSelected.add(i));
-      const btn = document.getElementById('distributeBtn');
-      if (btn) btn.innerHTML = 'Cancel';
-      renderWriteTasks();
-      showStatus('tasksImportStatus',
-        `${sameTimeTasks.length} tasks share the same time \u2014 distribute them across a range?`, 'info');
-      autoClear('tasksImportStatus', 6000);
-    }
   }
 
   function toggleTaskRecording(){taskRecording?stopTaskRecording():startTaskRecording();}
