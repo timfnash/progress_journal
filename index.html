@@ -79,14 +79,13 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; text-transform: none; font-weight: 400; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { display: flex; flex-direction: column; gap: 2px; padding: 5px 0 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
+    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; }
     .j-task-row:last-child { border-bottom: none; }
-    .j-task-controls { display: flex; align-items: center; gap: 4px; }
     .j-task-time { width: auto; font-size: 11px; color: var(--card-muted); background: transparent; border: none; border-bottom: 1px solid var(--card-border); font-family: 'Jost', sans-serif; padding: 1px 2px; flex-shrink: 0; -webkit-appearance: none; appearance: none; }
     .j-task-time:focus { outline: none; border-bottom-color: var(--card-accent); color: var(--card-accent); }
     .j-task-sep { font-size: 10px; color: var(--card-muted); flex-shrink: 0; }
     .j-task-spacer { flex: 1; }
-    .j-task-title { font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow-y: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; width: 100%; white-space: pre-wrap; }
+    .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
@@ -1155,7 +1154,7 @@
 
   function renderWriteTasks() {
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.style.display = '';
+    if (dbtn) dbtn.style.display = writeTaskView === 'time' ? '' : 'none';
     if (writeTaskView === 'time') { renderWriteTasksTime(); return; }
     renderWriteTasksList();
   }
@@ -1207,30 +1206,20 @@
           const starBtn = item.starred
             ? `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8a96e">&#x2605;</button>`
             : `<button class="j-star-btn" onclick="toggleStar(${item.idx})" style="color:#c8b89a">&#x2606;</button>`;
-          const startOpts = timeSelectOptions(item.startTime || '');
-          const endOpts = timeSelectOptions(item.time || '');
           const distCheck = distributeMode
             ? `<input type="checkbox" class="j-dist-check" data-idx="${item.idx}" ${distributeSelected.has(item.idx)?'checked':''} onclick="toggleDistributeCheck(${item.idx})">`
             : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
-            <div class="j-task-controls">
-              ${distCheck}
-              <select class="j-task-time j-task-start"
-                onchange="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].startTime=this.value;markTasksDirty();}">${startOpts}</select>
-              <span class="j-task-sep">&ndash;</span>
-              <select class="j-task-time j-task-end"
-                onchange="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i]){tasksData[i].time=this.value;markTasksDirty();}">${endOpts}</select>
-              <span class="j-task-spacer"></span>
-              ${starBtn}
-              <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
-              <div class="j-task-menu" style="display:none;">
-                <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
-                <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
-              </div>
-            </div>
+            ${distCheck}
+            ${starBtn}
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
+            <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
+            <div class="j-task-menu" style="display:none;">
+              <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
+              <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
+            </div>
           </div>`;
         });
       }
@@ -2399,10 +2388,9 @@
               inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}${groupDurStr}</span></div>`;
             }
             g.items.forEach(t => {
-              const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
               const dur = taskDurationMin(t);
               const durStr = dur > 0 ? `<span class="j-read-dur">${formatDuration(dur)}</span>` : '';
-              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')">${time}<span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
+              inner += `<div class="j-read-task ${t.starred?'starred':''}" onclick="toggleReadStar(this,'${esc(entry.date)}')"><span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
             });
           });
         }
@@ -2521,11 +2509,10 @@
       const dateDur = byDate[date].tasks.reduce((s,t) => s + taskDurationMin(t), 0);
       const dateDurStr = dateDur > 0 ? ` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(dateDur)}` : '';
       const items = byDate[date].tasks.map((t, ti) => {
-        const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
         const dur = taskDurationMin(t);
         const durStr = dur > 0 ? `<span class="j-read-dur">${formatDuration(dur)}</span>` : '';
         return `<div class="j-read-task ${t.starred ? 'starred' : ''}" id="rtask-${date}-${ti}"
-          onclick="toggleReviewStar('${date}',${ti},${t.starred})">${time}<span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
+          onclick="toggleReviewStar('${date}',${ti},${t.starred})"><span class="j-read-title">${esc(t.title)}</span>${durStr}</div>`;
       }).join('');
       return `<div class="review-date-group">
         <div class="review-date-label">${esc(dateStr)}<span class="j-list-count">+${count}${dateDurStr}</span></div>
