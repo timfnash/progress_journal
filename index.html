@@ -203,6 +203,7 @@
     .j-more-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; color: var(--card-muted); line-height: 1; letter-spacing: 1px; }
     .j-task-menu { position: absolute; right: 0; top: 100%; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; z-index: 20; display: flex; flex-direction: column; gap: 6px; min-width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .j-task-menu-select { font-size: 13px; padding: 5px 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; color: var(--card-accent); font-family: 'Jost', sans-serif; width: 100%; -webkit-appearance: none; }
+    .j-task-menu-time-row { display: flex; align-items: center; gap: 4px; }
     .j-task-menu-del { font-size: 13px; padding: 5px 8px; background: var(--red-dim); border: 1px solid var(--red); border-radius: 6px; color: var(--red); font-family: 'Jost', sans-serif; cursor: pointer; text-align: left; }
     .qp-freq-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
     .qp-freq-btn.active { background: var(--accent); color: #6b4a10; border-color: rgba(160,110,30,0.5); font-weight: 600; }
@@ -1159,7 +1160,7 @@
 
   function renderWriteTasks() {
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.style.display = writeTaskView === 'time' ? '' : 'none';
+    if (dbtn) dbtn.style.display = '';
     if (writeTaskView === 'time') { renderWriteTasksTime(); return; }
     renderWriteTasksList();
   }
@@ -1222,6 +1223,11 @@
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
             <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
+              <div class="j-task-menu-time-row">
+                <select class="j-task-menu-select" style="flex:1;" onchange="updateTaskTime(${item.idx},'startTime',this.value,this)">${timeSelectOptions(item.startTime||'')}</select>
+                <span class="j-task-sep">&ndash;</span>
+                <select class="j-task-menu-select" style="flex:1;" onchange="updateTaskTime(${item.idx},'time',this.value,this)">${timeSelectOptions(item.time||'')}</select>
+              </div>
               <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
               <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
             </div>
@@ -1807,8 +1813,15 @@
       const newTitle = overlay.querySelector('#editorTitle').value;
 
       let changed = false;
-      if (t.startTime !== newStart) { t.startTime = newStart; changed = true; }
-      if (t.time !== newEnd)        { t.time = newEnd; changed = true; }
+      const newStartMin = timeToMin(newStart);
+      const newEndMin   = timeToMin(newEnd);
+      if (newEndMin <= newStartMin) {
+        showStatus('tasksSaveStatus', 'End time must be after start time.', 'err');
+        autoClear('tasksSaveStatus', 3000);
+      } else {
+        if (t.startTime !== newStart) { t.startTime = newStart; changed = true; }
+        if (t.time !== newEnd)        { t.time = newEnd; changed = true; }
+      }
       if (t.list !== newList)       { t.list = newList; changed = true; }
       if (t.title !== newTitle)     { t.title = newTitle; changed = true; }
       if (changed) markTasksDirty();
@@ -2014,6 +2027,26 @@
     grip.addEventListener('pointercancel', onUp);
   }
   function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
+  function updateTaskTime(i, field, value, sel) {
+    if (!tasksData[i]) return;
+    const t = tasksData[i];
+    const startMin = field === 'startTime' ? timeToMin(value) : timeToMin(t.startTime || '00:00');
+    const endMin   = field === 'time'      ? timeToMin(value) : timeToMin(t.time      || '00:00');
+    if (field === 'time' && endMin <= startMin) {
+      sel.value = t.time || '';
+      showStatus('tasksSaveStatus', 'End time must be after start time.', 'err');
+      autoClear('tasksSaveStatus', 3000);
+      return;
+    }
+    if (field === 'startTime' && t.time && timeToMin(t.time) <= endMin) {
+      sel.value = t.startTime || '';
+      showStatus('tasksSaveStatus', 'Start time must be before end time.', 'err');
+      autoClear('tasksSaveStatus', 3000);
+      return;
+    }
+    t[field] = value;
+    markTasksDirty();
+  }
   function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
   function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
 
