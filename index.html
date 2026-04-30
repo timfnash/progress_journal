@@ -1217,6 +1217,7 @@
             : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
             <span class="j-task-grip" data-grip-idx="${item.idx}">&#x2630;</span>
+            ${distCheck}
             ${starBtn}
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
@@ -2038,7 +2039,7 @@
       autoClear('tasksSaveStatus', 3000);
       return;
     }
-    if (field === 'startTime' && t.time && timeToMin(t.time) <= endMin) {
+    if (field === 'startTime' && t.time && startMin >= endMin) {
       sel.value = t.startTime || '';
       showStatus('tasksSaveStatus', 'Start time must be before end time.', 'err');
       autoClear('tasksSaveStatus', 3000);
