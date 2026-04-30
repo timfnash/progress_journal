@@ -1904,7 +1904,7 @@
   function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
 
   // Drag-to-reorder tasks within Write by-list view.
-  // Uses hold-to-drag (same as timeline pills) so scrolling works normally.
+  // Uses hold-to-drag so scrolling works normally.
   function attachTaskRowDrag(grip, container) {
     let pointerIsDown = false;
     let holdReady = false;
@@ -1914,6 +1914,7 @@
     let startY = 0;
     let startX = 0;
     let holdTimer = null;
+    let lastOverRow = null;
     const HOLD_MS = 300;
     const MOVE_CANCEL = 8;
 
@@ -1924,6 +1925,7 @@
       pointerIsDown = true;
       holdReady = false;
       dragging = false;
+      lastOverRow = null;
       pointerId = e.pointerId;
       startY = e.clientY;
       startX = e.clientX;
@@ -1931,15 +1933,14 @@
       holdTimer = setTimeout(() => {
         if (!pointerIsDown) return;
         holdReady = true;
+        dragging = true;
         try { grip.setPointerCapture(pointerId); } catch(err) {}
         if (navigator.vibrate) navigator.vibrate(30);
-        // Immediately show dragging state
         const rows = container.querySelectorAll('.j-task-row');
         rows.forEach(r => {
           if (parseInt(r.dataset.idx) === dragIdx) r.classList.add('task-dragging');
         });
       }, HOLD_MS);
-      // Don't preventDefault — allow scroll during hold wait
     });
 
     grip.addEventListener('pointermove', (e) => {
@@ -1953,14 +1954,16 @@
         return;
       }
 
-      dragging = true;
       // Highlight drop target
       const rows = container.querySelectorAll('.j-task-row');
       rows.forEach(r => r.classList.remove('task-drag-over'));
+      lastOverRow = null;
       for (const row of rows) {
+        if (parseInt(row.dataset.idx) === dragIdx) continue; // skip self
         const rect = row.getBoundingClientRect();
         if (e.clientY < rect.top + rect.height / 2) {
           row.classList.add('task-drag-over');
+          lastOverRow = row;
           break;
         }
       }
@@ -1979,26 +1982,33 @@
       const rows = container.querySelectorAll('.j-task-row');
       rows.forEach(r => r.classList.remove('task-dragging', 'task-drag-over'));
 
-      if (!wasDragging) { dragIdx = -1; return; }
+      if (!wasDragging || dragIdx < 0) { dragIdx = -1; return; }
 
-      // Find drop target
-      let dropIdx = tasksData.length;
-      for (const row of rows) {
-        const rect = row.getBoundingClientRect();
-        if (e.clientY < rect.top + rect.height / 2) {
-          dropIdx = parseInt(row.dataset.idx);
-          break;
-        }
-      }
+      // Build the visual order of task indices as they appear in the DOM
+      const visualOrder = [];
+      rows.forEach(r => visualOrder.push(parseInt(r.dataset.idx)));
 
-      if (dropIdx !== dragIdx) {
+      // Find where we're inserting
+      let dropTargetIdx = lastOverRow ? parseInt(lastOverRow.dataset.idx) : -1;
+
+      // Find positions in visual order
+      const fromPos = visualOrder.indexOf(dragIdx);
+      let toPos = dropTargetIdx >= 0 ? visualOrder.indexOf(dropTargetIdx) : visualOrder.length;
+
+      if (fromPos >= 0 && toPos >= 0 && fromPos !== toPos) {
+        // Remove from current position
         const item = tasksData.splice(dragIdx, 1)[0];
-        const insertAt = dropIdx > dragIdx ? dropIdx - 1 : dropIdx;
-        tasksData.splice(Math.max(0, insertAt), 0, item);
+        // Recalculate insert position after removal
+        // All indices above dragIdx shifted down by 1
+        let insertIdx = dropTargetIdx;
+        if (dropTargetIdx > dragIdx) insertIdx--;
+        if (insertIdx < 0) insertIdx = 0;
+        if (insertIdx > tasksData.length) insertIdx = tasksData.length;
+        tasksData.splice(insertIdx, 0, item);
         markTasksDirty();
-        renderWriteTasks();
       }
       dragIdx = -1;
+      renderWriteTasks();
     }
 
     grip.addEventListener('pointerup', onUp);
