@@ -79,7 +79,7 @@
     .j-list-label:first-child { margin-top: 0; }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; text-transform: none; font-weight: 400; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-task-row { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; transition: opacity 0.15s ease; }
+    .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; transition: opacity 0.15s ease; }
     .j-task-row:last-child { border-bottom: none; }
     .j-task-row.task-dragging { opacity: 0.4; }
     .j-task-row.task-drag-over { border-top: 2px solid var(--card-accent); }
@@ -90,7 +90,7 @@
     .j-task-title { flex: 1; font-size: 14px; color: var(--card-text); background: transparent; border: none; font-family: 'Jost', sans-serif; padding: 2px 0; min-width: 0; resize: none; overflow: hidden; line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word; }
     .j-task-title:focus { outline: none; }
     .j-star-btn { background: none; border: none; font-size: 15px; cursor: pointer; flex-shrink: 0; padding: 0 2px; line-height: 1; }
-    .j-task-grip { flex-shrink: 0; cursor: grab; color: var(--card-muted); font-size: 13px; padding: 2px 4px; touch-action: none; user-select: none; line-height: 1; }
+    .j-task-grip { flex-shrink: 0; cursor: grab; color: var(--card-muted); font-size: 14px; padding: 8px 6px; touch-action: none; user-select: none; line-height: 1; min-height: 36px; display: flex; align-items: center; }
     .j-task-grip:active { cursor: grabbing; color: var(--card-accent); }
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
 
@@ -1903,37 +1903,57 @@
 
   function markTasksDirty() { tasksDirty=true; document.getElementById('tasksSaveBtn').style.display='flex'; }
 
-  // Drag-to-reorder tasks within the Write by-list view.
-  // Grabs by the ☰ grip; reorders in tasksData and re-renders.
+  // Drag-to-reorder tasks within Write by-list view.
+  // Uses hold-to-drag (same as timeline pills) so scrolling works normally.
   function attachTaskRowDrag(grip, container) {
+    let pointerIsDown = false;
+    let holdReady = false;
     let dragging = false;
     let dragIdx = -1;
     let pointerId = null;
     let startY = 0;
+    let startX = 0;
+    let holdTimer = null;
+    const HOLD_MS = 300;
+    const MOVE_CANCEL = 8;
 
     grip.addEventListener('pointerdown', (e) => {
-      // Flush all textarea edits before reorder
       flushTaskInputs();
       dragIdx = parseInt(grip.dataset.gripIdx);
       if (isNaN(dragIdx)) return;
-      pointerId = e.pointerId;
-      grip.setPointerCapture(pointerId);
-      startY = e.clientY;
+      pointerIsDown = true;
+      holdReady = false;
       dragging = false;
-      e.preventDefault();
-    });
+      pointerId = e.pointerId;
+      startY = e.clientY;
+      startX = e.clientX;
 
-    grip.addEventListener('pointermove', (e) => {
-      if (dragIdx < 0) return;
-      if (!dragging && Math.abs(e.clientY - startY) > 5) {
-        dragging = true;
+      holdTimer = setTimeout(() => {
+        if (!pointerIsDown) return;
+        holdReady = true;
+        try { grip.setPointerCapture(pointerId); } catch(err) {}
+        if (navigator.vibrate) navigator.vibrate(30);
+        // Immediately show dragging state
         const rows = container.querySelectorAll('.j-task-row');
         rows.forEach(r => {
           if (parseInt(r.dataset.idx) === dragIdx) r.classList.add('task-dragging');
         });
-      }
-      if (!dragging) return;
+      }, HOLD_MS);
+      // Don't preventDefault — allow scroll during hold wait
+    });
 
+    grip.addEventListener('pointermove', (e) => {
+      if (!pointerIsDown) return;
+
+      if (!holdReady) {
+        if (Math.abs(e.clientX - startX) > MOVE_CANCEL || Math.abs(e.clientY - startY) > MOVE_CANCEL) {
+          clearTimeout(holdTimer);
+          pointerIsDown = false;
+        }
+        return;
+      }
+
+      dragging = true;
       // Highlight drop target
       const rows = container.querySelectorAll('.j-task-row');
       rows.forEach(r => r.classList.remove('task-drag-over'));
@@ -1944,11 +1964,15 @@
           break;
         }
       }
+      e.preventDefault();
     });
 
     function onUp(e) {
-      if (dragIdx < 0) return;
+      clearTimeout(holdTimer);
+      if (!pointerIsDown) return;
+      pointerIsDown = false;
       const wasDragging = dragging;
+      holdReady = false;
       dragging = false;
       try { grip.releasePointerCapture(pointerId); } catch(err) {}
 
@@ -1957,7 +1981,7 @@
 
       if (!wasDragging) { dragIdx = -1; return; }
 
-      // Find drop target index in tasksData
+      // Find drop target
       let dropIdx = tasksData.length;
       for (const row of rows) {
         const rect = row.getBoundingClientRect();
@@ -1967,7 +1991,6 @@
         }
       }
 
-      // Perform the move in tasksData
       if (dropIdx !== dragIdx) {
         const item = tasksData.splice(dragIdx, 1)[0];
         const insertAt = dropIdx > dragIdx ? dropIdx - 1 : dropIdx;
