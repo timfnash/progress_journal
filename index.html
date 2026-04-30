@@ -2083,19 +2083,15 @@
       applyBtn.style.opacity = count >= 2 ? '1' : '0.4';
       applyBtn.style.pointerEvents = count >= 2 ? 'auto' : 'none';
     }
-    // Update default times based on selection
+    // Update default times based on selection — use display order (tasksData index), not time order
     if (count >= 2) {
-      const indices = [...distributeSelected].sort((a,b) => {
-        const aStart = timeToMin(tasksData[a]?.startTime || tasksData[a]?.time || '00:00');
-        const bStart = timeToMin(tasksData[b]?.startTime || tasksData[b]?.time || '00:00');
-        return aStart - bStart;
-      });
-      const earliest = tasksData[indices[0]];
-      const latest = tasksData[indices[indices.length - 1]];
+      const indices = [...distributeSelected].sort((a, b) => a - b);
+      const first = tasksData[indices[0]];
+      const last  = tasksData[indices[indices.length - 1]];
       const fromSel = bar.querySelector('#distFrom');
       const toSel = bar.querySelector('#distTo');
-      if (fromSel && !fromSel._userChanged) fromSel.value = earliest.startTime || earliest.time || '00:00';
-      if (toSel && !toSel._userChanged) toSel.value = latest.time || latest.startTime || '00:00';
+      if (fromSel && !fromSel._userChanged) fromSel.value = first.startTime || first.time || '00:00';
+      if (toSel && !toSel._userChanged) toSel.value = last.time || last.startTime || '00:00';
     }
     // Update checkboxes visually
     document.querySelectorAll('.j-dist-check').forEach(cb => {
@@ -2111,12 +2107,8 @@
     const toMin = timeToMin(bar.querySelector('#distTo').value);
     if (toMin <= fromMin) { showStatus('tasksSaveStatus', 'End must be after start.', 'err'); autoClear('tasksSaveStatus', 3000); return; }
 
-    // Sort selected tasks by their current start time to preserve order
-    const indices = [...distributeSelected].sort((a,b) => {
-      const aStart = timeToMin(tasksData[a]?.startTime || tasksData[a]?.time || '00:00');
-      const bStart = timeToMin(tasksData[b]?.startTime || tasksData[b]?.time || '00:00');
-      return aStart - bStart;
-    });
+    // Sort selected tasks by their position in tasksData (display/drag-drop order)
+    const indices = [...distributeSelected].sort((a, b) => a - b);
 
     const n = indices.length;
     const totalMin = toMin - fromMin;
