@@ -1275,6 +1275,10 @@
             <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
               <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
+              <div style="display: flex; gap: 4px; font-size: 11px;">
+                <input type="time" class="j-task-time j-task-start" value="${esc(item.startTime || '')}" placeholder="Start">
+                <input type="time" class="j-task-time j-task-end" value="${esc(item.time || '')}" placeholder="End">
+              </div>
               <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
             </div>
           </div>`;
@@ -1367,15 +1371,15 @@
     const display = document.getElementById('tasksDisplay');
     display.innerHTML = '';
 
-    // Compute variable day range: 1 hour before earliest start, 1 hour after
-    // latest end. Falls back to 07:00–18:00 when the day is empty.
+    // Compute variable day range: only add minimal padding
+    // No padding at start, only padding between tasks for breathing room
     let dayFromMin, dayToMin;
     if (tasksData.length) {
       const starts = tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'));
       const ends   = tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'));
       if (dayStartTime) starts.push(timeToMin(dayStartTime));
-      dayFromMin = Math.max(0, snapTo5(Math.min(...starts) - 60));
-      dayToMin   = Math.min(TL_MIN_PER_DAY, snapTo5(Math.max(...ends) + 60));
+      dayFromMin = Math.max(0, snapTo5(Math.min(...starts))); // Start at earliest task, no padding
+      dayToMin   = Math.min(TL_MIN_PER_DAY, snapTo5(Math.max(...ends))); // End at latest task, no padding
     } else {
       dayFromMin = 7 * 60;
       dayToMin   = 18 * 60;
@@ -1532,6 +1536,7 @@
 
     pillData.forEach(p => {
       const t = tasksData[p.idx];
+      if (!t) return; // Skip if task not found
       const { col, totalCols } = pillCols.get(p.idx);
       const durationMin = p.end - p.start;
       const listClass = `list-${t.list.replace(/\s+/g, '')}`;
@@ -1649,6 +1654,19 @@
       return a.idx - b.idx;
     });
 
+    // Create card wrapper
+    const card = document.createElement('div');
+    card.className = 'j-card';
+
+    // Add header with distribute button
+    const header = document.createElement('div');
+    header.className = 'j-card-header';
+    header.innerHTML = `
+      <span class="j-card-title">Completed tasks</span>
+      <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()" style="margin-left: auto;">↔ Distribute</div>
+    `;
+    card.appendChild(header);
+
     const body = document.createElement('div');
     body.className = 'j-card-body';
 
@@ -1660,32 +1678,30 @@
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const isSelected = distributeMode && distributeSelected.has(t.idx);
       
-      html += `<div class="j-task-row${isSelected ? ' dist-selected' : ''}" data-idx="${t.idx}">
-        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onchange="toggleDistributeSelection(${t.idx})">` : '<span style="width:20px;"></span>'}
-        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center;" onclick="toggleStar(${t.idx})">${starIcon}</span>
-        <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px;">${esc(startTime)}</span>
-        <span class="${listClass}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--${listClass}); background: var(--${listClass}-dim); border: 1px solid var(--${listClass}); border-radius: 4px; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
+      // Build menu HTML (like in list view)
+      const listOpts = LIST_OPTIONS.map(l => `<option value="${esc(l)}"${t.list===l?' selected':''}>${esc(l)}</option>`).join('');
+      
+      html += `<div class="j-task-row${isSelected ? ' dist-selected' : ''}" data-idx="${t.idx}" style="position: relative;">
+        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onchange="toggleDistributeSelection(${t.idx})">` : ''}
+        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center; flex-shrink: 0;" onclick="toggleStar(${t.idx})">${starIcon}</span>
+        <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px; flex-shrink: 0;">${esc(startTime)}</span>
+        <span class="j-add-btn ${listClass}" style="font-size: 9px; margin: 0; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
         <span class="j-task-title" style="flex: 1; color: var(--card-text); font-size: 13px; margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
-        <button class="j-more-btn" onclick="showTaskMenu(event, ${t.idx})" style="position: relative;">⋯</button>
+        <button class="j-more-btn" onclick="toggleTaskMenu(this,${t.idx})" style="position: relative; flex-shrink: 0;">⋯</button>
+        <div class="j-task-menu" style="display:none;">
+          <select class="j-task-menu-select" onchange="updateTaskList(${t.idx},this.value)">${listOpts}</select>
+          <div style="display: flex; gap: 4px; font-size: 11px;">
+            <input type="time" class="j-task-time j-task-start" value="${esc(t.startTime || '')}" placeholder="Start">
+            <input type="time" class="j-task-time j-task-end" value="${esc(t.time || '')}" placeholder="End">
+          </div>
+          <button class="j-task-menu-del" onclick="deleteTask(${t.idx})">Delete</button>
+        </div>
       </div>`;
     });
 
     body.innerHTML = html;
-    display.appendChild(body);
-
-    // Attach drag handlers and task menus if not in distribute mode
-    if (!distributeMode) {
-      document.querySelectorAll('.j-task-row').forEach(row => {
-        const idx = parseInt(row.dataset.idx);
-        if (!isNaN(idx)) {
-          // Attach popup menu behavior
-          row.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            showTaskMenu(e, idx);
-          });
-        }
-      });
-    }
+    card.appendChild(body);
+    display.appendChild(card);
 
     // Render distribute bar if active
     const distFixed = document.getElementById('distBarFixed');
