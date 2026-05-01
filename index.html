@@ -33,14 +33,16 @@
       --card-btn-color: #7a6040;
 
       /* Task category colors */
-      --list-sustain:   #8a7d5a;
-      --list-sustain-dim: rgba(138,125,90,0.12);
+      --list-basic:     #8a7d5a;
+      --list-basic-dim: rgba(138,125,90,0.12);
       --list-personal:  #6b8fa3;
       --list-personal-dim: rgba(107,143,163,0.12);
       --list-work:      #4a8f6f;
       --list-work-dim:  rgba(74,143,111,0.12);
       --list-zipf:      #7a6fa0;
       --list-zipf-dim:  rgba(122,111,160,0.12);
+      --list-other:     #888a8a;
+      --list-other-dim: rgba(136,138,138,0.12);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -87,21 +89,24 @@
     /* Task list */
     .j-list-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); margin: 12px 0 4px; display: flex; align-items: center; justify-content: space-between; }
     .j-list-label:first-child { margin-top: 0; }
-    .j-list-label.list-Sustenance { color: var(--list-sustain); }
+    .j-list-label.list-Basic { color: var(--list-basic); }
     .j-list-label.list-Personal { color: var(--list-personal); }
     .j-list-label.list-Work { color: var(--list-work); }
     .j-list-label.list-Zipf { color: var(--list-zipf); }
+    .j-list-label.list-Other { color: var(--list-other); }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; text-transform: none; font-weight: 400; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .j-add-btn.list-Sustenance { color: var(--list-sustain); background: var(--list-sustain-dim); border-color: var(--list-sustain); }
+    .j-add-btn.list-Basic { color: var(--list-basic); background: var(--list-basic-dim); border-color: var(--list-basic); }
     .j-add-btn.list-Personal { color: var(--list-personal); background: var(--list-personal-dim); border-color: var(--list-personal); }
     .j-add-btn.list-Work { color: var(--list-work); background: var(--list-work-dim); border-color: var(--list-work); }
     .j-add-btn.list-Zipf { color: var(--list-zipf); background: var(--list-zipf-dim); border-color: var(--list-zipf); }
+    .j-add-btn.list-Other { color: var(--list-other); background: var(--list-other-dim); border-color: var(--list-other); }
     .qp-freq-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
-    .qp-freq-btn.list-Sustenance { color: var(--list-sustain); background: var(--list-sustain-dim); border-color: var(--list-sustain); }
+    .qp-freq-btn.list-Basic { color: var(--list-basic); background: var(--list-basic-dim); border-color: var(--list-basic); }
     .qp-freq-btn.list-Personal { color: var(--list-personal); background: var(--list-personal-dim); border-color: var(--list-personal); }
     .qp-freq-btn.list-Work { color: var(--list-work); background: var(--list-work-dim); border-color: var(--list-work); }
     .qp-freq-btn.list-Zipf { color: var(--list-zipf); background: var(--list-zipf-dim); border-color: var(--list-zipf); }
+    .qp-freq-btn.list-Other { color: var(--list-other); background: var(--list-other-dim); border-color: var(--list-other); }
     .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; transition: opacity 0.15s ease; }
     .j-task-row:last-child { border-bottom: none; }
     .j-task-row.task-dragging { opacity: 0.4; }
@@ -136,10 +141,11 @@
     /* Pills — clean cards showing title only; drag to move, edges to resize */
     .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
-    .j-tl-pill.list-Sustenance { border-left-color: var(--list-sustain); }
+    .j-tl-pill.list-Basic { border-left-color: var(--list-basic); }
     .j-tl-pill.list-Personal { border-left-color: var(--list-personal); }
     .j-tl-pill.list-Work { border-left-color: var(--list-work); }
     .j-tl-pill.list-Zipf { border-left-color: var(--list-zipf); }
+    .j-tl-pill.list-Other { border-left-color: var(--list-other); }
     .j-tl-pill .tl-pill-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden; }
     .j-tl-pill.dragging { opacity: 0.92; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
     .j-tl-pill.dist-selected { border-color: var(--accent); border-width: 2px; box-shadow: 0 0 0 2px rgba(200,169,110,0.3); }
@@ -403,7 +409,7 @@
         <label class="fp-label">Focus
           <select id="filterList" onchange="bookFilterList=this.value;renderBookPage(false);">
             <option value="all">All lists</option>
-            <option value="Sustenance">Sustenance</option>
+            <option value="Basic">Basic</option>
             <option value="Personal">Personal</option>
             <option value="Work">Work</option>
             <option value="Zipf">Zipf</option>
@@ -516,8 +522,8 @@
   let taskRecognition  = null, taskVoiceTranscript = '', taskRecording = false;
   let reflRecognition  = null, reflVoiceTranscript = '', reflRecording = false;
 
-  const LIST_ORDER   = ['Sustenance', 'Personal', 'Work', 'Zipf'];
-  const LIST_OPTIONS = ['Sustenance', 'Personal', 'Work', 'Zipf', 'Other'];
+  const LIST_ORDER   = ['Basic', 'Personal', 'Work', 'Zipf'];
+  const LIST_OPTIONS = ['Basic', 'Personal', 'Work', 'Zipf', 'Other'];
 
   // ── Utilities ─────────────────────────────────────────────
   function isoDate(d)   { return d.toISOString().split('T')[0]; }
@@ -986,7 +992,7 @@
     const usedLists = new Set(reflSections.map(s => s.list));
     const available = LIST_OPTIONS.filter(l => !usedLists.has(l));
     document.getElementById('reflTagAddRow').innerHTML =
-      available.map(l => `<div class="j-add-btn" onclick="addReflSection('${l}')">+ ${l}</div>`).join('');
+      available.map(l => `<div class="j-add-btn list-${l.replace(/\s+/g, '')}" onclick="addReflSection('${l}')">+ ${l}</div>`).join('');
   }
 
   function renderReflSections() {
@@ -1180,7 +1186,7 @@
       if (writeTaskView === 'list') {
         toggle.innerHTML = '🕐 By time';
       } else if (writeTaskView === 'time') {
-        toggle.innerHTML = '⏱ By duration';
+        toggle.innerHTML = '⏱ By block';
       } else {
         toggle.innerHTML = '📋 By list';
       }
@@ -1460,11 +1466,14 @@
     }
 
     // Filter to only tasks with actual duration (startTime !== time)
-    const allocatedTasks = tasksData.filter((t, idx) => {
-      const start = t.startTime || t.time || '00:00';
-      const end = t.time || t.startTime || '00:00';
-      return start !== end;
-    });
+    // Track original indices to maintain reference to tasksData
+    const allocatedTasks = tasksData
+      .map((t, idx) => ({ task: t, idx }))
+      .filter(({ task }) => {
+        const start = task.startTime || task.time || '00:00';
+        const end = task.time || task.startTime || '00:00';
+        return start !== end;
+      });
 
     if (!allocatedTasks.length) {
       const empty = document.createElement('div');
@@ -1477,8 +1486,7 @@
 
     // Proper overlap detection: assign each pill to a column so overlapping
     // time ranges sit side-by-side rather than hiding each other.
-    const pillData = allocatedTasks.map((t, origIdx) => {
-      const idx = tasksData.indexOf(t);
+    const pillData = allocatedTasks.map(({ task: t, idx }) => {
       const s = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
       const e = snapTo5(timeToMin(t.time || t.startTime || '00:00'));
       return { idx, start: s, end: Math.max(s + 5, e) };
@@ -1641,14 +1649,6 @@
       return a.idx - b.idx;
     });
 
-    const card = document.createElement('div');
-    card.className = 'j-card';
-
-    const header = document.createElement('div');
-    header.className = 'j-card-header';
-    header.innerHTML = '<span class="j-card-title">Chronological Sequence</span>';
-    card.appendChild(header);
-
     const body = document.createElement('div');
     body.className = 'j-card-body';
 
@@ -1658,18 +1658,56 @@
       const starIcon = t.starred ? '★' : '☆';
       const startTime = t.startTime || t.time || '00:00';
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+      const isSelected = distributeMode && distributeSelected.has(t.idx);
       
-      html += `<div class="j-task-row" data-idx="${t.idx}">
-        <span style="font-size: 13px; margin-right: 4px; cursor: pointer; width: 16px; text-align: center;" onclick="toggleStar(${t.idx})">${starIcon}</span>
+      html += `<div class="j-task-row${isSelected ? ' dist-selected' : ''}" data-idx="${t.idx}">
+        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onchange="toggleDistributeSelection(${t.idx})">` : '<span style="width:20px;"></span>'}
+        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center;" onclick="toggleStar(${t.idx})">${starIcon}</span>
         <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px;">${esc(startTime)}</span>
-        <span class="${listClass}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; min-width: 70px; padding: 0 4px;">${esc(listLabel)}</span>
-        <span class="j-task-title" style="flex: 1; color: var(--card-text); font-size: 13px;">${esc(t.title || '(untitled)')}</span>
+        <span class="${listClass}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--${listClass}); background: var(--${listClass}-dim); border: 1px solid var(--${listClass}); border-radius: 4px; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
+        <span class="j-task-title" style="flex: 1; color: var(--card-text); font-size: 13px; margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
+        <button class="j-more-btn" onclick="showTaskMenu(event, ${t.idx})" style="position: relative;">⋯</button>
       </div>`;
     });
 
     body.innerHTML = html;
-    card.appendChild(body);
-    display.appendChild(card);
+    display.appendChild(body);
+
+    // Attach drag handlers and task menus if not in distribute mode
+    if (!distributeMode) {
+      document.querySelectorAll('.j-task-row').forEach(row => {
+        const idx = parseInt(row.dataset.idx);
+        if (!isNaN(idx)) {
+          // Attach popup menu behavior
+          row.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showTaskMenu(e, idx);
+          });
+        }
+      });
+    }
+
+    // Render distribute bar if active
+    const distFixed = document.getElementById('distBarFixed');
+    if (distFixed) {
+      if (distributeMode) {
+        const defFrom = tasksData.length ? minToTime(snapTo5(Math.min(...tasksData.map(t => timeToMin(t.startTime || t.time || '00:00'))))) : '08:00';
+        const defTo = tasksData.length ? minToTime(snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || t.startTime || '00:00'))))) : '18:00';
+        distFixed.style.display = 'block';
+        distFixed.innerHTML = `<div class="j-dist-bar" id="distBar" style="margin:0;border-radius:0;border:none;border-top:1px solid var(--card-border);box-shadow:0 -2px 12px rgba(0,0,0,0.15);">
+          <span class="j-dist-count">${distributeSelected.size} selected</span>
+          <span style="flex:1;"></span>
+          <span style="font-size:12px;color:var(--card-text);">Evenly distribute between</span>
+          <select id="distFrom" onchange="this._userChanged=true;">${timeSelectOptions(defFrom)}</select>
+          <span style="font-size:12px;color:var(--card-text);">and</span>
+          <select id="distTo" onchange="this._userChanged=true;">${timeSelectOptions(defTo)}</select>
+          <div class="j-save-btn" onclick="applyDistribute()" style="${distributeSelected.size >= 2 ? '' : 'opacity:0.4;pointer-events:none;'}">Apply</div>
+        </div>`;
+      } else {
+        distFixed.style.display = 'none';
+        distFixed.innerHTML = '';
+      }
+    }
   }
 
   // ── Drag handlers ─────────────────────────────────────────
@@ -2509,13 +2547,15 @@
           agg.forEach(a => {
             const countBadge = a.count > 1 ? `<span style="font-size:11px;color:var(--card-muted);margin-right:3px;">(${a.count}x)</span>` : ''; const label = countBadge + esc(a.title);
             const durStr = a.totalDur > 0 ? `<span class="j-read-dur">${formatDuration(a.totalDur)}</span>` : '';
-            const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;flex-shrink:0;">${esc(a.list)}</span>`;
+            const listClass = `list-${a.list.replace(/\s+/g, '')}`;
+            const pill = `<span style="font-size:11px;color:var(--${listClass});background:var(--${listClass}-dim);border:1px solid var(--${listClass});border-radius:4px;padding:1px 5px;margin-right:4px;flex-shrink:0;">${esc(a.list)}</span>`;
             inner += `<div class="j-read-task ${a.starred?'starred':''}">${pill}<span class="j-read-title">${label}</span>${durStr}</div>`;
           });
         } else if (readTaskView === 'time') {
           const sorted = [...taskObjs].sort((a,b)=>(a.time||'00:00').localeCompare(b.time||'00:00'));
           sorted.forEach(t => {
-            const pill = `<span style="font-size:11px;color:var(--card-muted);background:var(--card-bg3);border:1px solid var(--card-border);border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
+            const listClass = `list-${(LIST_OPTIONS.includes(t.list)?t.list:'Other').replace(/\s+/g, '')}`;
+            const pill = `<span style="font-size:11px;color:var(--${listClass});background:var(--${listClass}-dim);border:1px solid var(--${listClass});border-radius:4px;padding:1px 5px;margin-right:4px;">${esc(LIST_OPTIONS.includes(t.list)?t.list:'Other')}</span>`;
             const time = t.time ? `<span class="j-read-time">${esc(t.time)}</span>` : '';
             const dur = taskDurationMin(t);
             const durStr = dur > 0 ? `<span class="j-read-dur">${formatDuration(dur)}</span>` : '';
@@ -2528,7 +2568,8 @@
             if(withH) {
               const groupDur = g.items.reduce((sum,t) => sum + taskDurationMin(t), 0);
               const groupDurStr = groupDur > 0 ? ` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(groupDur)}` : '';
-              inner += `<div class="j-list-label"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}${groupDurStr}</span></div>`;
+              const listClass = `list-${g.list.replace(/\s+/g, '')}`;
+              inner += `<div class="j-list-label ${listClass}"><span>${esc(g.list)}</span><span class="j-list-count">+${g.items.length}${groupDurStr}</span></div>`;
             }
             g.items.forEach(t => {
               const dur = taskDurationMin(t);
@@ -2866,10 +2907,11 @@
     const keys=Object.keys(counts).sort((a,b)=>{const ai=LIST_ORDER.indexOf(a),bi=LIST_ORDER.indexOf(b);if(ai===-1&&bi===-1)return a.localeCompare(b);if(ai===-1)return 1;if(bi===-1)return -1;return ai-bi;});
     const max=Math.max(...Object.values(counts));
     let html=keys.map(k=>{
+      const listClass = `list-${k.replace(/\s+/g, '')}`;
       const durStr=durations[k]>0?` <span style="font-weight:400;text-transform:lowercase;">in</span> ${formatDuration(durations[k])}`:'';
       return `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
-        <span class="h-list-name">${esc(k)}</span>
-        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%"></div></div>
+        <span class="h-list-name ${listClass}">${esc(k)}</span>
+        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--${listClass});"></div></div>
         <span class="h-count">${counts[k]}${durStr}</span>
       </div>`;
     }).join('');
