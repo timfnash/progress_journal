@@ -177,7 +177,7 @@
     .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: baseline; gap: 4px; }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
-    .j-read-task.starred::before { content: '★'; color: #b07030; }
+    .j-read-task.starred::before { content: '★'; color: #d4a574; }
     .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; flex-shrink: 0; }
     .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; text-transform: none; }
     .j-read-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
@@ -491,7 +491,7 @@
 
 <script>
   // ── Config ────────────────────────────────────────────────
-  const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbwU5LEn_mUkEYF42ZTsHzVdQ0L-c3RrMgZw_T13v7Tjlm_8GR0jKRZf-IlO4yPu68a3/exec';
+  const SCRIPT_URL       = 'https://script.google.com/macros/s/AKfycbxhwLpYwMqAI6IQaZEBueSkvpqaCGfb06uUsCK6cFYHjKK5tHBId3HVzS-U4Uq6o_kJ/exec';
   const GOOGLE_CLIENT_ID = '334749757917-t606nr5dfec4h2va1dah61nu9rm5rbk9.apps.googleusercontent.com';
 
   // ── EARLIEST ENTRY DATE ───────────────────────────────────
@@ -2749,18 +2749,18 @@
         const jan4  = new Date(mon.getFullYear(), 0, 4);
         const startOfWeek1 = new Date(jan4); startOfWeek1.setDate(jan4.getDate() - (jan4.getDay() || 7) + 1);
         const weekNum = Math.floor((mon - startOfWeek1) / (7 * 86400000)) + 1;
-        return `${mon.getFullYear()} (Week ${weekNum})`;
+        return `${mon.getFullYear()} Week ${weekNum}`;
       }
       case 'month': {
         const d = new Date(today.getFullYear(), today.getMonth() + offset, 1);
-        return `${d.getFullYear()} (${d.toLocaleDateString('en-GB',{month:'long'})})`;
+        return `${d.getFullYear()} ${d.toLocaleDateString('en-GB',{month:'long'})}`;
       }
       case 'quarter': {
         const m = today.getMonth();
         const qStart = m < 3 ? 0 : m < 6 ? 3 : m < 9 ? 6 : 9;
         const qMon   = new Date(today.getFullYear(), qStart + offset * 3, 1);
         const q      = Math.floor(qMon.getMonth() / 3) + 1;
-        return `${qMon.getFullYear()} (Quarter ${q})`;
+        return `${qMon.getFullYear()} Quarter ${q}`;
       }
       case 'year': {
         return `${today.getFullYear() + offset}`;
@@ -2891,7 +2891,7 @@
       const listClass = `list-${k.replace(/\s+/g, '')}`;
       return `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
         <span class="h-list-name ${listClass}">${esc(k)}</span>
-        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--${listClass});"></div></div>
+        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--list-${k.replace(/\s+/g, '')});"></div></div>
         <span class="h-count">${counts[k]}</span>
       </div>`;
     }).join('');
