@@ -1205,7 +1205,7 @@
 
   function renderWriteTasks() {
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
+    // Don't hide distribute button - it should be visible for all views
     if (writeTaskView === 'list') {
       renderWriteTasksList();
     } else if (writeTaskView === 'time') {
@@ -1227,7 +1227,7 @@
         <span>${esc(list)}</span>
         <div style="display:flex;gap:4px;">
           <div class="j-add-btn ${listClass}" onclick="addTaskToList('${list}')">+ Add</div>
-          <div class="qp-freq-btn${isOpen?' active':''} ${listClass}" onclick="toggleFreqPanel('${list}')">&#x2193; Freq</div>
+          <div class="qp-freq-btn ${isOpen?' active':''} ${listClass}" onclick="toggleFreqPanel('${list}')">&#x2193; Freq</div>
         </div>
       </div>`;
       if (isOpen) {
