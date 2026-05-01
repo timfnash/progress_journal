@@ -31,6 +31,16 @@
       --card-btn-bg:    rgba(180,140,80,0.14);
       --card-btn-bd:    rgba(180,140,80,0.4);
       --card-btn-color: #7a6040;
+
+      /* Task category colors */
+      --list-sustain:   #8a7d5a;
+      --list-sustain-dim: rgba(138,125,90,0.12);
+      --list-personal:  #6b8fa3;
+      --list-personal-dim: rgba(107,143,163,0.12);
+      --list-work:      #4a8f6f;
+      --list-work-dim:  rgba(74,143,111,0.12);
+      --list-zipf:      #7a6fa0;
+      --list-zipf-dim:  rgba(122,111,160,0.12);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -77,8 +87,21 @@
     /* Task list */
     .j-list-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--card-accent); margin: 12px 0 4px; display: flex; align-items: center; justify-content: space-between; }
     .j-list-label:first-child { margin-top: 0; }
+    .j-list-label.list-Sustenance { color: var(--list-sustain); }
+    .j-list-label.list-Personal { color: var(--list-personal); }
+    .j-list-label.list-Work { color: var(--list-work); }
+    .j-list-label.list-Zipf { color: var(--list-zipf); }
     .j-list-count { font-size: 10px; color: var(--card-muted); background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 4px; padding: 1px 6px; text-transform: none; font-weight: 400; }
     .j-add-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
+    .j-add-btn.list-Sustenance { color: var(--list-sustain); background: var(--list-sustain-dim); border-color: var(--list-sustain); }
+    .j-add-btn.list-Personal { color: var(--list-personal); background: var(--list-personal-dim); border-color: var(--list-personal); }
+    .j-add-btn.list-Work { color: var(--list-work); background: var(--list-work-dim); border-color: var(--list-work); }
+    .j-add-btn.list-Zipf { color: var(--list-zipf); background: var(--list-zipf-dim); border-color: var(--list-zipf); }
+    .qp-freq-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
+    .qp-freq-btn.list-Sustenance { color: var(--list-sustain); background: var(--list-sustain-dim); border-color: var(--list-sustain); }
+    .qp-freq-btn.list-Personal { color: var(--list-personal); background: var(--list-personal-dim); border-color: var(--list-personal); }
+    .qp-freq-btn.list-Work { color: var(--list-work); background: var(--list-work-dim); border-color: var(--list-work); }
+    .qp-freq-btn.list-Zipf { color: var(--list-zipf); background: var(--list-zipf-dim); border-color: var(--list-zipf); }
     .j-task-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.06); position: relative; transition: opacity 0.15s ease; }
     .j-task-row:last-child { border-bottom: none; }
     .j-task-row.task-dragging { opacity: 0.4; }
@@ -113,6 +136,10 @@
     /* Pills — clean cards showing title only; drag to move, edges to resize */
     .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
+    .j-tl-pill.list-Sustenance { border-left-color: var(--list-sustain); }
+    .j-tl-pill.list-Personal { border-left-color: var(--list-personal); }
+    .j-tl-pill.list-Work { border-left-color: var(--list-work); }
+    .j-tl-pill.list-Zipf { border-left-color: var(--list-zipf); }
     .j-tl-pill .tl-pill-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; overflow: hidden; }
     .j-tl-pill.dragging { opacity: 0.92; cursor: grabbing; z-index: 20; box-shadow: 0 6px 18px rgba(0,0,0,0.25); }
     .j-tl-pill.dist-selected { border-color: var(--accent); border-width: 2px; box-shadow: 0 0 0 2px rgba(200,169,110,0.3); }
@@ -203,7 +230,6 @@
     .j-more-btn { background: none; border: none; font-size: 16px; cursor: pointer; flex-shrink: 0; padding: 0 4px; color: var(--card-muted); line-height: 1; letter-spacing: 1px; }
     .j-task-menu { position: absolute; right: 0; top: 100%; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; z-index: 20; display: flex; flex-direction: column; gap: 6px; min-width: 160px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .j-task-menu-select { font-size: 13px; padding: 5px 8px; background: var(--card-bg3); border: 1px solid var(--card-border); border-radius: 6px; color: var(--card-accent); font-family: 'Jost', sans-serif; width: 100%; -webkit-appearance: none; }
-    .j-task-menu-time-row { display: flex; align-items: center; gap: 4px; }
     .j-task-menu-del { font-size: 13px; padding: 5px 8px; background: var(--red-dim); border: 1px solid var(--red); border-radius: 6px; color: var(--red); font-family: 'Jost', sans-serif; cursor: pointer; text-align: left; }
     .qp-freq-btn { font-size: 11px; color: var(--card-accent); background: rgba(180,140,80,0.1); border: 1px solid rgba(180,140,80,0.3); border-radius: 4px; padding: 2px 7px; cursor: pointer; font-family: 'Jost', sans-serif; user-select: none; text-transform: none; font-weight: 400; letter-spacing: normal; }
     .qp-freq-btn.active { background: var(--accent); color: #6b4a10; border-color: rgba(160,110,30,0.5); font-weight: 600; }
@@ -288,7 +314,7 @@
           <div class="j-edit-btn" id="distributeBtn" onclick="toggleDistributeMode()">&#x2195; Distribute</div>
           <span style="flex:1;"></span>
           <div id="tasksSaveStatus" style="font-size:12px;"></div>
-          <div class="j-edit-btn" id="writeTaskViewToggle" onclick="toggleWriteTaskView()" style="margin-right:4px;">&#9201; By time</div>
+          <div class="j-edit-btn" id="writeTaskViewToggle" onclick="toggleWriteTaskView()" style="margin-right:4px;">📋 By list</div>
           <div class="j-save-btn" id="tasksSaveBtn" style="display:none;" onclick="saveTasks()">Save</div>
           <div class="j-icon-btn" onclick="refreshTasks()" title="Reload">&#8635;</div>
         </div>
@@ -377,7 +403,7 @@
         <label class="fp-label">Focus
           <select id="filterList" onchange="bookFilterList=this.value;renderBookPage(false);">
             <option value="all">All lists</option>
-            <option value="Basic">Basic</option>
+            <option value="Sustenance">Sustenance</option>
             <option value="Personal">Personal</option>
             <option value="Work">Work</option>
             <option value="Zipf">Zipf</option>
@@ -490,8 +516,8 @@
   let taskRecognition  = null, taskVoiceTranscript = '', taskRecording = false;
   let reflRecognition  = null, reflVoiceTranscript = '', reflRecording = false;
 
-  const LIST_ORDER   = ['Basic', 'Personal', 'Work', 'Zipf'];
-  const LIST_OPTIONS = ['Basic', 'Personal', 'Work', 'Zipf', 'Other'];
+  const LIST_ORDER   = ['Sustenance', 'Personal', 'Work', 'Zipf'];
+  const LIST_OPTIONS = ['Sustenance', 'Personal', 'Work', 'Zipf', 'Other'];
 
   // ── Utilities ─────────────────────────────────────────────
   function isoDate(d)   { return d.toISOString().split('T')[0]; }
@@ -832,7 +858,12 @@
         freqCache[list] = items;
       });
       freqCacheLoaded = true;
-    } catch(e) { /* silent */ }
+      // Re-render tasks display after freq cache is loaded
+      renderWriteTasks();
+    } catch(e) { 
+      console.warn('Error loading freq cache:', e);
+      freqCacheLoaded = true; // Mark as loaded even on error to prevent infinite loops
+    }
   }
 
   function exitWriteToRead() {
@@ -1017,16 +1048,10 @@
     return String(d.getHours()).padStart(2,'0') + ':' + String(min).padStart(2,'0');
   }
 
-  // Start time for a newly added task: the next 5-min slot after the latest
-  // existing task's end time. When several tasks share the same end time
-  // (e.g. batch-uploaded), they should all share the same start time, so we
-  // look at the latest *unique* end time to compute the new start.
+  // Start time for a newly added task: current time
+  // This ensures new tasks have start = end = now, duration = 0
   function newTaskStartTime() {
-    if (!tasksData.length) return nowHHMM();
-    const latestEnd = snapTo5(Math.max(...tasksData.map(t => timeToMin(t.time || '00:00'))));
-    const nowMin = timeToMin(nowHHMM());
-    // Don't set start after now
-    return minToTime(Math.min(latestEnd, nowMin));
+    return nowHHMM();
   }
 
   // Tasks persist in a plain-text format inside the Notion Tasks rich_text:
@@ -1137,15 +1162,29 @@
     });
   }
 
-  // Write task view mode: 'list' (default) or 'time' (timeline, drag-to-reorder by time)
+  // Write task view mode: 'list' (default), 'time' (chronological), or 'duration' (timeline blocks)
   let writeTaskView = 'list';
 
   function toggleWriteTaskView() {
     // Flush any pending input edits from the list view before switching
     flushTaskInputs();
-    writeTaskView = writeTaskView === 'list' ? 'time' : 'list';
+    if (writeTaskView === 'list') {
+      writeTaskView = 'time';
+    } else if (writeTaskView === 'time') {
+      writeTaskView = 'duration';
+    } else {
+      writeTaskView = 'list';
+    }
     const toggle = document.getElementById('writeTaskViewToggle');
-    if (toggle) toggle.innerHTML = writeTaskView === 'list' ? '\u23f1 By time' : '\u2261 By list';
+    if (toggle) {
+      if (writeTaskView === 'list') {
+        toggle.innerHTML = '🕐 By time';
+      } else if (writeTaskView === 'time') {
+        toggle.innerHTML = '⏱ By duration';
+      } else {
+        toggle.innerHTML = '📋 By list';
+      }
+    }
     // Exit distribute mode when switching views
     distributeMode = false;
     distributeSelected.clear();
@@ -1160,9 +1199,14 @@
 
   function renderWriteTasks() {
     const dbtn = document.getElementById('distributeBtn');
-    if (dbtn) dbtn.style.display = '';
-    if (writeTaskView === 'time') { renderWriteTasksTime(); return; }
-    renderWriteTasksList();
+    if (dbtn) dbtn.style.display = writeTaskView === 'list' ? '' : 'none';
+    if (writeTaskView === 'list') {
+      renderWriteTasksList();
+    } else if (writeTaskView === 'time') {
+      renderWriteTasksTimeSequence();
+    } else if (writeTaskView === 'duration') {
+      renderWriteTasksTimeline();
+    }
   }
 
   function renderWriteTasksList() {
@@ -1172,11 +1216,12 @@
     LIST_OPTIONS.forEach(list => {
       const group = groups.find(g => g.list === list);
       const isOpen = openFreqList === list;
-      html += `<div class="j-list-label">
+      const listClass = `list-${list.replace(/\s+/g, '')}`;
+      html += `<div class="j-list-label ${listClass}">
         <span>${esc(list)}</span>
         <div style="display:flex;gap:4px;">
-          <div class="j-add-btn" onclick="addTaskToList('${list}')">+ Add</div>
-          <div class="qp-freq-btn${isOpen?' active':''}" onclick="toggleFreqPanel('${list}')">&#x2193; Freq</div>
+          <div class="j-add-btn ${listClass}" onclick="addTaskToList('${list}')">+ Add</div>
+          <div class="qp-freq-btn${isOpen?' active':''} ${listClass}" onclick="toggleFreqPanel('${list}')">&#x2193; Freq</div>
         </div>
       </div>`;
       if (isOpen) {
@@ -1217,18 +1262,12 @@
             : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
             <span class="j-task-grip" data-grip-idx="${item.idx}">&#x2630;</span>
-            ${distCheck}
             ${starBtn}
             <textarea class="j-task-title" rows="1"
               oninput="var r=this.closest('.j-task-row');var i=parseInt(r.dataset.idx);if(!isNaN(i)&&tasksData[i])tasksData[i].title=this.value;autoExpand(this);markTasksDirty()"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addTaskToList('${list}');}">${esc(item.title)}</textarea>
             <button class="j-more-btn" onclick="toggleTaskMenu(this,${item.idx})">&#x22ef;</button>
             <div class="j-task-menu" style="display:none;">
-              <div class="j-task-menu-time-row">
-                <select class="j-task-menu-select" style="flex:1;" onchange="updateTaskTime(${item.idx},'startTime',this.value,this)">${timeSelectOptions(item.startTime||'')}</select>
-                <span class="j-task-sep">&ndash;</span>
-                <select class="j-task-menu-select" style="flex:1;" onchange="updateTaskTime(${item.idx},'time',this.value,this)">${timeSelectOptions(item.time||'')}</select>
-              </div>
               <select class="j-task-menu-select" onchange="updateTaskList(${item.idx},this.value)">${opts}</select>
               <button class="j-task-menu-del" onclick="deleteTask(${item.idx})">Delete</button>
             </div>
@@ -1315,7 +1354,7 @@
     timelineFocusMin = Math.round(pxInTimeline / TL_PX_PER_MIN) + fromMin;
   }
 
-  function renderWriteTasksTime() {
+  function renderWriteTasksTimeline() {
     // Remember focus before tearing the DOM down, unless this is the first render
     rememberTimelineFocus();
 
@@ -1420,9 +1459,26 @@
       return;
     }
 
+    // Filter to only tasks with actual duration (startTime !== time)
+    const allocatedTasks = tasksData.filter((t, idx) => {
+      const start = t.startTime || t.time || '00:00';
+      const end = t.time || t.startTime || '00:00';
+      return start !== end;
+    });
+
+    if (!allocatedTasks.length) {
+      const empty = document.createElement('div');
+      empty.className = 'j-tl-empty';
+      empty.textContent = 'No time-allocated tasks yet. Assign start and end times to tasks in list view.';
+      wrap.appendChild(empty);
+      display.appendChild(wrap);
+      return;
+    }
+
     // Proper overlap detection: assign each pill to a column so overlapping
     // time ranges sit side-by-side rather than hiding each other.
-    const pillData = tasksData.map((t, idx) => {
+    const pillData = allocatedTasks.map((t, origIdx) => {
+      const idx = tasksData.indexOf(t);
       const s = snapTo5(timeToMin(t.startTime || t.time || '00:00'));
       const e = snapTo5(timeToMin(t.time || t.startTime || '00:00'));
       return { idx, start: s, end: Math.max(s + 5, e) };
@@ -1470,9 +1526,10 @@
       const t = tasksData[p.idx];
       const { col, totalCols } = pillCols.get(p.idx);
       const durationMin = p.end - p.start;
+      const listClass = `list-${t.list.replace(/\s+/g, '')}`;
 
       const pill = document.createElement('div');
-      pill.className = 'j-tl-pill' + (t.starred ? ' starred' : '');
+      pill.className = 'j-tl-pill ' + listClass + (t.starred ? ' starred' : '');
       pill.dataset.idx = p.idx;
       pill.style.top = ((p.start - dayFromMin) * TL_PX_PER_MIN) + 'px';
       pill.style.height = (durationMin * TL_PX_PER_MIN) + 'px';
@@ -1502,7 +1559,7 @@
       tasksData.push({ list: 'Other', starred: false, title: '', time: endTime, startTime: startTime });
       markTasksDirty();
       timelineFocusMin = clickedMin;
-      renderWriteTasksTime();
+      renderWriteTasks();
       // Open editor for the new task after render
       setTimeout(() => openTaskEditor(newIdx), 50);
     });
@@ -1555,6 +1612,66 @@
     });
   }
 
+  // Render chronological time sequence view: all tasks (whether allocated or not)
+  // sorted by start time, then by list order, then by position in list
+  function renderWriteTasksTimeSequence() {
+    const display = document.getElementById('tasksDisplay');
+    display.innerHTML = '';
+
+    if (!tasksData.length) {
+      const card = document.createElement('div');
+      card.className = 'j-card';
+      const body = document.createElement('div');
+      body.className = 'j-card-body';
+      body.innerHTML = '<div class="empty-note">No tasks yet. Add some in list view first.</div>';
+      card.appendChild(body);
+      display.appendChild(card);
+      return;
+    }
+
+    // Sort by startTime, then by list order, then by original position
+    const sorted = tasksData.map((t, idx) => ({
+      ...t,
+      idx,
+      startMin: timeToMin(t.startTime || t.time || '00:00'),
+      listOrder: LIST_ORDER.indexOf(t.list)
+    })).sort((a, b) => {
+      if (a.startMin !== b.startMin) return a.startMin - b.startMin;
+      if (a.listOrder !== b.listOrder) return a.listOrder - b.listOrder;
+      return a.idx - b.idx;
+    });
+
+    const card = document.createElement('div');
+    card.className = 'j-card';
+
+    const header = document.createElement('div');
+    header.className = 'j-card-header';
+    header.innerHTML = '<span class="j-card-title">Chronological Sequence</span>';
+    card.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'j-card-body';
+
+    let html = '';
+    sorted.forEach(t => {
+      const listClass = `list-${t.list.replace(/\s+/g, '')}`;
+      const starIcon = t.starred ? '★' : '☆';
+      const startTime = t.startTime || t.time || '00:00';
+      const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
+      
+      html += `<div class="j-task-row" data-idx="${t.idx}">
+        <span style="font-size: 13px; margin-right: 4px; cursor: pointer; width: 16px; text-align: center;" onclick="toggleStar(${t.idx})">${starIcon}</span>
+        <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px;">${esc(startTime)}</span>
+        <span class="${listClass}" style="font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; min-width: 70px; padding: 0 4px;">${esc(listLabel)}</span>
+        <span class="j-task-title" style="flex: 1; color: var(--card-text); font-size: 13px;">${esc(t.title || '(untitled)')}</span>
+      </div>`;
+    });
+
+    body.innerHTML = html;
+    card.appendChild(body);
+    display.appendChild(card);
+  }
+
   // ── Drag handlers ─────────────────────────────────────────
   // Point drag: single time (Day start). Pill has fixed slot height.
   function attachPointDrag(pill, timeline, dropHint, dayFromMin, adapter) {
@@ -1599,7 +1716,7 @@
       const newTime = minToTime(snappedMin);
       if (adapter.getTime() !== newTime) adapter.setTime(newTime);
       timelineFocusMin = snappedMin;
-      renderWriteTasksTime();
+      renderWriteTasks();
     }
 
     pill.addEventListener('pointerdown', onDown);
@@ -1739,7 +1856,7 @@
         markTasksDirty();
         timelineFocusMin = timeToMin(t.startTime);
       }
-      renderWriteTasksTime();
+      renderWriteTasks();
     }
 
     pill.addEventListener('pointerdown', onDown);
@@ -1814,21 +1931,14 @@
       const newTitle = overlay.querySelector('#editorTitle').value;
 
       let changed = false;
-      const newStartMin = timeToMin(newStart);
-      const newEndMin   = timeToMin(newEnd);
-      if (newEndMin <= newStartMin) {
-        showStatus('tasksSaveStatus', 'End time must be after start time.', 'err');
-        autoClear('tasksSaveStatus', 3000);
-      } else {
-        if (t.startTime !== newStart) { t.startTime = newStart; changed = true; }
-        if (t.time !== newEnd)        { t.time = newEnd; changed = true; }
-      }
+      if (t.startTime !== newStart) { t.startTime = newStart; changed = true; }
+      if (t.time !== newEnd)        { t.time = newEnd; changed = true; }
       if (t.list !== newList)       { t.list = newList; changed = true; }
       if (t.title !== newTitle)     { t.title = newTitle; changed = true; }
       if (changed) markTasksDirty();
     }
     document.body.removeChild(overlay);
-    renderWriteTasksTime();
+    renderWriteTasks();
   }
 
   function toggleTaskMenu(btn, idx) {
@@ -2028,26 +2138,6 @@
     grip.addEventListener('pointercancel', onUp);
   }
   function updateTaskList(i,v){if(tasksData[i]){tasksData[i].list=v;markTasksDirty();renderWriteTasks();}}
-  function updateTaskTime(i, field, value, sel) {
-    if (!tasksData[i]) return;
-    const t = tasksData[i];
-    const startMin = field === 'startTime' ? timeToMin(value) : timeToMin(t.startTime || '00:00');
-    const endMin   = field === 'time'      ? timeToMin(value) : timeToMin(t.time      || '00:00');
-    if (field === 'time' && endMin <= startMin) {
-      sel.value = t.time || '';
-      showStatus('tasksSaveStatus', 'End time must be after start time.', 'err');
-      autoClear('tasksSaveStatus', 3000);
-      return;
-    }
-    if (field === 'startTime' && t.time && startMin >= endMin) {
-      sel.value = t.startTime || '';
-      showStatus('tasksSaveStatus', 'Start time must be before end time.', 'err');
-      autoClear('tasksSaveStatus', 3000);
-      return;
-    }
-    t[field] = value;
-    markTasksDirty();
-  }
   function deleteTask(i){tasksData.splice(i,1);markTasksDirty();renderWriteTasks();}
   function toggleStar(i){if(!tasksData[i])return;tasksData[i].starred=!tasksData[i].starred;markTasksDirty();renderWriteTasks();}
 
@@ -2083,15 +2173,19 @@
       applyBtn.style.opacity = count >= 2 ? '1' : '0.4';
       applyBtn.style.pointerEvents = count >= 2 ? 'auto' : 'none';
     }
-    // Update default times based on selection — use display order (tasksData index), not time order
+    // Update default times based on selection
     if (count >= 2) {
-      const indices = [...distributeSelected].sort((a, b) => a - b);
-      const first = tasksData[indices[0]];
-      const last  = tasksData[indices[indices.length - 1]];
+      const indices = [...distributeSelected].sort((a,b) => {
+        const aStart = timeToMin(tasksData[a]?.startTime || tasksData[a]?.time || '00:00');
+        const bStart = timeToMin(tasksData[b]?.startTime || tasksData[b]?.time || '00:00');
+        return aStart - bStart;
+      });
+      const earliest = tasksData[indices[0]];
+      const latest = tasksData[indices[indices.length - 1]];
       const fromSel = bar.querySelector('#distFrom');
       const toSel = bar.querySelector('#distTo');
-      if (fromSel && !fromSel._userChanged) fromSel.value = first.startTime || first.time || '00:00';
-      if (toSel && !toSel._userChanged) toSel.value = last.time || last.startTime || '00:00';
+      if (fromSel && !fromSel._userChanged) fromSel.value = earliest.startTime || earliest.time || '00:00';
+      if (toSel && !toSel._userChanged) toSel.value = latest.time || latest.startTime || '00:00';
     }
     // Update checkboxes visually
     document.querySelectorAll('.j-dist-check').forEach(cb => {
@@ -2107,8 +2201,12 @@
     const toMin = timeToMin(bar.querySelector('#distTo').value);
     if (toMin <= fromMin) { showStatus('tasksSaveStatus', 'End must be after start.', 'err'); autoClear('tasksSaveStatus', 3000); return; }
 
-    // Sort selected tasks by their position in tasksData (display/drag-drop order)
-    const indices = [...distributeSelected].sort((a, b) => a - b);
+    // Sort selected tasks by their current start time to preserve order
+    const indices = [...distributeSelected].sort((a,b) => {
+      const aStart = timeToMin(tasksData[a]?.startTime || tasksData[a]?.time || '00:00');
+      const bStart = timeToMin(tasksData[b]?.startTime || tasksData[b]?.time || '00:00');
+      return aStart - bStart;
+    });
 
     const n = indices.length;
     const totalMin = toMin - fromMin;
