@@ -1656,7 +1656,6 @@
     let html = '';
     sorted.forEach(t => {
       const listClass = `list-${t.list.replace(/\s+/g, '')}`;
-      const starIcon = t.starred ? '★' : '☆';
       const startTime = t.startTime || t.time || '00:00';
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const isSelected = distributeMode && distributeSelected.has(t.idx);
@@ -1664,13 +1663,12 @@
       // Build menu HTML (like in list view)
       const listOpts = LIST_OPTIONS.map(l => `<option value="${esc(l)}"${t.list===l?' selected':''}>${esc(l)}</option>`).join('');
       
-      html += `<div class="j-task-row${isSelected ? ' dist-selected' : ''}" data-idx="${t.idx}" style="position: relative;">
-        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onchange="toggleDistributeSelection(${t.idx})">` : ''}
-        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center; flex-shrink: 0;" onclick="toggleStar(${t.idx})">${starIcon}</span>
-        <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px; flex-shrink: 0;">${esc(startTime)}</span>
-        <span class="j-add-btn ${listClass}" style="font-size: 9px; margin: 0; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
-        <span style="flex: 1; color: var(--card-text); font-size: 13px; margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
-        <button class="j-more-btn" onclick="toggleTaskMenu(this,${t.idx})" style="position: relative; flex-shrink: 0;">⋯</button>
+      html += `<div class="j-read-task${isSelected ? ' dist-selected' : ''} ${t.starred?'starred':''}" data-idx="${t.idx}">
+        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onchange="toggleDistributeSelection(${t.idx})" style="margin-right: 6px;">` : ''}
+        <span class="j-read-time">${esc(startTime)}</span>
+        <span class="j-add-btn ${listClass}" style="font-size:11px;margin:0;padding:1px 5px;">${esc(listLabel)}</span>
+        <span class="j-read-title" style="margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
+        <button class="j-more-btn" onclick="event.stopPropagation(); toggleTaskMenu(this,${t.idx})" style="position: relative; flex-shrink: 0; margin-left: auto;">⋯</button>
         <div class="j-task-menu" style="display:none;">
           <select class="j-task-menu-select" onchange="updateTaskList(${t.idx},this.value)">${listOpts}</select>
           <div style="display: flex; gap: 4px; font-size: 11px;">
