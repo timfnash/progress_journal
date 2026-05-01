@@ -177,7 +177,7 @@
     .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: baseline; gap: 4px; }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
-    .j-read-task.starred::before { content: '★'; color: #d4a574; }
+    .j-read-task.starred::before { content: '★'; color: #d4a574 !important; }
     .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; flex-shrink: 0; }
     .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; text-transform: none; }
     .j-read-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
@@ -2894,9 +2894,10 @@
     const max=Math.max(...Object.values(counts));
     let html=keys.map(k=>{
       const listClass = `list-${k.replace(/\s+/g, '')}`;
+      const varName = k.replace(/\s+/g, '').toLowerCase();
       return `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
         <span class="h-list-name ${listClass}">${esc(k)}</span>
-        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--list-${k.replace(/\s+/g, '')});"></div></div>
+        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--list-${varName});"></div></div>
         <span class="h-count">${counts[k]}</span>
       </div>`;
     }).join('');
