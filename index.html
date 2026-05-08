@@ -133,7 +133,7 @@
     .j-timeline-wrap { position: relative; padding: 4px 8px 8px; }
     .j-timeline { position: relative; margin-left: 42px; min-height: 100px; }
     .j-tl-hour-label { position: absolute; left: -42px; width: 36px; text-align: right; font-size: 10px; color: var(--card-muted); font-family: 'Jost', sans-serif; letter-spacing: 0.04em; transform: translateY(-6px); }
-    .j-tl-rule-5   { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.04); pointer-events: none; }
+    .j-tl-rule-5   { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.04); pointer-events: none; margin-bottom: 13px; }
     .j-tl-rule-15  { position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.09); pointer-events: none; }
     .j-tl-rule-hour{ position: absolute; left: 0; right: 0; height: 1px; background: rgba(0,0,0,0.22); pointer-events: none; }
     .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
@@ -1655,6 +1655,8 @@
       const starIcon = t.starred ? '★' : '☆';
       const starColor = t.starred ? '#d4a574' : '#b07030';
       const startTime = t.startTime || t.time || '00:00';
+      const dur = taskDurationMin(t);
+      const durStr = dur > 0 ? `[${formatDuration(dur)}]` : '';
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const isSelected = distributeMode && distributeSelected.has(t.idx);
       
@@ -1665,6 +1667,7 @@
         ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onclick="toggleDistributeCheck(${t.idx})">` : ''}
         <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center; flex-shrink: 0; color: ${starColor};" onclick="toggleStar(${t.idx})">${starIcon}</span>
         <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px; flex-shrink: 0;">${esc(startTime)}</span>
+        ${durStr ? `<span style="font-size: 11px; color: var(--card-muted); margin: 0 2px; flex-shrink: 0;">${durStr}</span>` : ''}
         <span class="j-add-btn ${listClass}" style="font-size: 9px; margin: 0; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
         <span style="flex: 1; color: var(--card-text); font-size: 13px; margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
         <button class="j-more-btn" onclick="toggleTaskMenu(this,${t.idx})" style="position: relative; flex-shrink: 0;">⋯</button>
