@@ -1115,7 +1115,7 @@
     const list = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
     const time = t.time ? `[${t.time}] ` : '';
     const dur = taskDurationMin(t);
-    const durStr = dur > 0 ? `[${dur}m] ` : '';
+    const durStr = dur >= 0 ? `[${dur}m] ` : '';
     const star = t.starred ? '★ ' : '';
     return `• [${list}] ${time}${durStr}${star}${t.title}`;
   }
