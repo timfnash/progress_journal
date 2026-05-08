@@ -1981,7 +1981,8 @@
 
   function addFromFreq(list, title) {
     if (tasksData.map(t=>t.title.trim().toLowerCase()).includes(title.trim().toLowerCase())) return;
-    tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM(), startTime: '' });
+    const now = nowHHMM();
+    tasksData.push({ list, starred: false, title: title.trim(), time: now, startTime: now });
     markTasksDirty(); renderWriteTasks();
     setTimeout(()=>{
       const rows = document.querySelectorAll('.j-task-row');
