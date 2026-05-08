@@ -139,7 +139,7 @@
     .j-tl-drop-hint{ position: absolute; left: 0; right: 0; background: rgba(200,169,110,0.25); border: 1px dashed var(--card-accent); border-radius: 4px; pointer-events: none; display: none; z-index: 5; }
 
     /* Pills — clean cards showing title only; drag to move, edges to resize */
-    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .j-tl-pill { position: absolute; background: var(--card-bg2); border: 1px solid var(--card-border); border-left: 3px solid var(--card-accent); border-radius: 4px; padding: 3px 7px; font-size: 12px; color: var(--card-text); font-family: 'Jost', sans-serif; line-height: 1.35; user-select: none; touch-action: auto; box-shadow: 0 1px 3px rgba(0,0,0,0.06); z-index: 2; overflow: hidden; cursor: grab; display: flex; align-items: flex-start; transition: transform 0.15s ease, box-shadow 0.15s ease; min-height: 24px; }
     .j-tl-pill.starred { border-left-color: #b07030; background: #f5ead1; }
     .j-tl-pill.list-Basic { border-left-color: var(--list-basic); }
     .j-tl-pill.list-Personal { border-left-color: var(--list-personal); }
@@ -177,7 +177,7 @@
     .j-read-task { font-size: 14px; color: var(--card-text); line-height: 1.6; padding: 5px 6px 5px 28px; position: relative; border-bottom: 1px solid rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: baseline; gap: 4px; }
     .j-read-task:last-child { border-bottom: none; }
     .j-read-task::before { content: '☆'; position: absolute; left: 6px; color: var(--card-muted); font-size: 13px; line-height: 1.6; }
-    .j-read-task.starred::before { content: '★'; color: #d4a574 !important; }
+    .j-read-task.starred::before { content: '★'; color: #d4a574; }
     .j-read-time { font-size: 11px; color: var(--card-muted); margin-right: 5px; flex-shrink: 0; }
     .j-read-dur  { font-size: 10px; color: var(--card-muted); margin-left: auto; flex-shrink: 0; padding-left: 6px; text-transform: none; }
     .j-read-title { flex: 1; min-width: 0; word-wrap: break-word; overflow-wrap: break-word; }
@@ -259,12 +259,7 @@
     .review-summary { font-size: 14px; color: var(--card-text); line-height: 1.7; padding: 12px 14px; background: var(--card-bg3); border-radius: 8px; margin-bottom: 14px; white-space: pre-line; }
     .review-date-group { margin-bottom: 4px; }
     .review-date-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-muted); padding: 8px 6px 4px 0; display: flex; justify-content: space-between; align-items: center; }
-    .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; width: 72px; flex-shrink: 0; }
-    .h-list-name.list-Basic { color: var(--list-basic); }
-    .h-list-name.list-Personal { color: var(--list-personal); }
-    .h-list-name.list-Work { color: var(--list-work); }
-    .h-list-name.list-Zipf { color: var(--list-zipf); }
-    .h-list-name.list-Other { color: var(--list-other); }
+    .h-list-name { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--card-accent); width: 72px; flex-shrink: 0; }
     .h-bar-wrap  { flex: 1; height: 8px; background: var(--card-bg3); border-radius: 4px; overflow: hidden; }
     .h-bar-fill  { height: 100%; border-radius: 4px; background: var(--accent); }
     .h-count     { font-size: 12px; font-weight: 600; color: var(--card-text); min-width: 40px; text-align: right; flex-shrink: 0; font-family: 'Jost', sans-serif; white-space: nowrap; text-transform: none; }
@@ -1272,6 +1267,7 @@
             ? `<input type="checkbox" class="j-dist-check" data-idx="${item.idx}" ${distributeSelected.has(item.idx)?'checked':''} onclick="toggleDistributeCheck(${item.idx})">`
             : '';
           html += `<div class="j-task-row" data-idx="${item.idx}">
+            ${distCheck}
             <span class="j-task-grip" data-grip-idx="${item.idx}">&#x2630;</span>
             ${starBtn}
             <textarea class="j-task-title" rows="1"
@@ -1656,6 +1652,7 @@
     let html = '';
     sorted.forEach(t => {
       const listClass = `list-${t.list.replace(/\s+/g, '')}`;
+      const starIcon = t.starred ? '★' : '☆';
       const startTime = t.startTime || t.time || '00:00';
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const isSelected = distributeMode && distributeSelected.has(t.idx);
@@ -1663,12 +1660,13 @@
       // Build menu HTML (like in list view)
       const listOpts = LIST_OPTIONS.map(l => `<option value="${esc(l)}"${t.list===l?' selected':''}>${esc(l)}</option>`).join('');
       
-      html += `<div class="j-read-task${isSelected ? ' dist-selected' : ''} ${t.starred?'starred':''}" data-idx="${t.idx}">
-        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onchange="toggleDistributeSelection(${t.idx})" style="margin-right: 6px;">` : ''}
-        <span class="j-read-time">${esc(startTime)}</span>
-        <span class="j-add-btn ${listClass}" style="font-size:11px;margin:0;padding:1px 5px;">${esc(listLabel)}</span>
-        <span class="j-read-title" style="margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
-        <button class="j-more-btn" onclick="event.stopPropagation(); toggleTaskMenu(this,${t.idx})" style="position: relative; flex-shrink: 0; margin-left: auto;">⋯</button>
+      html += `<div class="j-task-row${isSelected ? ' dist-selected' : ''}" data-idx="${t.idx}" style="position: relative;">
+        ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onclick="toggleDistributeCheck(${t.idx})">` : ''}
+        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center; flex-shrink: 0;" onclick="toggleStar(${t.idx})">${starIcon}</span>
+        <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px; flex-shrink: 0;">${esc(startTime)}</span>
+        <span class="j-add-btn ${listClass}" style="font-size: 9px; margin: 0; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
+        <span style="flex: 1; color: var(--card-text); font-size: 13px; margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
+        <button class="j-more-btn" onclick="toggleTaskMenu(this,${t.idx})" style="position: relative; flex-shrink: 0;">⋯</button>
         <div class="j-task-menu" style="display:none;">
           <select class="j-task-menu-select" onchange="updateTaskList(${t.idx},this.value)">${listOpts}</select>
           <div style="display: flex; gap: 4px; font-size: 11px;">
@@ -1982,7 +1980,7 @@
 
   function addFromFreq(list, title) {
     if (tasksData.map(t=>t.title.trim().toLowerCase()).includes(title.trim().toLowerCase())) return;
-    tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM(), startTime: newTaskStartTime() });
+    tasksData.push({ list, starred: false, title: title.trim(), time: nowHHMM(), startTime: '' });
     markTasksDirty(); renderWriteTasks();
     setTimeout(()=>{
       const rows = document.querySelectorAll('.j-task-row');
@@ -2892,10 +2890,9 @@
     const max=Math.max(...Object.values(counts));
     let html=keys.map(k=>{
       const listClass = `list-${k.replace(/\s+/g, '')}`;
-      const varName = k.replace(/\s+/g, '').toLowerCase();
       return `<div class="h-stat-row" id="stat-row-${k}" onclick="toggleReviewList('${k}')">
         <span class="h-list-name ${listClass}">${esc(k)}</span>
-        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--list-${varName});"></div></div>
+        <div class="h-bar-wrap"><div class="h-bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:var(--list-${k.replace(/\s+/g, '')});"></div></div>
         <span class="h-count">${counts[k]}</span>
       </div>`;
     }).join('');
