@@ -1662,7 +1662,7 @@
       const starColor = t.starred ? '#d4a574' : '#b07030';
       const startTime = t.startTime || t.time || '00:00';
       const dur = taskDurationMin(t);
-      const durStr = dur > 0 ? `[${formatDuration(dur)}]` : '';
+      const durStr = dur > 0 ? formatDuration(dur) : '';
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const isSelected = distributeMode && distributeSelected.has(t.idx);
       
