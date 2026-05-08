@@ -123,7 +123,7 @@
     .j-del-btn  { background: none; border: none; font-size: 13px; cursor: pointer; flex-shrink: 0; padding: 0 6px 0 0; color: #bbb; line-height: 1; }
 
     /* Distribute mode */
-    .j-dist-check { width: 18px; height: 18px; accent-color: var(--card-accent); flex-shrink: 0; cursor: pointer; margin: 0; }
+    .j-dist-check { width: 18px; height: 18px; accent-color: var(--card-accent); flex-shrink: 0; cursor: pointer; margin: 0; appearance: auto; }
     .j-dist-bar { position: sticky; bottom: 0; left: 0; right: 0; background: var(--card-bg2); border-top: 1px solid var(--card-border); padding: 10px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; z-index: 10; }
     .j-dist-bar select { font-size: 12px; padding: 4px 6px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 5px; color: var(--card-text); font-family: 'Jost', sans-serif; -webkit-appearance: none; }
     .j-dist-bar .j-save-btn { padding: 6px 14px; }
@@ -1653,6 +1653,7 @@
     sorted.forEach(t => {
       const listClass = `list-${t.list.replace(/\s+/g, '')}`;
       const starIcon = t.starred ? '★' : '☆';
+      const starColor = t.starred ? '#d4a574' : '#b07030';
       const startTime = t.startTime || t.time || '00:00';
       const listLabel = LIST_OPTIONS.includes(t.list) ? t.list : 'Other';
       const isSelected = distributeMode && distributeSelected.has(t.idx);
@@ -1662,7 +1663,7 @@
       
       html += `<div class="j-task-row${isSelected ? ' dist-selected' : ''}" data-idx="${t.idx}" style="position: relative;">
         ${distributeMode ? `<input type="checkbox" class="j-dist-check" ${isSelected ? 'checked' : ''} onclick="toggleDistributeCheck(${t.idx})">` : ''}
-        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center; flex-shrink: 0;" onclick="toggleStar(${t.idx})">${starIcon}</span>
+        <span style="font-size: 13px; margin: 0 4px; cursor: pointer; width: 16px; text-align: center; flex-shrink: 0; color: ${starColor};" onclick="toggleStar(${t.idx})">${starIcon}</span>
         <span style="font-weight: 600; color: var(--card-text); min-width: 48px; font-size: 12px; flex-shrink: 0;">${esc(startTime)}</span>
         <span class="j-add-btn ${listClass}" style="font-size: 9px; margin: 0; padding: 2px 6px; flex-shrink: 0;">${esc(listLabel)}</span>
         <span style="flex: 1; color: var(--card-text); font-size: 13px; margin: 0 6px;">${esc(t.title || '(untitled)')}</span>
